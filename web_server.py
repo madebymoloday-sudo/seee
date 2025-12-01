@@ -134,9 +134,18 @@ def handle_disconnect():
     print(f"❌ Клиент отключен от веб-интерфейса")
 
 
-def run_web_server(host='127.0.0.1', port=5000):
+def run_web_server(host='127.0.0.1', port=None):
     """Запустить веб-сервер"""
     import socket
+    import os
+    
+    # Получить порт из переменной окружения (Railway, Heroku и т.д.) или использовать по умолчанию
+    if port is None:
+        port = int(os.getenv('PORT', 5000))
+    
+    # Для Railway и других платформ использовать 0.0.0.0
+    if os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('PORT'):
+        host = '0.0.0.0'
     
     # Проверить, свободен ли порт
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
