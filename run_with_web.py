@@ -134,9 +134,24 @@ async def improvement_cycle_with_restart(main_bot_instance=None):
                 })
                 
                 # Уведомление: Исправления применены успешно
+                git_info = ""
+                if update_result.get('git_committed'):
+                    if update_result.get('git_pushed'):
+                        git_info = f"\n📤 Изменения автоматически отправлены в Git ({update_result.get('git_branch', 'main')})"
+                        web_chat_viewer.add_agent_notification(
+                            title="📤 Изменения отправлены в Git",
+                            message=f"Код автоматически закоммичен и отправлен в GitHub. Railway обновится автоматически.",
+                            notification_type="success",
+                            details=f"Ветка: {update_result.get('git_branch', 'main')}"
+                        )
+                    else:
+                        git_info = "\n⚠️ Изменения закоммичены локально, но не отправлены в remote"
+                else:
+                    git_info = "\n⚠️ Автоматический коммит не выполнен"
+                
                 web_chat_viewer.add_agent_notification(
                     title="✅ Исправления применены!",
-                    message=f"Успешно применено {update_result['fixes_applied']} исправлений в коде.",
+                    message=f"Успешно применено {update_result['fixes_applied']} исправлений в коде.{git_info}",
                     notification_type="success",
                     details=f"Перезапускаю бота с обновленным кодом..."
                 )

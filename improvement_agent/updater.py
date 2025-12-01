@@ -33,6 +33,15 @@ class CodeUpdater:
             )
         except:
             pass  # web_chat_viewer может быть недоступен
+        
+        # Инициализировать Git авто-обновление
+        try:
+            from improvement_agent.git_auto_updater import GitAutoUpdater
+            self.git_updater = GitAutoUpdater()
+        except Exception as e:
+            print(f"[CodeUpdater] ⚠️  Git авто-обновление недоступно: {e}")
+            self.git_updater = None
+        
         if not fixes:
             return {
                 "status": "no_fixes",
@@ -51,6 +60,36 @@ class CodeUpdater:
             "fixes_failed": len([r for r in results if not r["success"]]),
             "details": results
         }
+        
+        # Автоматически закоммитить и запушить изменения, если применены исправления
+        if update_result["fixes_applied"] > 0 and hasattr(self, 'git_updater') and self.git_updater:
+            try:
+                from monitor.error_tracker import error_tracker
+                error_summary = error_tracker.get_error_summary()
+                error_desc = f"Найдено {error_summary.get('total_errors', 0)} ошибок"
+                
+                git_result = self.git_updater.auto_commit_and_push(
+                    fixes_applied=update_result["fixes_applied"],
+                    error_summary=error_desc
+                )
+                
+                if git_result["success"]:
+                    update_result["git_committed"] = True
+                    if git_result.get("pushed"):
+                        update_result["git_pushed"] = True
+                        update_result["git_branch"] = git_result.get("branch", "main")
+                        print(f"[CodeUpdater] ✅ Изменения автоматически отправлены в Git: {git_result.get('branch', 'main')}")
+                    else:
+                        update_result["git_pushed"] = False
+                        print(f"[CodeUpdater] ⚠️  Изменения закоммичены, но не отправлены: {git_result.get('push_warning', 'unknown')}")
+                else:
+                    update_result["git_committed"] = False
+                    print(f"[CodeUpdater] ⚠️  Не удалось закоммитить изменения: {git_result.get('error', 'unknown')}")
+            except Exception as e:
+                print(f"[CodeUpdater] ⚠️  Ошибка при автоматическом коммите: {e}")
+                update_result["git_error"] = str(e)
+        
+        return update_result
     
     async def _apply_single_fix(self, fix: Dict) -> Dict:
         """Применить одно исправление"""

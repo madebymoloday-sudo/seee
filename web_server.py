@@ -3,7 +3,7 @@ import asyncio
 import threading
 import json
 from datetime import datetime
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from flask_socketio import SocketIO, emit
 import sys
 import os
@@ -112,6 +112,54 @@ def get_messages():
 def get_status():
     """API для получения статуса системы"""
     return jsonify(improvement_status)
+
+
+@app.route('/webhook/github', methods=['POST'])
+def github_webhook():
+    """Webhook для получения уведомлений от GitHub"""
+    try:
+        data = request.get_json()
+        event_type = request.headers.get('X-GitHub-Event', 'unknown')
+        
+        print(f"[Webhook] Получено событие от GitHub: {event_type}")
+        
+        # Уведомить о событии
+        web_chat_viewer.add_info(f"📥 Webhook от GitHub: {event_type}")
+        
+        if event_type == 'push':
+            web_chat_viewer.add_agent_notification(
+                title="📥 GitHub Push",
+                message="Получен push в репозиторий. Railway начнет автоматическое обновление...",
+                notification_type="info",
+                details=f"Ветка: {data.get('ref', 'unknown')}"
+            )
+        
+        return jsonify({"status": "ok", "event": event_type}), 200
+    except Exception as e:
+        print(f"[Webhook] Ошибка обработки webhook: {e}")
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@app.route('/webhook/update', methods=['POST'])
+def update_webhook():
+    """Webhook для обновления кода (вызывается агентом)"""
+    try:
+        data = request.get_json()
+        
+        print(f"[Webhook] Получен запрос на обновление от агента")
+        
+        # Уведомить о событии
+        web_chat_viewer.add_agent_notification(
+            title="🔄 Запрос на обновление",
+            message=data.get('message', 'Агент запросил обновление кода'),
+            notification_type="info",
+            details=data.get('details', '')
+        )
+        
+        return jsonify({"status": "ok", "message": "Обновление инициировано"}), 200
+    except Exception as e:
+        print(f"[Webhook] Ошибка обработки webhook обновления: {e}")
+        return jsonify({"status": "error", "error": str(e)}), 500
 
 
 @socketio.on('connect')
