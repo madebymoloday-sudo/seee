@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта не территория - AI Психолог</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="map-container">
+        <!-- Левая часть: Таблица карты -->
+        <div class="map-table-section">
+            <div class="map-header">
+                <h1>🗺️ Карта не территория</h1>
+                <button class="btn-back" onclick="window.location.href='/'">← Назад к сессиям</button>
+            </div>
+            
+            <div class="map-table-wrapper">
+                <table class="map-table">
+                    <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>Событие</th>
+                            <th>Эмоции</th>
+                            <th>Идеи</th>
+                            <th>✓</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mapTableBody">
+                        <!-- Записи будут добавлены через JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Правая часть: Диалоговое окно -->
+        <div class="map-chat-section">
+            <div class="chat-header">
+                <h2>Диалог для заполнения карты</h2>
+            </div>
+            
+            <div class="chat-messages" id="mapChatMessages">
+                <!-- Приветственное сообщение -->
+                <div class="message ai-message">
+                    <div class="message-content">
+                        <h3>Добро пожаловать!</h3>
+                        <p>Это ваша <strong>Карта не территория</strong> — инструмент, который поможет вам увидеть и понять, что происходит в вашей жизни.</p>
+                        <p>Здесь мы будем вместе создавать карту ваших событий, эмоций и идей, которые вызывают эти эмоции. Эта карта поможет вам:</p>
+                        <ul>
+                            <li>Увидеть со стороны, что происходит у вас в голове</li>
+                            <li>Понять связь между событиями, эмоциями и идеями</li>
+                            <li>Ориентироваться на то, что именно нужно разбирать на сессиях</li>
+                        </ul>
+                        <p><strong>Важно:</strong> Все данные конфиденциальны и зашифрованы. Вы можете быть честным и откровенным в этом пространстве.</p>
+                        <p>Напишите <strong>"старт"</strong>, если готовы начать заполнять вашу карту или хотите дополнить её.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="mapMessageForm" class="message-form">
+                <input type="text" id="mapMessageInput" placeholder="Напишите ваше сообщение..." autocomplete="off">
+                <button type="submit" id="mapSendBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+</body>
+</html>
+

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Психолог</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Боковая панель с сессиями -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <button class="btn-new-chat" id="newChatBtn">
+                    <span>+</span> Новая сессия
+                </button>
+                <button class="btn-map" id="mapBtn">
+                    🗺️ Карта не территория
+                </button>
+            </div>
+            
+            <div class="sessions-list" id="sessionsList">
+                <!-- Сессии будут загружены через JS -->
+            </div>
+            
+            <div class="sidebar-footer">
+                <button class="btn-download" id="downloadDocBtn">Скачать документ</button>
+                <button class="btn-cabinet" id="cabinetBtn">👤 Личный кабинет</button>
+                <a href="/logout" class="btn-logout">Выйти</a>
+            </div>
+        </aside>
+        
+        <!-- Основная область чата -->
+        <main class="chat-container">
+            <div class="chat-header">
+                <h2 id="chatTitle">Новая сессия</h2>
+                <button class="btn-pause-session" id="pauseSessionBtn" style="display: none;">
+                    ⏸️ Приостановить сессию
+                </button>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <div class="welcome-message">
+                    <h3>Добро пожаловать!</h3>
+                    <p>Я ваш AI-психолог, и я использую <strong>нестандартную систему работы</strong>, которая поможет вам глубже понять ваши переживания.</p>
+                    
+                    <div class="info-section">
+                        <h4>Что вас ждет:</h4>
+                        <p>Я буду задавать вопросы, которые могут показаться необычными, но они помогут нам построить "систему убеждений" ваших идей и представлений.</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>Терминология, которую мы будем использовать:</h4>
+                        <ul>
+                            <li><strong>Идея</strong> - это любое убеждение, мысль или представление, которое у вас есть (например, "я некрасивая", "я неудачник", "меня никто не любит")</li>
+                            <li><strong>Система убеждений</strong> - это структура, показывающая из чего состоит ваша идея, откуда она взялась и какие последствия имеет</li>
+                            <li><strong>Основатель идеи</strong> - человек (или общество, или даже вы сами), которому было выгодно, чтобы такая идея у вас появилась</li>
+                            <li><strong>Цель появления идеи</strong> - зачем эта идея была "поселена" в вашу голову (например, манипуляция, перекладывание ответственности, защита)</li>
+                            <li><strong>Последствия</strong> - как существование этой идеи влияет на вашу жизнь (эмоционально и физически)</li>
+                        </ul>
+                    </div>
+                    
+                    <p class="reassurance">Не пугайтесь этих терминов - я буду объяснять по ходу работы. Просто будьте открыты и честны со мной.</p>
+                    <p>Начните диалог, написав мне сообщение ниже.</p>
+                </div>
+            </div>
+            
+            <div class="input-container">
+                <form id="messageForm">
+                    <textarea 
+                        id="messageInput" 
+                        placeholder="Напишите ваше сообщение..." 
+                        rows="1"
+                        autocomplete="off"></textarea>
+                    <button type="button" class="btn-send" id="sendBtn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Модальное окно личного кабинета -->
+    <div id="cabinetModal" class="modal">
+        <div class="modal-content cabinet-modal">
+            <div class="modal-header">
+                <h2>Личный кабинет</h2>
+                <button class="modal-close" id="closeCabinet">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="cabinet-tabs">
+                    <button class="tab-btn active" data-tab="referrals">Рефералы</button>
+                    <button class="tab-btn" data-tab="balance">Баланс</button>
+                    <button class="tab-btn" data-tab="payment">Реквизиты</button>
+                    <button class="tab-btn" data-tab="journal">Журнал сессий</button>
+                    <button class="tab-btn" data-tab="thoughts">Интересные мысли</button>
+                    <button class="tab-btn" data-tab="settings">Настройки</button>
+                </div>
+                
+                <!-- Вкладка Рефералы -->
+                <div class="tab-content active" id="tab-referrals">
+                    <div class="cabinet-section">
+                        <h3>Ваша реферальная ссылка</h3>
+                        <div class="referral-link-box">
+                            <input type="text" id="referralLink" readonly>
+                            <button class="btn-copy" id="copyReferralLink">Копировать</button>
+                        </div>
+                        <p class="info-text">Ваш ID: <strong id="userIdDisplay"></strong></p>
+                        <p class="info-text">Ваш реферальный код: <strong id="referralCodeDisplay"></strong></p>
+                    </div>
+                    
+                    <div class="cabinet-section">
+                        <h3>Ваша реферальная структура</h3>
+                        <div id="referralsTree"></div>
+                    </div>
+                </div>
+                
+                <!-- Вкладка Баланс -->
+                <div class="tab-content" id="tab-balance">
+                    <div class="cabinet-section">
+                        <h3>Текущий баланс</h3>
+                        <div class="balance-display">
+                            <span class="balance-amount" id="balanceAmount">0.00</span>
+                            <span class="balance-currency">₽</span>
+                        </div>
+                    </div>
+                    
+                    <div class="cabinet-section">
+                        <h3>История транзакций</h3>
+                        <div id="transactionsList"></div>
+                    </div>
+                </div>
+                
+                <!-- Вкладка Реквизиты -->
+                <div class="tab-content" id="tab-payment">
+                    <form id="paymentDetailsForm">
+                        <div class="form-group">
+                            <label>ФИО *</label>
+                            <input type="text" id="fullName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Номер телефона *</label>
+                            <input type="tel" id="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Дата рождения *</label>
+                            <input type="date" id="birthDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>ИНН *</label>
+                            <input type="text" id="inn" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Форма оплаты *</label>
+                            <select id="paymentForm" required>
+                                <option value="">Выберите форму</option>
+                                <option value="self_employed">Самозанятый</option>
+                                <option value="ip">ИП</option>
+                                <option value="ooo">ООО</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Дополнительные поля в зависимости от формы оплаты -->
+                        <div id="paymentDetailsFields"></div>
+                        
+                        <button type="submit" class="btn-save">Сохранить реквизиты</button>
+                    </form>
+                </div>
+                
+                <!-- Вкладка Журнал сессий -->
+                <div class="tab-content" id="tab-journal">
+                    <div class="cabinet-section">
+                        <h3>Журнал сессий</h3>
+                        <div id="journalList">
+                            <!-- Записи журнала будут загружены через JS -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Вкладка Интересные мысли -->
+                <div class="tab-content" id="tab-thoughts">
+                    <div class="cabinet-section">
+                        <h3>Интересные мысли</h3>
+                        <button class="btn-add-thought" id="addThoughtBtn">+ Добавить мысль</button>
+                        <div id="thoughtsList">
+                            <!-- Мысли будут загружены через JS -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Вкладка Настройки -->
+                <div class="tab-content" id="tab-settings">
+                    <div class="cabinet-section">
+                        <h3>Язык интерфейса</h3>
+                        <select id="languageSelect">
+                            <option value="ru">Русский</option>
+                            <option value="en">English</option>
+                        </select>
+                        <button class="btn-save" id="saveLanguage">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cabinet.js') }}"></script>
+</body>
+</html>
+
