@@ -893,21 +893,27 @@ body.dark-mode .mobile-menu-content::before {
 .btn-send {
     width: 44px;
     height: 44px;
-    background: var(--ultramarine);
+    background: transparent !important;
     border: none;
     border-radius: 50%;
-    color: white;
+    color: var(--ultramarine);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
     flex-shrink: 0;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: none !important;
 }
 
 .btn-send:hover:not(:disabled) {
-    background: var(--ultramarine-dark);
+    background: transparent !important;
+    opacity: 0.8;
+}
+
+.btn-send svg {
+    stroke: var(--ultramarine);
+    color: var(--ultramarine);
 }
 
 .btn-send:disabled {
