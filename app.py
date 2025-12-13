@@ -10,7 +10,11 @@ from datetime import datetime
 from psychologist_ai import PsychologistAI
 from urllib.parse import urlparse
 from google.oauth2 import id_token
-from google.auth.transport import requests
+from google.auth.transport import requests as google_requests
+import requests
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import pyotp
 import qrcode
 import io
