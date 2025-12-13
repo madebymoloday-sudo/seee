@@ -1028,6 +1028,21 @@ body.dark-mode .mobile-menu-content::before {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
+.about-modal {
+    max-width: 900px;
+    max-height: 95vh;
+    overflow-y: auto;
+}
+
+.header-logo {
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.header-logo:hover {
+    opacity: 0.8;
+}
+
 /* Модальное окно обратной связи - больше размер */
 #feedbackModal .modal-content {
     max-width: 1000px;
