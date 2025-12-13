@@ -1048,6 +1048,11 @@ body {
     .login-box {
         padding-top: 70px;
     }
+    
+    /* На мобильной версии показываем логотип в приветственном сообщении */
+    .welcome-logo {
+        display: block !important;
+    }
     .app-container {
         flex-direction: column;
     }
