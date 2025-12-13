@@ -1041,7 +1041,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     const mobileCabinet = document.getElementById('mobileCabinet');
     
     if (mobileMenuToggleBottom) {
-        mobileMenuToggleBottom.addEventListener('click', function() {
+        mobileMenuToggleBottom.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Не закрываем клавиатуру
             mobileMenu.classList.toggle('active');
         });
     }
@@ -1070,6 +1073,48 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             mobileMenu.classList.remove('active');
         });
+    }
+    
+    // Тумблер темы
+    const themeToggle = document.getElementById('themeToggle');
+    const mobileThemeToggle = document.getElementById('mobileThemeToggle');
+    
+    // Загружаем сохраненную тему
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (themeToggle) {
+            themeToggle.classList.add('active');
+        }
+    }
+    
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleTheme();
+        });
+    }
+    
+    if (mobileThemeToggle) {
+        mobileThemeToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (themeToggle) {
+                themeToggle.click();
+            }
+        });
+    }
+    
+    function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        if (themeToggle) {
+            if (isDark) {
+                themeToggle.classList.add('active');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeToggle.classList.remove('active');
+                localStorage.setItem('theme', 'light');
+            }
+        }
     }
 });
 

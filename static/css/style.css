@@ -726,8 +726,8 @@ body {
     right: 0;
     bottom: 0;
     background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 1001;
 }
 
@@ -735,40 +735,38 @@ body {
     position: fixed;
     bottom: 80px;
     left: 16px;
-    right: 16px;
     background: white;
-    border-radius: 20px 20px 8px 8px;
-    padding: 12px 8px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    border-radius: 16px;
+    padding: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     z-index: 1002;
+    min-width: 200px;
     max-width: 280px;
-    margin-left: auto;
-    margin-right: auto;
     animation: slideUpMenu 0.3s ease-out;
 }
 
 @keyframes slideUpMenu {
     from {
-        transform: translateY(100%);
+        transform: translateY(10px) scale(0.95);
         opacity: 0;
     }
     to {
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
         opacity: 1;
     }
 }
 
-/* Облако из стрелочки */
+/* Пузырек/облачко из стрелочки */
 .mobile-menu-content::before {
     content: '';
     position: absolute;
-    bottom: -8px;
-    right: 20px;
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid white;
+    bottom: -6px;
+    left: 20px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    transform: rotate(45deg);
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .mobile-menu-item {
@@ -785,6 +783,7 @@ body {
     transition: background 0.2s;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 12px;
 }
 
@@ -794,6 +793,46 @@ body {
 
 .mobile-menu-item:last-child {
     margin-bottom: 0;
+}
+
+.mobile-menu-item-text {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+/* Тумблер для темного режима */
+.theme-toggle {
+    position: relative;
+    width: 51px;
+    height: 31px;
+    background: #e5e5ea;
+    border-radius: 31px;
+    cursor: pointer;
+    transition: background 0.3s;
+    flex-shrink: 0;
+}
+
+.theme-toggle.active {
+    background: #34c759;
+}
+
+.theme-toggle::after {
+    content: '';
+    position: absolute;
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    background: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle.active::after {
+    transform: translateX(20px);
 }
 
 .mobile-sidebar-overlay {
