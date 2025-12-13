@@ -436,6 +436,10 @@ def map_page():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'GET':
+        google_client_id = os.environ.get('GOOGLE_CLIENT_ID', '')
+        return render_template('login.html', google_client_id=google_client_id)
+    
     if request.method == 'POST':
         username = request.json.get('username')
         password = request.json.get('password')
