@@ -1007,6 +1007,22 @@ body {
 
 /* ==================== Мобильная версия ==================== */
 @media (max-width: 768px) {
+    /* На планшетах тоже показываем мобильный логотип */
+    .login-logo-desktop {
+        display: none;
+    }
+    
+    .login-logo-mobile {
+        display: block;
+    }
+    
+    .login-logo-mobile .login-logo {
+        max-width: 90px;
+    }
+    
+    .login-box {
+        padding-top: 70px;
+    }
     .app-container {
         flex-direction: column;
     }
