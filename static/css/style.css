@@ -1075,6 +1075,19 @@ body {
     .header-right {
         gap: 8px;
     }
+    
+    .login-logo {
+        max-width: 120px;
+    }
+    
+    .login-box {
+        padding: 25px 15px;
+    }
+    
+    .login-box h1 {
+        font-size: 24px;
+    }
+    
     .sidebar-footer {
         flex-direction: column;
     }
