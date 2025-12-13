@@ -1234,6 +1234,178 @@ def create_thought():
     
     return jsonify({'success': True, 'thought_id': thought_id})
 
+@app.route('/api/cabinet/security/email', methods=['GET', 'POST'])
+def security_email():
+    """Получает или сохраняет email пользователя"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    conn = get_db()
+    c = conn.cursor()
+    
+    if request.method == 'GET':
+        c.execute('SELECT email FROM users WHERE id = ?', (session['user_id'],))
+        result = c.fetchone()
+        email = result[0] if result and result[0] else None
+        conn.close()
+        return jsonify({'email': email})
+    
+    # POST - сохранение email
+    data = request.json
+    email = data.get('email', '').strip()
+    
+    if not email:
+        conn.close()
+        return jsonify({'error': 'Email не указан'}), 400
+    
+    try:
+        c.execute('UPDATE users SET email = ? WHERE id = ?', (email, session['user_id']))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Email сохранен'})
+    except Exception as e:
+        conn.close()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cabinet/security/2fa/setup', methods=['GET'])
+def setup_2fa():
+    """Генерирует секрет для 2FA и возвращает QR-код"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    conn = get_db()
+    c = conn.cursor()
+    
+    # Получаем username для создания URI
+    c.execute('SELECT username FROM users WHERE id = ?', (session['user_id'],))
+    result = c.fetchone()
+    username = result[0] if result else 'user'
+    
+    # Генерируем секрет
+    secret = pyotp.random_base32()
+    
+    # Сохраняем секрет временно (пока не подтвержден)
+    c.execute('UPDATE users SET two_factor_secret = ? WHERE id = ?', (secret, session['user_id']))
+    conn.commit()
+    
+    # Создаем URI для QR-кода
+    totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+        name=username,
+        issuer_name='SEEE'
+    )
+    
+    # Генерируем QR-код
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(totp_uri)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    img_buffer = io.BytesIO()
+    img.save(img_buffer, format='PNG')
+    img_buffer.seek(0)
+    
+    # Конвертируем в base64
+    img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
+    
+    conn.close()
+    
+    return jsonify({
+        'secret': secret,
+        'qr_code': f'data:image/png;base64,{img_base64}',
+        'uri': totp_uri
+    })
+
+@app.route('/api/cabinet/security/2fa/enable', methods=['POST'])
+def enable_2fa():
+    """Включает 2FA после проверки кода"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    data = request.json
+    code = data.get('code', '').strip()
+    
+    if not code or len(code) != 6:
+        return jsonify({'error': 'Неверный код'}), 400
+    
+    conn = get_db()
+    c = conn.cursor()
+    
+    # Получаем секрет
+    c.execute('SELECT two_factor_secret FROM users WHERE id = ?', (session['user_id'],))
+    result = c.fetchone()
+    
+    if not result or not result[0]:
+        conn.close()
+        return jsonify({'error': 'Секрет не найден. Начните настройку заново.'}), 400
+    
+    secret = result[0]
+    
+    # Проверяем код
+    totp = pyotp.TOTP(secret)
+    if not totp.verify(code, valid_window=1):
+        conn.close()
+        return jsonify({'error': 'Неверный код'}), 400
+    
+    # Включаем 2FA
+    c.execute('UPDATE users SET two_factor_enabled = 1 WHERE id = ?', (session['user_id'],))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True, 'message': '2FA успешно включена'})
+
+@app.route('/api/cabinet/security/2fa/disable', methods=['POST'])
+def disable_2fa():
+    """Отключает 2FA"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    data = request.json
+    code = data.get('code', '').strip()
+    
+    conn = get_db()
+    c = conn.cursor()
+    
+    # Получаем секрет
+    c.execute('SELECT two_factor_secret, two_factor_enabled FROM users WHERE id = ?', (session['user_id'],))
+    result = c.fetchone()
+    
+    if not result or not result[1]:
+        conn.close()
+        return jsonify({'error': '2FA не включена'}), 400
+    
+    secret = result[0]
+    
+    # Проверяем код
+    if code:
+        totp = pyotp.TOTP(secret)
+        if not totp.verify(code, valid_window=1):
+            conn.close()
+            return jsonify({'error': 'Неверный код'}), 400
+    
+    # Отключаем 2FA
+    c.execute('UPDATE users SET two_factor_enabled = 0, two_factor_secret = NULL WHERE id = ?', (session['user_id'],))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True, 'message': '2FA отключена'})
+
+@app.route('/api/cabinet/security/2fa/status', methods=['GET'])
+def get_2fa_status():
+    """Получает статус 2FA"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    conn = get_db()
+    c = conn.cursor()
+    
+    c.execute('SELECT two_factor_enabled FROM users WHERE id = ?', (session['user_id'],))
+    result = c.fetchone()
+    enabled = bool(result[0]) if result and result[0] else False
+    
+    conn.close()
+    
+    return jsonify({'enabled': enabled})
+
 @app.route('/api/cabinet/thoughts/<int:thought_id>', methods=['PUT'])
 def update_thought(thought_id):
     """Обновить интересную мысль"""
