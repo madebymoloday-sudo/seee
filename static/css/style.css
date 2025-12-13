@@ -449,6 +449,7 @@ body {
     cursor: pointer;
     padding: 8px;
     color: var(--ultramarine);
+    flex-shrink: 0;
 }
 
 .chat-title-center {
@@ -716,6 +717,7 @@ body {
     width: 20px;
     height: 20px;
     stroke: var(--ultramarine);
+    color: var(--ultramarine);
 }
 
 .mobile-menu {
@@ -1404,7 +1406,9 @@ body.dark-mode .mobile-menu-content::before {
     }
     
     .mobile-menu-toggle {
-        display: block;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
     }
     
     .chat-title-center {
