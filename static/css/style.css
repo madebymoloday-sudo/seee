@@ -1458,9 +1458,11 @@ body.dark-mode .mobile-menu-content::before {
     
     .chat-header {
         padding: 12px 16px;
-        display: flex;
+        display: flex !important;
         align-items: center;
         gap: 12px;
+        position: relative;
+        z-index: 100;
     }
     
     .mobile-menu-toggle {
