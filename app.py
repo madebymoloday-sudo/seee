@@ -487,7 +487,7 @@ def google_auth():
             try:
                 idinfo = id_token.verify_oauth2_token(
                     token, 
-                    requests.Request(),
+                    google_requests.Request(),
                     google_client_id
                 )
                 
