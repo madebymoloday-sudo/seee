@@ -11,6 +11,10 @@ from psychologist_ai import PsychologistAI
 from urllib.parse import urlparse
 from google.oauth2 import id_token
 from google.auth.transport import requests
+import pyotp
+import qrcode
+import io
+import base64
 from mlm_system import (
     generate_referral_code, create_referral_structure, 
     process_payment, get_referral_tree, get_user_balance, get_user_transactions
