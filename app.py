@@ -597,31 +597,43 @@ def register():
         return jsonify({'success': False, 'error': 'Имя пользователя и пароль обязательны'})
     
     conn = get_db()
-    c = conn.cursor()
+    database_url = os.environ.get('DATABASE_URL')
+    is_postgres = bool(database_url)
+    
+    # Определяем правильный placeholder для SQL
+    placeholder = '%s' if is_postgres else '?'
     
     try:
+        c = conn.cursor()
+        
         # Генерируем уникальные коды для нового пользователя
         new_referral_code = generate_referral_code()
         user_id_str = str(uuid.uuid4())[:8].upper()
         
         # Проверяем уникальность
         while True:
-            c.execute('SELECT id FROM users WHERE referral_code = ? OR user_id = ?', 
-                     (new_referral_code, user_id_str))
+            query = f'SELECT id FROM users WHERE referral_code = {placeholder} OR user_id = {placeholder}'
+            c.execute(query, (new_referral_code, user_id_str))
             if not c.fetchone():
                 break
             new_referral_code = generate_referral_code()
             user_id_str = str(uuid.uuid4())[:8].upper()
         
         password_hash = generate_password_hash(password)
-        c.execute('''INSERT INTO users (username, password_hash, referral_code, user_id) 
-                    VALUES (?, ?, ?, ?)''', 
-                 (username, password_hash, new_referral_code, user_id_str))
+        insert_query = f'''INSERT INTO users (username, password_hash, referral_code, user_id) 
+                    VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})'''
+        c.execute(insert_query, (username, password_hash, new_referral_code, user_id_str))
         conn.commit()
-        new_user_id = c.lastrowid
+        
+        if is_postgres:
+            c.execute('SELECT LASTVAL()')
+            new_user_id = c.fetchone()[0]
+        else:
+            new_user_id = c.lastrowid
         
         # Создаем начальный баланс
-        c.execute('INSERT INTO balances (user_id, amount) VALUES (?, 0.00)', (new_user_id,))
+        balance_query = f'INSERT INTO balances (user_id, amount) VALUES ({placeholder}, 0.00)'
+        c.execute(balance_query, (new_user_id,))
         
         # Создаем реферальную структуру если есть реферер
         if referrer_code_input:
@@ -643,18 +655,23 @@ def register():
 
         return jsonify({'success': True, 'user_id': new_user_id, 'username': username, 'referral_code': new_referral_code})
     
-    except sqlite3.IntegrityError as e:
-        conn.rollback()
-        conn.close()
-        print(f"[Register] Ошибка целостности данных: {e}")
-        return jsonify({'success': False, 'error': 'Пользователь с таким именем уже существует'}), 400
     except Exception as e:
-        conn.rollback()
-        conn.close()
+        try:
+            conn.rollback()
+        except:
+            pass
+        try:
+            conn.close()
+        except:
+            pass
         print(f"[Register] Ошибка регистрации: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({'success': False, 'error': f'Ошибка регистрации: {str(e)}'}), 500
+        
+        error_msg = str(e)
+        if 'unique' in error_msg.lower() or 'duplicate' in error_msg.lower():
+            return jsonify({'success': False, 'error': 'Пользователь с таким именем уже существует'}), 400
+        return jsonify({'success': False, 'error': f'Ошибка регистрации: {error_msg}'}), 500
     except sqlite3.IntegrityError:
         conn.close()
         return jsonify({'success': False, 'error': 'Пользователь с таким именем уже существует'})
