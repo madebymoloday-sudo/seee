@@ -665,19 +665,13 @@ body {
 /* Input Container */
 .input-container {
     padding: 16px 24px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: var(--bg-primary);
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 1000;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-}
-
-body.dark-mode .input-container {
-    background: rgba(26, 26, 26, 0.85);
 }
 
 #messageForm {
@@ -1510,9 +1504,15 @@ body.dark-mode .mobile-menu-content::before {
         bottom: 0 !important;
         left: 0 !important;
         right: 0 !important;
-        background: var(--bg-primary);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         z-index: 1000 !important;
         box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    body.dark-mode .input-container {
+        background: rgba(26, 26, 26, 0.85);
     }
     
     .messages-container {

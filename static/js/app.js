@@ -1023,6 +1023,55 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
+    // Свайп слева-направо для открытия боковой панели
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const swipeThreshold = 50;
+    const swipeStartThreshold = 20;
+    
+    document.addEventListener('touchstart', function(e) {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    document.addEventListener('touchend', function(e) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+    
+    function handleSwipe() {
+        const swipeDistance = touchEndX - touchStartX;
+        
+        // Свайп слева-направо (от левого края)
+        if (touchStartX < swipeStartThreshold && swipeDistance > swipeThreshold) {
+            if (sidebar && !sidebar.classList.contains('mobile-open')) {
+                sidebar.classList.add('mobile-open');
+                if (mobileSidebarOverlay) {
+                    mobileSidebarOverlay.classList.add('active');
+                }
+            }
+        }
+        
+        // Свайп справа-налево для закрытия
+        if (swipeDistance < -swipeThreshold && sidebar && sidebar.classList.contains('mobile-open')) {
+            sidebar.classList.remove('mobile-open');
+            if (mobileSidebarOverlay) {
+                mobileSidebarOverlay.classList.remove('active');
+            }
+        }
+    }
+    
+    // Кнопка "Боковая панель" в меню
+    const mobileSidebarBtn = document.getElementById('mobileSidebarBtn');
+    if (mobileSidebarBtn) {
+        mobileSidebarBtn.addEventListener('click', function() {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            if (mobileMenuToggle) {
+                mobileMenuToggle.click();
+            }
+            mobileMenu.classList.remove('active');
+        });
+    }
+    
     // Мобильное меню - стрелка внизу
     const mobileMenuToggleBottom = document.getElementById('mobileMenuToggleBottom');
     const mobileMenu = document.getElementById('mobileMenu');
@@ -1060,18 +1109,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             const cabinetBtn = document.getElementById('cabinetBtn');
             if (cabinetBtn) {
                 cabinetBtn.click();
-            }
-            mobileMenu.classList.remove('active');
-        });
-    }
-    
-    // Кнопка "Боковая панель" в меню
-    const mobileSidebarBtn = document.getElementById('mobileSidebarBtn');
-    if (mobileSidebarBtn) {
-        mobileSidebarBtn.addEventListener('click', function() {
-            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-            if (mobileMenuToggle) {
-                mobileMenuToggle.click();
             }
             mobileMenu.classList.remove('active');
         });
