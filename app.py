@@ -464,27 +464,66 @@ def login():
 def google_auth():
     """Обработка входа через Google"""
     try:
-        token = request.json.get('token')
-        if not token:
-            return jsonify({'success': False, 'error': 'Токен не предоставлен'}), 400
+        data = request.json
+        token = data.get('token')
+        user_data = data.get('user')  # Данные пользователя из OAuth2
+        access_token = data.get('access_token')
         
-        # Верифицируем токен Google
-        try:
-            idinfo = id_token.verify_oauth2_token(
-                token, 
-                requests.Request(),
-                os.environ.get('GOOGLE_CLIENT_ID', '')
-            )
-            
-            if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
-                raise ValueError('Wrong issuer.')
-            
-            google_id = idinfo['sub']
-            email = idinfo.get('email')
-            name = idinfo.get('name', email)
-            
-        except ValueError as e:
-            return jsonify({'success': False, 'error': 'Неверный токен Google'}), 400
+        google_client_id = os.environ.get('GOOGLE_CLIENT_ID', '')
+        
+        if not google_client_id:
+            return jsonify({'success': False, 'error': 'Google Client ID не настроен на сервере'}), 500
+        
+        google_id = None
+        email = None
+        name = None
+        
+        # Если есть ID токен (JWT), верифицируем его
+        if token and (token.startswith('eyJ') or len(token) > 100):  # JWT токен
+            try:
+                idinfo = id_token.verify_oauth2_token(
+                    token, 
+                    requests.Request(),
+                    google_client_id
+                )
+                
+                if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+                    raise ValueError('Wrong issuer.')
+                
+                google_id = idinfo['sub']
+                email = idinfo.get('email')
+                name = idinfo.get('name', email)
+                
+            except ValueError as e:
+                print(f"[Google Auth] Ошибка верификации ID токена: {e}")
+                # Пробуем использовать данные из user_data
+                if not user_data:
+                    return jsonify({'success': False, 'error': f'Неверный токен Google: {str(e)}'}), 400
+        
+        # Если есть данные пользователя из OAuth2 (через access_token)
+        if user_data and not google_id:
+            google_id = user_data.get('id')
+            email = user_data.get('email')
+            name = user_data.get('name', email)
+        
+        # Если все еще нет данных, пробуем получить через access_token
+        if access_token and not google_id:
+            try:
+                import requests as http_requests
+                user_info_response = http_requests.get(
+                    'https://www.googleapis.com/oauth2/v2/userinfo',
+                    headers={'Authorization': f'Bearer {access_token}'}
+                )
+                if user_info_response.status_code == 200:
+                    user_info = user_info_response.json()
+                    google_id = user_info.get('id')
+                    email = user_info.get('email')
+                    name = user_info.get('name', email)
+            except Exception as e:
+                print(f"[Google Auth] Ошибка получения данных через access_token: {e}")
+        
+        if not google_id:
+            return jsonify({'success': False, 'error': 'Не удалось получить данные пользователя Google'}), 400
         
         conn = get_db()
         c = conn.cursor()
