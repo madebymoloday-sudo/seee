@@ -16,8 +16,8 @@
     --ultramarine-light: #7a9efb;
     --ultramarine-dark: #5a7edb;
     --border: #d1d5db;
-    --message-user-bg: #eff6ff;
-    --message-ai-bg: #f8fafc;
+    --message-user-bg: #6A8EEB;
+    --message-ai-bg: #E5E5E5;
 }
 
 body {
@@ -561,10 +561,15 @@ body {
 
 .message {
     display: flex;
-    gap: 16px;
+    gap: 12px;
     max-width: 800px;
-    margin: 0 auto;
+    margin: 0 auto 12px auto;
     width: 100%;
+}
+
+.message.user {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
 }
 
 .message-avatar {
@@ -598,18 +603,47 @@ body {
 }
 
 .message.user .message-content {
-    color: var(--text-primary);
+    color: white;
     background: var(--message-user-bg);
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(30, 64, 175, 0.2);
+    padding: 10px 14px;
+    border-radius: 18px 18px 4px 18px;
+    max-width: 75%;
+    word-wrap: break-word;
 }
 
 .message.assistant .message-content {
     color: var(--text-primary);
     background: var(--message-ai-bg);
-    padding: 12px 16px;
-    border-radius: 12px;
+    padding: 10px 14px;
+    border-radius: 18px 18px 18px 4px;
+    max-width: 75%;
+    word-wrap: break-word;
+}
+
+/* Стикер "Затрудняюсь ответить" под сообщением AI */
+.message-difficulty-sticker {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 14px;
+    background: rgba(106, 142, 235, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(106, 142, 235, 0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    color: var(--ultramarine);
+    font-weight: 500;
+}
+
+.message-difficulty-sticker:hover {
+    background: rgba(106, 142, 235, 0.25);
+    transform: scale(1.02);
+}
+
+.message-difficulty-sticker:active {
+    transform: scale(0.98);
 }
 
 /* Input Container */

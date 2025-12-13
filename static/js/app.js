@@ -11,7 +11,9 @@ function initSocket() {
     });
     
     socket.on('response', function(data) {
-        addMessage('assistant', data.message);
+        // Показываем кнопку "Затрудняюсь ответить" только если это не навигационные кнопки
+        const showDifficulty = !data.show_navigation && currentSessionId;
+        addMessage('assistant', data.message, true, showDifficulty);
         hideTypingIndicator();
     });
     
@@ -267,7 +269,7 @@ function showWelcomeMessage() {
 }
 
 // Добавление сообщения
-function addMessage(role, content, saveToServer = true) {
+function addMessage(role, content, saveToServer = true, showDifficultyButton = false) {
     const messagesContainer = document.getElementById('messagesContainer');
     
     // Убираем welcome message если есть
@@ -289,6 +291,21 @@ function addMessage(role, content, saveToServer = true) {
     
     messageDiv.appendChild(avatar);
     messageDiv.appendChild(contentDiv);
+    
+    // Добавляем стикер "Затрудняюсь ответить" под сообщением AI
+    if (role === 'assistant' && showDifficultyButton) {
+        const stickerDiv = document.createElement('div');
+        stickerDiv.className = 'message-difficulty-sticker';
+        stickerDiv.textContent = '❓ Затрудняюсь ответить';
+        stickerDiv.addEventListener('click', function() {
+            const difficultyBtn = document.getElementById('difficultyBtn');
+            if (difficultyBtn) {
+                difficultyBtn.click();
+            }
+        });
+        contentDiv.appendChild(stickerDiv);
+    }
+    
     messagesContainer.appendChild(messageDiv);
     
     scrollToBottom();
@@ -813,11 +830,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    // Показываем кнопки навигации и "Затрудняюсь ответить" после ответа бота
+    // Показываем кнопки навигации после ответа бота
     socket.on('response', function(data) {
-        // Показываем кнопку "Затрудняюсь ответить" после ответа бота
-        if (difficultyButtonContainer && currentSessionId) {
-            difficultyButtonContainer.style.display = 'block';
+        // Скрываем кнопку "Затрудняюсь ответить" из input-container (она теперь в сообщении)
+        if (difficultyButtonContainer) {
+            difficultyButtonContainer.style.display = 'none';
         }
         
         // Обновляем кнопки навигации
