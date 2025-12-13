@@ -1304,6 +1304,10 @@ body {
         padding-bottom: 80px;
     }
     
+    .chat-container {
+        padding-bottom: 80px;
+    }
+    
     #messageForm {
         gap: 8px;
         max-width: 100%;
