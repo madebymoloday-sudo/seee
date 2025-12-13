@@ -2016,6 +2016,113 @@ def handle_map_message(data):
         traceback.print_exc()
         emit('map_error', {'error': f'Произошла ошибка: {str(e)}'})
 
+def send_feedback_notifications(user_id, about_self, expectations, expectations_met, how_it_went, file_path=None):
+    """Отправляет уведомления о новой обратной связи на email и в Telegram"""
+    
+    # Получаем информацию о пользователе
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('SELECT username, email FROM users WHERE id = ?', (user_id,))
+    user_data = c.fetchone()
+    conn.close()
+    
+    username = user_data[0] if user_data else f"User {user_id}"
+    user_email = user_data[1] if user_data and user_data[1] else "Не указан"
+    
+    # Формируем текст сообщения
+    message_text = f"""Новая обратная связь от пользователя SEEE
+
+👤 Пользователь: {username} (ID: {user_id})
+📧 Email: {user_email}
+
+📝 О себе:
+{about_self}
+
+🎯 Ожидания:
+{expectations}
+
+✅ Сбылись ли ожидания:
+{expectations_met}
+
+💬 Как всё прошло:
+{how_it_went}
+"""
+    
+    if file_path:
+        message_text += f"\n📎 Прикреплён файл: {file_path}"
+    
+    # Отправка на email
+    try:
+        send_email_notification(message_text)
+    except Exception as e:
+        print(f"[Feedback] Ошибка отправки email: {e}")
+    
+    # Отправка в Telegram
+    try:
+        send_telegram_notification(message_text)
+    except Exception as e:
+        print(f"[Feedback] Ошибка отправки в Telegram: {e}")
+
+def send_email_notification(message_text):
+    """Отправляет email уведомление"""
+    smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+    smtp_port = int(os.environ.get('SMTP_PORT', '587'))
+    smtp_user = os.environ.get('SMTP_USER', 'madebymoloday@gmail.com')
+    smtp_password = os.environ.get('SMTP_PASSWORD', '')
+    recipient_email = os.environ.get('FEEDBACK_EMAIL', 'madebymoloday@gmail.com')
+    
+    if not smtp_password:
+        print("[Feedback] SMTP_PASSWORD не установлен, пропускаем отправку email")
+        return
+    
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = smtp_user
+        msg['To'] = recipient_email
+        msg['Subject'] = 'Новая обратная связь от SEEE'
+        
+        msg.attach(MIMEText(message_text, 'plain', 'utf-8'))
+        
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_user, smtp_password)
+        server.send_message(msg)
+        server.quit()
+        
+        print(f"[Feedback] Email отправлен на {recipient_email}")
+    except Exception as e:
+        print(f"[Feedback] Ошибка отправки email: {e}")
+        raise
+
+def send_telegram_notification(message_text):
+    """Отправляет уведомление в Telegram"""
+    bot_token = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+    chat_id = os.environ.get('TELEGRAM_CHAT_ID', '')
+    
+    if not bot_token or not chat_id:
+        print("[Feedback] TELEGRAM_BOT_TOKEN или TELEGRAM_CHAT_ID не установлены, пропускаем отправку в Telegram")
+        return
+    
+    try:
+        # Ограничиваем длину сообщения (Telegram лимит 4096 символов)
+        if len(message_text) > 4000:
+            message_text = message_text[:4000] + "\n\n... (сообщение обрезано)"
+        
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        data = {
+            'chat_id': chat_id,
+            'text': message_text,
+            'parse_mode': 'HTML'
+        }
+        
+        response = requests.post(url, json=data, timeout=10)
+        response.raise_for_status()
+        
+        print(f"[Feedback] Сообщение отправлено в Telegram (chat_id: {chat_id})")
+    except Exception as e:
+        print(f"[Feedback] Ошибка отправки в Telegram: {e}")
+        raise
+
 # API для обратной связи
 @app.route('/api/feedback', methods=['POST'])
 def submit_feedback():
