@@ -166,42 +166,10 @@ function renderBeforeAfterTable(entries) {
 }
 
 socket.on('map_error', function(data) {
-    addMessage('ai', 'Произошла ошибка: ' + data.error);
+    console.error('Map error:', data.error);
+    // Обновляем таблицу при ошибке
+    loadMapEntries();
 });
-
-// Функция добавления сообщения в чат
-function addMessage(role, text, buttons = null) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${role}-message`;
-    
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
-    contentDiv.textContent = text;
-    
-    messageDiv.appendChild(contentDiv);
-    
-    // Добавляем кнопки если есть
-    if (buttons && buttons.length > 0) {
-        const buttonsDiv = document.createElement('div');
-        buttonsDiv.className = 'message-buttons';
-        buttons.forEach(btn => {
-            const button = document.createElement('button');
-            button.className = 'btn-quick-reply';
-            button.textContent = btn.text;
-            button.onclick = function() {
-                mapMessageInput.value = btn.value;
-                mapMessageForm.dispatchEvent(new Event('submit'));
-            };
-            buttonsDiv.appendChild(button);
-        });
-        messageDiv.appendChild(buttonsDiv);
-    }
-    
-    mapChatMessages.appendChild(messageDiv);
-    
-    // Прокрутка вниз
-    mapChatMessages.scrollTop = mapChatMessages.scrollHeight;
-}
 
 // Загрузка записей карты
 async function loadMapEntries() {
