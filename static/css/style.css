@@ -1389,8 +1389,14 @@ body.dark-mode .mobile-menu-content::before {
     }
     
     .sessions-list {
-        max-height: calc(100vh - 200px);
+        flex: 1;
         overflow-y: auto;
+        max-height: calc(100vh - 250px);
+    }
+    
+    .sidebar-footer {
+        margin-top: auto;
+        padding-bottom: env(safe-area-inset-bottom);
     }
     
     .chat-container {
