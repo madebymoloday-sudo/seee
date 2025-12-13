@@ -1084,7 +1084,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
         if (themeToggle) {
-            themeToggle.classList.add('active');
+            themeToggle.classList.add('dark');
+        }
+    } else {
+        if (themeToggle) {
+            themeToggle.classList.remove('dark');
         }
     }
     
@@ -1108,10 +1112,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         const isDark = document.body.classList.toggle('dark-mode');
         if (themeToggle) {
             if (isDark) {
-                themeToggle.classList.add('active');
+                themeToggle.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
             } else {
-                themeToggle.classList.remove('active');
+                themeToggle.classList.remove('dark');
                 localStorage.setItem('theme', 'light');
             }
         }
