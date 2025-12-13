@@ -31,13 +31,14 @@ body {
 /* Login Page */
 .login-page {
     display: flex !important;
-    align-items: center !important;
+    align-items: flex-start !important;
     justify-content: center !important;
     min-height: 100vh !important;
     height: 100vh !important;
     background: linear-gradient(135deg, #e8f0fe 0%, #ffffff 50%, #eff6ff 100%);
     margin: 0 !important;
     padding: 0 !important;
+    padding-top: 80px !important;
     width: 100% !important;
 }
 
