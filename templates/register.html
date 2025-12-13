@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Психолог - Регистрация</title>
+    <title>S.E.E.E. - Регистрация</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="login-page">
     <div class="login-container">
         <div class="login-box">
+            <div class="login-logo-container">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="S.E.E.E." class="login-logo">
+            </div>
             <h1>Регистрация</h1>
-            <p class="subtitle">Создайте аккаунт для работы с AI-психологом</p>
+            <p class="subtitle">Создайте аккаунт для работы с S.E.E.E.</p>
             
             <form id="registerForm">
                 <div class="form-group">
