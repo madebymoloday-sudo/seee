@@ -1065,6 +1065,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
+    // Кнопка "Боковая панель" в меню
+    const mobileSidebarBtn = document.getElementById('mobileSidebarBtn');
+    if (mobileSidebarBtn) {
+        mobileSidebarBtn.addEventListener('click', function() {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            if (mobileMenuToggle) {
+                mobileMenuToggle.click();
+            }
+            mobileMenu.classList.remove('active');
+        });
+    }
+    
     // Тумблер темы
     const themeToggle = document.getElementById('themeToggle');
     const mobileThemeToggle = document.getElementById('mobileThemeToggle');
