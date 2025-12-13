@@ -571,6 +571,9 @@ async function saveLanguage() {
         
         if (!response.ok) throw new Error('Ошибка сохранения языка');
         
+        // Перезагружаем страницу для применения изменений
+        window.location.reload();
+        
         currentLanguage = language;
         alert('Язык сохранен! Страница будет перезагружена.');
         location.reload();

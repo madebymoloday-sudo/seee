@@ -455,7 +455,7 @@ body {
 
 .mobile-menu-toggle {
     display: none;
-    background: none;
+    background: transparent !important;
     border: none;
     cursor: pointer;
     padding: 8px;
@@ -919,21 +919,22 @@ body.dark-mode .mobile-menu-content::before {
 .btn-send-mobile {
     width: 40px;
     height: 40px;
-    background: var(--ultramarine);
+    background: transparent !important;
     border: none;
     border-radius: 50% !important;
-    color: white;
+    color: var(--ultramarine);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
     flex-shrink: 0;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: none !important;
 }
 
 .btn-send-mobile:hover:not(:disabled) {
-    background: var(--ultramarine-dark);
+    background: transparent !important;
+    opacity: 0.8;
 }
 
 .btn-send-mobile:disabled {
@@ -942,8 +943,8 @@ body.dark-mode .mobile-menu-content::before {
 }
 
 .btn-send-mobile svg {
-    stroke: white;
-    color: white;
+    stroke: var(--ultramarine);
+    color: var(--ultramarine);
 }
 
 /* Scrollbar */
@@ -1543,8 +1544,8 @@ body.dark-mode .mobile-menu-content::before {
         left: 0 !important;
         right: 0 !important;
         z-index: 1000 !important;
-        background: var(--bg-secondary) !important;
-        border-bottom: 1px solid var(--border);
+        background: transparent !important;
+        border-bottom: none !important;
     }
     
     .mobile-menu-toggle {
@@ -1594,6 +1595,15 @@ body.dark-mode .mobile-menu-content::before {
         z-index: 1000 !important;
         box-shadow: none !important;
         transition: transform 0.3s ease;
+    }
+    
+    /* Убираем фон у всех кнопок-иконок */
+    .mobile-menu-toggle,
+    .btn-mobile-menu-toggle,
+    .btn-send,
+    .btn-send-mobile,
+    .header-logo {
+        background: transparent !important;
     }
     
     /* Когда боковое меню открыто, сдвигаем input-container вправо */
