@@ -634,12 +634,27 @@ def register():
         session['user_id'] = new_user_id
         session['username'] = username
         session.permanent = True
-        
+
         # Сохраняем сессию явно
         from flask import session as flask_session
         flask_session.modified = True
         
+        print(f"[Register] Пользователь {username} успешно зарегистрирован с ID {new_user_id}")
+
         return jsonify({'success': True, 'user_id': new_user_id, 'username': username, 'referral_code': new_referral_code})
+    
+    except sqlite3.IntegrityError as e:
+        conn.rollback()
+        conn.close()
+        print(f"[Register] Ошибка целостности данных: {e}")
+        return jsonify({'success': False, 'error': 'Пользователь с таким именем уже существует'}), 400
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        print(f"[Register] Ошибка регистрации: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': f'Ошибка регистрации: {str(e)}'}), 500
     except sqlite3.IntegrityError:
         conn.close()
         return jsonify({'success': False, 'error': 'Пользователь с таким именем уже существует'})

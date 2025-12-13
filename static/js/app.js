@@ -1072,6 +1072,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
+    // Кнопка "Обратная связь" в меню
+    const mobileFeedbackBtn = document.getElementById('mobileFeedbackBtn');
+    if (mobileFeedbackBtn) {
+        mobileFeedbackBtn.addEventListener('click', function() {
+            const feedbackBtn = document.getElementById('feedbackBtn');
+            if (feedbackBtn) {
+                feedbackBtn.click();
+            }
+            mobileMenu.classList.remove('active');
+        });
+    }
+    
     // Мобильное меню - стрелка внизу
     const mobileMenuToggleBottom = document.getElementById('mobileMenuToggleBottom');
     const mobileMenu = document.getElementById('mobileMenu');
