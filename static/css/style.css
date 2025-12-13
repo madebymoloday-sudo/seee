@@ -35,6 +35,8 @@ body {
     justify-content: center;
     min-height: 100vh;
     background: linear-gradient(135deg, #e8f0fe 0%, #ffffff 50%, #eff6ff 100%);
+    margin: 0;
+    padding: 0;
 }
 
 .login-container {
@@ -46,6 +48,7 @@ body {
     align-items: center;
     justify-content: center;
     margin: 0 auto;
+    position: relative;
 }
 
 /* Логотип для десктопной версии - над окном */
