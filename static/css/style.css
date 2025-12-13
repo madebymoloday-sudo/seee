@@ -52,8 +52,9 @@ body {
 .login-logo-desktop {
     text-align: center;
     margin-bottom: 20px;
-    display: block;
+    display: block !important;
     width: 100%;
+    order: 1;
 }
 
 .login-logo-desktop .login-logo {
@@ -61,6 +62,17 @@ body {
     height: auto;
     display: block;
     margin: 0 auto;
+}
+
+/* На десктопе мобильный логотип скрыт */
+@media (min-width: 769px) {
+    .login-logo-mobile {
+        display: none !important;
+    }
+    
+    .login-logo-desktop {
+        display: block !important;
+    }
 }
 
 /* Логотип для мобильной версии - внутри рамки справа сверху */
@@ -87,6 +99,7 @@ body {
     border: 1px solid var(--border);
     position: relative;
     width: 100%;
+    order: 2;
 }
 
 .login-box h1 {
