@@ -1114,6 +1114,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
     const mobilePauseSession = document.getElementById('mobilePauseSession');
     const mobileCabinet = document.getElementById('mobileCabinet');
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.querySelector('.sidebar');
     
     if (mobileMenuToggleBottom) {
         mobileMenuToggleBottom.addEventListener('click', function(e) {
@@ -1121,6 +1123,40 @@ document.addEventListener('DOMContentLoaded', async function() {
             e.stopPropagation();
             // Не закрываем клавиатуру
             mobileMenu.classList.toggle('active');
+            // Добавляем класс для поднятия input-container
+            if (mobileMenu.classList.contains('active')) {
+                document.body.classList.add('mobile-menu-open');
+            } else {
+                document.body.classList.remove('mobile-menu-open');
+            }
+        });
+    }
+    
+    if (mobileMenuOverlay) {
+        mobileMenuOverlay.addEventListener('click', function() {
+            mobileMenu.classList.remove('active');
+            document.body.classList.remove('mobile-menu-open');
+        });
+    }
+    
+    // Обработка открытия бокового меню
+    if (mobileMenuToggle && sidebar) {
+        mobileMenuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('mobile-open');
+            if (sidebar.classList.contains('mobile-open')) {
+                document.body.classList.add('sidebar-open');
+            } else {
+                document.body.classList.remove('sidebar-open');
+            }
+        });
+    }
+    
+    // Закрытие бокового меню при клике на overlay
+    const sidebarOverlay = document.querySelector('.mobile-sidebar-overlay');
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('mobile-open');
+            document.body.classList.remove('sidebar-open');
         });
     }
     
