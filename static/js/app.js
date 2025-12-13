@@ -343,22 +343,30 @@ const sendBtn = document.getElementById('sendBtn');
 // Обработчик отправки будет добавлен в DOMContentLoaded, чтобы иметь доступ к updatePauseButton
 // (старый обработчик удален, новый добавлен в DOMContentLoaded)
 
+// Функция для обновления видимости кнопок
+function updateMobileButtons() {
+    const sendBtnMobile = document.getElementById('sendBtnMobile');
+    const mobileMenuToggleBottom = document.getElementById('mobileMenuToggleBottom');
+    
+    if (sendBtnMobile && mobileMenuToggleBottom) {
+        const hasText = messageInput.value.trim().length > 0;
+        if (hasText) {
+            sendBtnMobile.classList.add('active');
+            mobileMenuToggleBottom.style.display = 'none';
+        } else {
+            sendBtnMobile.classList.remove('active');
+            mobileMenuToggleBottom.style.display = 'flex';
+        }
+    }
+}
+
 // Автоматическое изменение высоты textarea
 messageInput.addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 200) + 'px';
     
-    // Показываем/скрываем кнопку отправки на мобильной версии
-    const sendBtnMobile = document.getElementById('sendBtnMobile');
-    if (sendBtnMobile) {
-        if (this.value.trim().length > 0) {
-            sendBtnMobile.classList.add('active');
-            document.getElementById('mobileMenuToggleBottom').style.display = 'none';
-        } else {
-            sendBtnMobile.classList.remove('active');
-            document.getElementById('mobileMenuToggleBottom').style.display = 'flex';
-        }
-    }
+    // Обновляем видимость кнопок
+    updateMobileButtons();
 });
 
 // Обработка клавиш для отправки сообщения
@@ -608,6 +616,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         addMessage('user', message);
         messageInput.value = '';
         messageInput.style.height = 'auto';
+        
+        // Обновляем видимость кнопок на мобильной версии
+        updateMobileButtons();
         
         // Показываем индикатор печати
         showTypingIndicator();

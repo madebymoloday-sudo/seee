@@ -46,6 +46,16 @@ if (mapMessageForm) {
         if (!message) return;
         
         mapMessageInput.value = '';
+        mapMessageInput.style.height = 'auto';
+        
+        // Обновляем видимость кнопок
+        const mapSendBtnMobile = document.getElementById('mapSendBtnMobile');
+        const mapMobileMenuToggle = document.getElementById('mapMobileMenuToggle');
+        if (mapSendBtnMobile && mapMobileMenuToggle) {
+            mapSendBtnMobile.style.display = 'none';
+            mapSendBtnMobile.classList.remove('active');
+            mapMobileMenuToggle.style.display = 'flex';
+        }
         
         // Отправляем сообщение на сервер
         socket.emit('map_message', { message: message });
@@ -63,9 +73,11 @@ if (mapMessageInput) {
         const mapMobileMenuToggle = document.getElementById('mapMobileMenuToggle');
         if (mapSendBtnMobile && mapMobileMenuToggle) {
             if (this.value.trim().length > 0) {
+                mapSendBtnMobile.style.display = 'flex';
                 mapSendBtnMobile.classList.add('active');
                 mapMobileMenuToggle.style.display = 'none';
             } else {
+                mapSendBtnMobile.style.display = 'none';
                 mapSendBtnMobile.classList.remove('active');
                 mapMobileMenuToggle.style.display = 'flex';
             }
