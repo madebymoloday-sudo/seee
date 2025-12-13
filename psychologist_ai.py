@@ -111,7 +111,12 @@ class PsychologistAI:
 
 Сначала собери эмоции, потом спроси о СИТУАЦИЯХ, которые вызывают эти эмоции, и только потом работай с ИДЕЯМИ из этих ситуаций.
 - Будь мягким и эмпатичным, но СТРОГО следуй алгоритму.
-- НЕ ПРЕДПОЛАГАЙ негативные переживания! Если человек говорит, что чувствует себя хорошо - принимай это как есть."""
+- НЕ ПРЕДПОЛАГАЙ негативные переживания! Если человек говорит, что чувствует себя хорошо - принимай это как есть.
+
+ВАЖНО - Правильные формулировки вопросов:
+- После описания СИТУАЦИИ спрашивай: "Какая идея, мысль или убеждение вызывает у вас эту эмоцию в этой ситуации?" или "Какая мысль стоит за этой эмоцией?"
+- НЕ спрашивай "почему вы себя так чувствуете" - это некорректно. Спрашивай о МЫСЛИ/ИДЕЕ, которая вызывает эмоцию.
+- Вопрос должен быть о ИДЕЕ, а не о причине эмоции напрямую."""
 
             # Формируем контекст разговора
             messages = [{"role": "system", "content": system_prompt}]
@@ -211,6 +216,10 @@ class PsychologistAI:
                 if any(indicator in message_lower for indicator in emotion_indicators):
                     context += " | КРИТИЧЕСКИ ВАЖНО: Пользователь описывает ЭМОЦИЮ (чувство), а НЕ идею! Эмоции - это радость, грусть, тревога, злость и т.д. НЕ начинай строить систему убеждений для эмоций. Сначала собери эмоции, потом спроси о СИТУАЦИЯХ, которые вызывают эти эмоции."
             
+            # Добавляем инструкции для этапа situations - после описания ситуации
+            if state['stage'] == 'situations':
+                context += " | КРИТИЧЕСКИ ВАЖНО: После того как пользователь описал СИТУАЦИЮ, НЕ спрашивай 'почему вы себя так чувствуете' - это некорректно! Вместо этого спрашивай: 'Какая идея, мысль или убеждение вызывает у вас эту эмоцию в этой ситуации?' или 'Какая мысль стоит за этой эмоцией?' Вопрос должен быть об ИДЕЕ/МЫСЛИ, а не о причине эмоции."
+            
             # Генерируем ответ через GPT с полным контекстом
             gpt_response = self.generate_gpt_response(
                 message, 
@@ -265,8 +274,91 @@ class PsychologistAI:
         return self.state_machine[session_id]
     
     def handle_initial_stage(self, message: str, state: Dict, history: List[Dict]) -> Dict:
-        """Обработка начального этапа - мягко спрашиваем о самочувствии"""
-        # Переходим к сбору эмоций (объяснение системы уже в welcome message)
+        """Обработка начального этапа - проверяем, описал ли пользователь эмоцию сразу"""
+        message_lower = message.lower().strip()
+        
+        # Сначала проверяем, описывает ли пользователь чувства/состояния (не эмоции!)
+        feeling_indicators = ['устал', 'устала', 'усталость', 'усталым', 'уставшим', 'уставшей', 'опустошен', 'опустошена', 'опустошение', 'выгорание', 'выгорел', 'выгорела']
+        is_feeling_not_emotion = any(indicator in message_lower for indicator in feeling_indicators)
+        
+        if is_feeling_not_emotion:
+            # Если человек описывает чувство/состояние, а не эмоцию, спрашиваем об эмоции
+            return {
+                'text': 'Понимаю, что вы чувствуете усталость. Это чувство/состояние. А какую ЭМОЦИЮ вы испытываете сейчас? Если затрудняетесь ответить, можете выбрать одну из эмоций: Радость, Грусть, Злость, Любовь (включая восхищение, нежность, смирение), Страх. Или опишите свою эмоцию своими словами.'
+            }
+        
+        # Проверяем, описал ли пользователь эмоцию сразу
+        emotions = self.extract_emotions(message)
+        emotion_indicators = ['чувствую', 'испытываю', 'ощущаю', 'чувство', 'эмоция', 'эмоции']
+        is_emotion_description = any(indicator in message_lower for indicator in emotion_indicators)
+        emotion_words_direct = ['злюсь', 'злю', 'грустно', 'грущу', 'радуюсь', 'рад', 'боюсь', 'страшно', 'люблю', 'ненавижу', 'тревожусь', 'тревожно',
+                               'вдохновение', 'вдохновен', 'вдохновена', 'восхищение', 'восхищаюсь', 'нежность', 'нежен']
+        has_direct_emotion = any(word in message_lower for word in emotion_words_direct)
+        
+        # Также проверяем, если пользователь просто назвал эмоцию без глаголов
+        # Например, "небольшое вдохновение", "вдохновение"
+        emotion_nouns = ['вдохновение', 'восхищение', 'нежность', 'радость', 'грусть', 'злость', 'страх', 'любовь', 'тревога']
+        has_emotion_noun = any(emotion in message_lower for emotion in emotion_nouns)
+        
+        # Если пользователь уже описал эмоцию, сразу переходим к ситуациям
+        if emotions or is_emotion_description or has_direct_emotion or has_emotion_noun:
+            # Добавляем эмоции в состояние
+            for emo in emotions:
+                if emo not in state['emotions']:
+                    state['emotions'].append(emo)
+            
+            # Обрабатываем прямые упоминания эмоций
+            if (has_direct_emotion or has_emotion_noun) and not emotions:
+                emotion_mapping = {
+                    'злюсь': 'злость', 'злю': 'злость',
+                    'грустно': 'грусть', 'грущу': 'грусть',
+                    'радуюсь': 'радость', 'рад': 'радость',
+                    'боюсь': 'страх', 'страшно': 'страх',
+                    'люблю': 'любовь',
+                    'ненавижу': 'злость',
+                    'тревожусь': 'тревога', 'тревожно': 'тревога',
+                    'вдохновение': 'вдохновение', 'вдохновен': 'вдохновение', 'вдохновена': 'вдохновение',
+                    'восхищение': 'восхищение', 'восхищаюсь': 'восхищение',
+                    'нежность': 'нежность', 'нежен': 'нежность'
+                }
+                for word, emotion in emotion_mapping.items():
+                    if word in message_lower and emotion not in state['emotions']:
+                        state['emotions'].append(emotion)
+                
+                # Если не нашлось в маппинге, но есть эмоция как существительное
+                if not state['emotions'] and has_emotion_noun:
+                    for emotion in emotion_nouns:
+                        if emotion in message_lower and emotion not in state['emotions']:
+                            state['emotions'].append(emotion)
+                            break
+            
+            # Если эмоция распознана, сразу переходим к ситуациям
+            state['stage'] = 'situations'
+            negative_emotions = ['грусть', 'печаль', 'тревога', 'беспокойство', 'страх', 'злость', 'гнев', 'вина', 'стыд', 'плохо']
+            has_negative = any(emo in negative_emotions for emo in state['emotions'])
+            
+            if has_negative:
+                # Генерируем ответ через GPT с вариациями формулировок
+                emotions_text = ", ".join(state["emotions"][:3])
+                gpt_response = self.generate_emotion_to_situation_transition(emotions_text, message, history)
+                if gpt_response:
+                    return {'text': gpt_response}
+                # Fallback если GPT недоступен
+                return {
+                    'text': f'Какая ситуация вызывает у вас это чувство прямо сейчас?'
+                }
+            else:
+                # Позитивные эмоции
+                emotions_text = ", ".join(state["emotions"][:3])
+                gpt_response = self.generate_positive_emotion_response(emotions_text, message, history)
+                if gpt_response:
+                    return {'text': gpt_response}
+                # Fallback
+                return {
+                    'text': f'Отлично, что вы чувствуете {emotions_text}! Какая ситуация вызывает у вас это чувство прямо сейчас?'
+                }
+        
+        # Если эмоция не распознана, переходим к сбору эмоций
         state['stage'] = 'emotions'
         return {
             'text': 'Здравствуйте! Как вы себя чувствуете?'
@@ -287,7 +379,7 @@ class PsychologistAI:
         short_responses = ['привет', 'ало', 'hello', 'hi', 'здравствуй', 'да', 'нет', 'ок', 'окей']
         if message_lower in short_responses:
             return {
-                'text': 'Здравствуйте! Я готов помочь вам разобраться в ваших переживаниях. Расскажите, пожалуйста, как вы себя чувствуете?'
+                'text': 'Какую эмоцию вы испытываете сейчас? Если затрудняетесь ответить, можете выбрать одну из эмоций: Радость, Грусть, Злость, Любовь (включая восхищение, нежность, смирение), Страх. Или опишите свою эмоцию своими словами.'
             }
         
         # Если пользователь ответил о самочувствии простым словом (плохо, хорошо)
@@ -298,13 +390,25 @@ class PsychologistAI:
             # Переходим к ситуациям
             state['stage'] = 'situations'
             return {
-                'text': 'Понимаю, что вам непросто. Расскажите, пожалуйста, в каких ситуациях вы испытываете эти чувства? Что происходит в вашей жизни, когда вы чувствуете это?'
+                'text': 'Понимаю, что вам непросто. Какая ситуация вызывает у вас это чувство прямо сейчас?'
             }
         
         if is_positive and not state['emotions']:
-            # Если человек говорит, что всё хорошо, но не упомянул негативные эмоции
+            # Если человек говорит, что всё хорошо, но не упомянул конкретную эмоцию
+            # Спрашиваем об эмоции с предложением вариантов
             return {
-                'text': 'Хорошо, что вы чувствуете себя неплохо. Если есть что-то, что вас беспокоит или вызывает дискомфорт, я готов помочь разобраться. Есть ли что-то, о чем вы хотели бы поговорить?'
+                'text': 'Какую эмоцию вы испытываете сейчас? Если затрудняетесь ответить, можете выбрать одну из эмоций: Радость, Грусть, Злость, Любовь (включая восхищение, нежность, смирение), Страх. Или опишите свою эмоцию своими словами.'
+            }
+        
+        # Проверяем, описывает ли пользователь чувства/состояния (не эмоции!)
+        # Усталость, опустошение - это чувства/состояния, НЕ эмоции
+        feeling_indicators = ['устал', 'устала', 'усталость', 'усталым', 'уставшим', 'уставшей', 'опустошен', 'опустошена', 'опустошение', 'выгорание', 'выгорел', 'выгорела']
+        is_feeling_not_emotion = any(indicator in message_lower for indicator in feeling_indicators)
+        
+        if is_feeling_not_emotion:
+            # Если человек описывает чувство/состояние, а не эмоцию, спрашиваем об эмоции
+            return {
+                'text': 'Понимаю, что вы чувствуете усталость. Это чувство/состояние. А какую ЭМОЦИЮ вы испытываете сейчас? Если затрудняетесь ответить, можете выбрать одну из эмоций: Радость, Грусть, Злость, Любовь (включая восхищение, нежность, смирение), Страх. Или опишите свою эмоцию своими словами.'
             }
         
         # Извлекаем эмоции из сообщения
@@ -315,11 +419,17 @@ class PsychologistAI:
         emotion_indicators = ['чувствую', 'испытываю', 'ощущаю', 'чувство', 'эмоция', 'эмоции']
         is_emotion_description = any(indicator in message_lower for indicator in emotion_indicators)
         
-        if emotions or is_emotion_description:
+        # Также проверяем прямые упоминания эмоций (например, "я злюсь", "мне грустно")
+        emotion_words_direct = ['злюсь', 'злю', 'грустно', 'грущу', 'радуюсь', 'рад', 'боюсь', 'страшно', 'люблю', 'ненавижу', 'тревожусь', 'тревожно',
+                               'вдохновение', 'вдохновлен', 'вдохновлена', 'восхищение', 'восхищаюсь', 'нежность', 'нежен']
+        has_direct_emotion = any(word in message_lower for word in emotion_words_direct)
+        
+        if emotions or is_emotion_description or has_direct_emotion:
             # Добавляем только новые эмоции
             for emo in emotions:
                 if emo not in state['emotions']:
                     state['emotions'].append(emo)
+            
             # Если пользователь описал эмоцию словами, добавляем её
             if is_emotion_description and not emotions:
                 # Извлекаем эмоцию из фразы типа "чувствую радость"
@@ -329,14 +439,55 @@ class PsychologistAI:
                         emotion_word = words[i + 1]
                         if emotion_word not in state['emotions']:
                             state['emotions'].append(emotion_word)
+            
+            # Если есть прямое упоминание эмоции, извлекаем её
+            if has_direct_emotion and not emotions:
+                # Маппинг прямых упоминаний на эмоции
+                emotion_mapping = {
+                    'злюсь': 'злость', 'злю': 'злость',
+                    'грустно': 'грусть', 'грущу': 'грусть',
+                    'радуюсь': 'радость', 'рад': 'радость',
+                    'боюсь': 'страх', 'страшно': 'страх',
+                    'люблю': 'любовь',
+                    'ненавижу': 'злость',
+                    'тревожусь': 'тревога', 'тревожно': 'тревога',
+                    'вдохновение': 'вдохновение', 'вдохновлен': 'вдохновение', 'вдохновлена': 'вдохновение',
+                    'восхищение': 'восхищение', 'восхищаюсь': 'восхищение',
+                    'нежность': 'нежность', 'нежен': 'нежность'
+                }
+                for word, emotion in emotion_mapping.items():
+                    if word in message_lower and emotion not in state['emotions']:
+                        state['emotions'].append(emotion)
         
-        # Если пользователь описал эмоцию, НЕ переходим к ситуациям сразу
-        # Сначала нужно собрать ситуации, которые вызывают эти эмоции
+        # Если пользователь описал эмоцию, переходим к ситуациям
+        # НЕ дублируем вопрос, если эмоция уже распознана!
         if state['emotions'] and not state['situations']:
-            # Переходим к следующему этапу только если пользователь дал развернутый ответ И описал ситуацию
-            # Но если это просто описание эмоции - продолжаем собирать эмоции или переходим к ситуациям
-            if len(message.strip()) > 10 and not is_emotion_description:
-                state['stage'] = 'situations'
+            # Если эмоция распознана, сразу переходим к ситуациям
+            state['stage'] = 'situations'
+            # Проверяем, есть ли негативные эмоции
+            negative_emotions = ['грусть', 'печаль', 'тревога', 'беспокойство', 'страх', 'злость', 'гнев', 'вина', 'стыд', 'плохо']
+            has_negative = any(emo in negative_emotions for emo in state['emotions'])
+            
+            if has_negative:
+                # Генерируем ответ через GPT с вариациями формулировок
+                emotions_text = ", ".join(state["emotions"][:3])
+                gpt_response = self.generate_emotion_to_situation_transition(emotions_text, message, history)
+                if gpt_response:
+                    return {'text': gpt_response}
+                # Fallback если GPT недоступен
+                return {
+                    'text': f'Какая ситуация вызывает у вас это чувство прямо сейчас?'
+                }
+            else:
+                # Позитивные эмоции - генерируем через GPT
+                emotions_text = ", ".join(state["emotions"][:3])
+                gpt_response = self.generate_positive_emotion_response(emotions_text, message, history)
+                if gpt_response:
+                    return {'text': gpt_response}
+                # Fallback
+                return {
+                    'text': f'Отлично, что вы чувствуете {emotions_text}! Какая ситуация вызывает у вас это чувство прямо сейчас?'
+                }
         
         # Если уже есть и эмоции, и ситуации, переходим к работе с идеями
         if state['emotions'] and state['situations']:
@@ -345,51 +496,88 @@ class PsychologistAI:
         # Базовый ответ (будет улучшен GPT если доступен)
         if state['emotions']:
             # Проверяем, есть ли негативные эмоции
-            negative_emotions = ['грусть', 'печаль', 'тревога', 'беспокойство', 'страх', 'злость', 'гнев', 'вина', 'стыд', 'усталость', 'опустошение', 'плохо']
+            negative_emotions = ['грусть', 'печаль', 'тревога', 'беспокойство', 'страх', 'злость', 'гнев', 'вина', 'стыд', 'плохо']
             has_negative = any(emo in negative_emotions for emo in state['emotions'])
             
             if has_negative:
                 # Переходим к ситуациям
                 state['stage'] = 'situations'
+                emotions_text = ", ".join(state["emotions"][:3])
+                gpt_response = self.generate_emotion_to_situation_transition(emotions_text, message, history)
+                if gpt_response:
+                    return {'text': gpt_response}
+                # Fallback
                 return {
-                    'text': f'Спасибо, что поделились. Я понимаю, что вы испытываете {", ".join(state["emotions"][:3])}. Теперь расскажите, пожалуйста, в каких ситуациях вы испытываете эти чувства? Что происходит в вашей жизни, когда вы чувствуете это?'
+                    'text': f'Какая ситуация вызывает у вас это чувство прямо сейчас?'
                 }
             else:
-                # Позитивные эмоции - не переходим к ситуациям сразу
+                # Позитивные эмоции
+                emotions_text = ", ".join(state["emotions"][:3])
+                gpt_response = self.generate_positive_emotion_response(emotions_text, message, history)
+                if gpt_response:
+                    return {'text': gpt_response}
+                # Fallback
                 return {
-                    'text': 'Спасибо, что поделились своими чувствами. Если есть что-то, что вас беспокоит или вызывает дискомфорт, я готов помочь разобраться. Есть ли ситуации в вашей жизни, которые вызывают у вас негативные переживания?'
+                    'text': f'Отлично, что вы чувствуете {emotions_text}! Какая ситуация вызывает у вас это чувство прямо сейчас?'
                 }
         else:
-            # Если пользователь еще не описал эмоции, просим рассказать о самочувствии
+            # Если пользователь еще не описал конкретную эмоцию, спрашиваем об эмоции с вариантами
             return {
-                'text': 'Расскажите, пожалуйста, как вы себя чувствуете?'
+                'text': 'Какую эмоцию вы испытываете сейчас? Если затрудняетесь ответить, можете выбрать одну из эмоций: Радость, Грусть, Злость, Любовь (включая восхищение, нежность, смирение), Страх. Или опишите свою эмоцию своими словами.'
             }
     
     def handle_situations_stage(self, message: str, state: Dict, history: List[Dict]) -> Dict:
-        """Обработка этапа сбора ситуаций"""
+        """Обработка этапа сбора ситуаций и идей"""
         # ВАЖНО: Ситуация - это событие, факт (например, "работа завтра", "встреча")
         # Идея - это мысль, убеждение (например, "я работаю на нелюбимой работе")
-        # Извлекаем только СИТУАЦИИ (события), НЕ идеи!
         # Проверяем, что это не описание эмоции
         emotion_indicators = ['чувствую', 'испытываю', 'ощущаю']
         is_emotion = any(indicator in message.lower() for indicator in emotion_indicators)
         
         if not is_emotion:
+            # Сначала пытаемся извлечь идеи (убеждения)
+            ideas = self.extract_ideas_from_text(message)
+            
+            if ideas:
+                # Если найдены идеи, добавляем их в concept_hierarchy
+                for idea in ideas:
+                    if idea not in state['concept_hierarchy']:
+                        state['concept_hierarchy'][idea] = {
+                            'name': idea,
+                            'composition': [],
+                            'founder': None,
+                            'purpose': None,
+                            'consequences': {'emotional': [], 'physical': []},
+                            'conclusions': None,
+                            'comments': [],
+                            'sub_concepts': []
+                        }
+                        # Добавляем в situations для отслеживания
+                        if idea not in state['situations']:
+                            state['situations'].append(idea)
+            
+            # Также извлекаем ситуации (события)
             situations = self.extract_situations(message)
-            # Добавляем только новые ситуации
             for sit in situations:
                 if sit not in state['situations']:
                     state['situations'].append(sit)
         
         if not state['current_concept']:
-            # Начинаем работу с первой идеей только если есть ситуации
-            if state['situations']:
-                first_situation = state['situations'][0]
-                state['current_concept'] = first_situation
+            # Начинаем работу с первой идеей/ситуацией
+            if state['situations'] or state['concept_hierarchy']:
+                # Приоритет: сначала идеи из concept_hierarchy, потом ситуации
+                if state['concept_hierarchy']:
+                    first_concept = list(state['concept_hierarchy'].keys())[0]
+                else:
+                    first_concept = state['situations'][0]
+                
+                state['current_concept'] = first_concept
                 state['stage'] = 'concept_hierarchy'
-                if first_situation not in state['concept_hierarchy']:
-                    state['concept_hierarchy'][first_situation] = {
-                        'name': first_situation,
+                
+                # Убеждаемся, что концепция есть в иерархии
+                if first_concept not in state['concept_hierarchy']:
+                    state['concept_hierarchy'][first_concept] = {
+                        'name': first_concept,
                         'composition': [],
                         'founder': None,
                         'purpose': None,
@@ -398,17 +586,29 @@ class PsychologistAI:
                         'comments': [],
                         'sub_concepts': []
                     }
+                
                 state['current_field'] = 'composition'
                 
-                return {
-                    'text': f'Хорошо, давайте разберем идею "{first_situation}". Чтобы понять, из чего состоит идея "{first_situation}", ответьте на вопрос: "Почему вы так думаете?" или "Из каких ситуаций у вас сформировалось такое представление?"',
-                    'concept_data': state['concept_hierarchy'],
-                    'new_concept_name': first_situation  # Флаг для обновления названия сессии
-                }
+                # Формируем ответ с кратким названием идеи
+                concept_name_short = first_concept[:50] + '...' if len(first_concept) > 50 else first_concept
+                
+                # Если найдено несколько идей, упоминаем это
+                if len(state['concept_hierarchy']) > 1:
+                    return {
+                        'text': f'Хорошо, я вижу несколько идей. Давайте начнем с первой: "{concept_name_short}". Чтобы понять, из чего состоит эта идея, ответьте на вопрос: "Почему вы так думаете?" или "Из каких ситуаций у вас сформировалось такое представление?"',
+                        'concept_data': state['concept_hierarchy'],
+                        'new_concept_name': first_concept
+                    }
+                else:
+                    return {
+                        'text': f'Хорошо, давайте разберем идею "{concept_name_short}". Чтобы понять, из чего состоит эта идея, ответьте на вопрос: "Почему вы так думаете?" или "Из каких ситуаций у вас сформировалось такое представление?"',
+                        'concept_data': state['concept_hierarchy'],
+                        'new_concept_name': first_concept
+                    }
             else:
-                # Если не удалось извлечь ситуации, просим еще раз
+                # Если не удалось извлечь ни идеи, ни ситуации, просим еще раз
                 return {
-                    'text': 'Расскажите подробнее о ситуациях, которые вызывают у вас эти эмоции. Что конкретно происходит в вашей жизни, когда вы испытываете эти чувства?'
+                    'text': 'Какая ситуация вызывает у вас это чувство? Опишите, что происходит в вашей жизни прямо сейчас.'
                 }
         
         return self.handle_concept_hierarchy_stage(message, state, history)
@@ -421,6 +621,11 @@ class PsychologistAI:
         
         concept_data = state['concept_hierarchy'][concept]
         current_field = state['current_field']
+        editing_mode = state.get('editing_mode', False)
+        
+        # Если режим редактирования, обрабатываем по-другому
+        if editing_mode:
+            return self.handle_editing_mode(message, state, history, concept, concept_data, current_field)
         
         if current_field == 'composition':
             # Собираем состав идеи
@@ -589,18 +794,142 @@ class PsychologistAI:
                             'concept_data': state['concept_hierarchy']
                         }
                     else:
+                        # Анализируем корневые установки и сохраняем в До/После
+                        root_beliefs = self.analyze_root_beliefs(state['concept_hierarchy'], concept)
+                        
+                        # Генерируем план по формированию позитивной установки
+                        plan = self.generate_positive_belief_plan(state['concept_hierarchy'], concept)
+                        
                         return {
-                            'text': f'Отлично! Мы завершили работу с идеей "{concept}". Хотите обсудить что-то еще или у вас есть вопросы?',
-                            'concept_data': state['concept_hierarchy']
+                            'text': f'Отлично! Мы завершили работу с идеей "{concept}".\n\n{plan}\n\nХотите обсудить что-то еще или у вас есть вопросы?',
+                            'concept_data': state['concept_hierarchy'],
+                            'session_complete': True,
+                            'plan': plan,
+                            'root_beliefs': root_beliefs
                         }
         
         return {'text': 'Продолжаем работу. Расскажите больше.'}
+    
+    def handle_editing_mode(self, message: str, state: Dict, history: List[Dict], 
+                           concept: str, concept_data: Dict, field_name: str) -> Dict:
+        """Обработка редактирования концепции"""
+        if field_name == 'name':
+            # Изменяем название концепции
+            old_name = concept
+            new_name = message.strip()
+            if new_name and new_name != old_name:
+                # Обновляем название в иерархии
+                state['concept_hierarchy'][new_name] = concept_data
+                state['concept_hierarchy'][new_name]['name'] = new_name
+                if old_name in state['concept_hierarchy']:
+                    del state['concept_hierarchy'][old_name]
+                state['current_concept'] = new_name
+                return {
+                    'text': f'Название убеждения изменено с "{old_name}" на "{new_name}". Что еще хотите изменить?',
+                    'concept_data': state['concept_hierarchy'],
+                    'new_concept_name': new_name
+                }
+        
+        elif field_name == 'composition':
+            # Добавляем или изменяем части убеждения
+            parts = self.extract_concept_parts(message)
+            if parts:
+                # Если уже есть части, добавляем новые
+                if concept_data.get('composition'):
+                    concept_data['composition'].extend(parts)
+                else:
+                    concept_data['composition'] = parts
+                
+                # Добавляем новые части как под-концепции
+                for part in parts:
+                    if part not in state['concept_hierarchy']:
+                        state['concept_hierarchy'][part] = {
+                            'name': part,
+                            'composition': [],
+                            'founder': None,
+                            'purpose': None,
+                            'consequences': {'emotional': [], 'physical': []},
+                            'conclusions': None,
+                            'comments': [],
+                            'sub_concepts': []
+                        }
+                    if part not in concept_data.get('sub_concepts', []):
+                        concept_data.setdefault('sub_concepts', []).append(part)
+                
+                return {
+                    'text': f'Части убеждения "{concept}" обновлены. Добавлены: {", ".join(parts)}. Что еще хотите изменить?',
+                    'concept_data': state['concept_hierarchy']
+                }
+        
+        elif field_name == 'founder':
+            # Обновляем основателя
+            concept_data['founder'] = message
+            return {
+                'text': f'Основатель идеи "{concept}" обновлен. Что еще хотите изменить?',
+                'concept_data': state['concept_hierarchy']
+            }
+        
+        elif field_name == 'purpose':
+            # Обновляем цель
+            concept_data['purpose'] = message
+            return {
+                'text': f'Цель идеи "{concept}" обновлена. Что еще хотите изменить?',
+                'concept_data': state['concept_hierarchy']
+            }
+        
+        elif field_name == 'consequences':
+            # Обновляем последствия
+            emotional = self.extract_consequences(message, 'emotional')
+            physical = self.extract_consequences(message, 'physical')
+            if emotional:
+                concept_data['consequences']['emotional'].extend(emotional)
+            if physical:
+                concept_data['consequences']['physical'].extend(physical)
+            return {
+                'text': f'Последствия идеи "{concept}" обновлены. Что еще хотите изменить?',
+                'concept_data': state['concept_hierarchy']
+            }
+        
+        elif field_name == 'conclusions':
+            # Обновляем выводы
+            concept_data['conclusions'] = message
+            return {
+                'text': f'Выводы по идее "{concept}" обновлены. Что еще хотите изменить?',
+                'concept_data': state['concept_hierarchy']
+            }
+        
+        elif field_name == 'comments':
+            # Добавляем комментарий
+            concept_data.setdefault('comments', []).append(message)
+            return {
+                'text': f'Комментарий к идее "{concept}" добавлен. Что еще хотите изменить?',
+                'concept_data': state['concept_hierarchy']
+            }
+        
+        # Выходим из режима редактирования
+        state['editing_mode'] = False
+        return {
+            'text': f'Редактирование завершено. Продолжаем работу с убеждением "{concept}".',
+            'concept_data': state['concept_hierarchy']
+        }
     
     def extract_emotions(self, text: str) -> List[str]:
         """Извлекает эмоции из текста с помощью GPT или эвристики"""
         if self.openai_client:
             try:
-                prompt = f"""Проанализируй следующий текст и извлеки все эмоции, которые упоминает человек. 
+                prompt = f"""Проанализируй следующий текст и извлеки все ЭМОЦИИ, которые упоминает человек.
+
+ВАЖНО: ЭМОЦИИ - это чувства, переживания:
+- Базовые эмоции: радость, грусть, злость, страх, любовь, тревога, вина, стыд
+- Позитивные эмоции: вдохновение, восхищение, нежность, смирение, привязанность, забота, энтузиазм, восторг
+- Негативные эмоции: печаль, тоска, одиночество, беспокойство, гнев, раздражение, ярость, смущение
+
+НЕ извлекай:
+- ФИЗИЧЕСКИЕ СОСТОЯНИЯ (усталость, устал, устала, опустошение, выгорание)
+- ЧУВСТВА/СОСТОЯНИЯ (усталость - это не эмоция!)
+
+ВАЖНО: Вдохновение, восхищение, нежность - это ЭМОЦИИ, связанные с любовью и позитивными переживаниями.
+
 Верни ТОЛЬКО список эмоций через запятую, без дополнительных объяснений.
 Если эмоций нет, верни пустую строку.
 
@@ -630,16 +959,143 @@ class PsychologistAI:
             'злость', 'гнев', 'раздражение', 'ярость',
             'вина', 'стыд', 'смущение',
             'радость', 'счастье', 'удовольствие',
-            'усталость', 'опустошение', 'выгорание'
+            'любовь', 'восхищение', 'нежность', 'смирение', 'привязанность', 'забота',
+            'вдохновение', 'вдохновлен', 'вдохновлена', 'вдохновленным', 'энтузиазм', 'восторг'
+        }
+        
+        # Маппинг прямых упоминаний эмоций (например, "злюсь" -> "злость")
+        emotion_mapping = {
+            'злюсь': 'злость', 'злю': 'злость',
+            'грустно': 'грусть', 'грущу': 'грусть',
+            'радуюсь': 'радость', 'рад': 'радость',
+            'боюсь': 'страх', 'страшно': 'страх',
+            'люблю': 'любовь',
+            'ненавижу': 'злость',
+            'тревожусь': 'тревога', 'тревожно': 'тревога',
+            'вдохновение': 'вдохновение', 'вдохновлен': 'вдохновение', 'вдохновлена': 'вдохновение',
+            'восхищение': 'восхищение', 'восхищаюсь': 'восхищение',
+            'нежность': 'нежность', 'нежен': 'нежность'
         }
         
         found_emotions = []
         text_lower = text.lower()
+        
+        # Сначала проверяем прямые упоминания
+        for word, emotion in emotion_mapping.items():
+            if word in text_lower and emotion not in found_emotions:
+                found_emotions.append(emotion)
+        
+        # Затем проверяем ключевые слова
         for emotion in emotion_keywords:
-            if emotion in text_lower:
+            if emotion in text_lower and emotion not in found_emotions:
                 found_emotions.append(emotion)
         
         return found_emotions if found_emotions else []
+    
+    def extract_ideas_from_text(self, text: str) -> List[str]:
+        """Извлекает ИДЕИ (убеждения) из текста с помощью GPT"""
+        if not self.openai_client:
+            return []
+        
+        try:
+            prompt = f"""Проанализируй следующий текст и извлеки все ИДЕИ/УБЕЖДЕНИЯ, которые упоминает человек.
+
+ВАЖНО: ИДЕЯ/УБЕЖДЕНИЕ - это мысль, представление, убеждение человека:
+- "Я не могу позволить себе переехать"
+- "Условия жизни в России плохие"
+- "Я неудачник"
+- "Меня не любят"
+- "Я работаю на нелюбимой работе"
+- "Я смогу заработать много денег"
+- "Мне нужно всего 350 человек"
+
+НЕ извлекай:
+- ЭМОЦИИ (грусть, радость, тревога, злость, вдохновение)
+- СИТУАЦИИ/СОБЫТИЯ ("работа завтра", "встреча", "разговор")
+- КОНКРЕТНЫЕ ЦИФРЫ И ДЕТАЛИ (350 человек, 2 млн рублей) - это детали, не сама идея
+- МАТ И ВЫРАЖЕНИЯ ЭМОЦИЙ ("ЕБАТЬ!", "ура!")
+
+КРИТИЧЕСКИ ВАЖНО:
+- Извлекай ТОЛЬКО СУТЬ идеи, а не весь текст
+- Формулируй идею КРАТКО (до 8-12 слов), выделяя ГЛАВНУЮ МЫСЛЬ
+- НЕ копируй весь текст пользователя дословно
+- Если текст длинный, найди ОСНОВНУЮ ИДЕЮ, которая лежит в его основе
+- Убери все детали, цифры, эмоциональные выражения
+- Оставь только СУТЬ убеждения/мысли
+
+Примеры:
+Текст: "я понял что мне нужно всего-то 350 человек для этой программы и я буду зарабатывать 2 млн рублей в месяц! ЕБАТЬ!"
+Идея: "Я смогу заработать много денег, если найду нужное количество людей"
+
+Текст: "Я работаю на нелюбимой работе уже 5 лет и мне это надоело"
+Идея: "Я работаю на нелюбимой работе"
+
+Если в тексте несколько идей, извлеки ВСЕ, но каждую КРАТКО и по СУТИ.
+
+Верни ТОЛЬКО список идей через запятую, без дополнительных объяснений.
+Если идей нет, верни пустую строку.
+
+Текст: {text}
+
+Идеи:"""
+            
+            response = self.openai_client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "system", "content": "Ты помощник для извлечения идей/убеждений из текста. Возвращай только список идей через запятую, кратко и по сути."},
+                         {"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=300
+            )
+            
+            result = response.choices[0].message.content.strip()
+            if result:
+                ideas = [i.strip() for i in result.split(',') if i.strip()]
+                # Если идея слишком длинная, пытаемся её сократить
+                shortened_ideas = []
+                for idea in ideas[:5]:
+                    if len(idea) > 60:  # Если идея длиннее 60 символов
+                        shortened = self._shorten_idea(idea)
+                        if shortened:
+                            shortened_ideas.append(shortened)
+                        else:
+                            # Если не удалось сократить, берем первые 50 символов
+                            shortened_ideas.append(idea[:50] + '...' if len(idea) > 50 else idea)
+                    else:
+                        shortened_ideas.append(idea)
+                return shortened_ideas
+        except Exception as e:
+            print(f"[PsychologistAI] Ошибка при извлечении идей через GPT: {e}")
+        
+        return []
+    
+    def _shorten_idea(self, idea: str) -> Optional[str]:
+        """Сокращает длинную идею до сути (до 50 символов)"""
+        if not self.openai_client or len(idea) <= 50:
+            return idea[:50] + '...' if len(idea) > 50 else idea
+        
+        try:
+            prompt = f"""Сократи следующую идею до СУТИ (до 50 символов максимум), убрав все детали и оставив только главную мысль.
+
+Идея: {idea}
+
+Сокращенная идея (до 50 символов, только суть):"""
+            
+            response = self.openai_client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "system", "content": "Ты помощник для сокращения идей до сути. Возвращай только сокращенную идею, до 50 символов."},
+                         {"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=50
+            )
+            
+            result = response.choices[0].message.content.strip()
+            if result and len(result) <= 60:  # Допускаем небольшое превышение
+                return result
+        except Exception as e:
+            print(f"[PsychologistAI] Ошибка при сокращении идеи: {e}")
+        
+        # Fallback - просто обрезаем
+        return idea[:50] + '...' if len(idea) > 50 else idea
     
     def extract_situations(self, text: str) -> List[str]:
         """Извлекает ситуации из текста (НЕ идеи, НЕ эмоции!) с помощью GPT или эвристики"""
@@ -860,4 +1316,283 @@ class PsychologistAI:
             document += "\n---\n\n"
         
         return document
+    
+    def generate_positive_belief_plan(self, concept_hierarchy: Dict, negative_concept: str) -> str:
+        """Генерирует план по формированию позитивной установки на основе негативной"""
+        if not self.openai_client:
+            return f"Ваша задача: сформировать позитивную установку, противоположную '{negative_concept}'. Подумайте, как можно переформулировать эту идею в позитивном ключе."
+        
+        try:
+            # Собираем информацию о негативной установке
+            concept_data = concept_hierarchy.get(negative_concept, {})
+            founder = concept_data.get('founder', 'неизвестно')
+            purpose = concept_data.get('purpose', 'неизвестно')
+            consequences = concept_data.get('consequences', {})
+            
+            prompt = f"""Ты профессиональный психолог. На основе анализа негативной установки человека, составь детальный план по формированию новой позитивной установки.
+
+Негативная установка: "{negative_concept}"
+Основатель идеи: {founder}
+Цель появления: {purpose}
+Эмоциональные последствия: {', '.join(consequences.get('emotional', [])) if consequences.get('emotional') else 'не указаны'}
+Физические последствия: {', '.join(consequences.get('physical', [])) if consequences.get('physical') else 'не указаны'}
+
+Составь практический план из 5-7 шагов, который поможет человеку сформировать позитивную установку, противоположную негативной. План должен быть:
+- Конкретным и выполнимым
+- Пошаговым
+- С учетом того, что негативная установка была внедрена с целью {purpose}
+- С учетом основателя {founder}
+
+Формат: пронумерованный список шагов. Каждый шаг должен быть конкретным действием или практикой.
+
+План:"""
+            
+            response = self.openai_client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "Ты профессиональный психолог, который помогает людям формировать позитивные установки. Составляй конкретные, практические планы."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=500
+            )
+            
+            plan = response.choices[0].message.content.strip()
+            
+            # Формируем финальное сообщение
+            positive_belief = self.suggest_positive_belief(negative_concept)
+            
+            return f"""## План по формированию позитивной установки
+
+**Ваша задача:** Сформировать установку: "{positive_belief}" (+)
+
+**План действий:**
+
+{plan}
+
+**Важно:** Работайте над этим планом постепенно, не торопитесь. Каждый шаг важен для формирования новой позитивной установки."""
+            
+        except Exception as e:
+            print(f"[PsychologistAI] Ошибка при генерации плана: {e}")
+            positive_belief = self.suggest_positive_belief(negative_concept)
+            return f"""## План по формированию позитивной установки
+
+**Ваша задача:** Сформировать установку: "{positive_belief}" (+)
+
+**Рекомендации:**
+1. Ежедневно напоминайте себе о новой позитивной установке
+2. Ищите доказательства, подтверждающие позитивную установку
+3. Оспаривайте старые негативные мысли
+4. Практикуйте самосострадание
+5. Окружите себя людьми, которые поддерживают позитивные изменения"""
+    
+    def suggest_positive_belief(self, negative_belief: str) -> str:
+        """Предлагает позитивную установку на основе негативной"""
+        if not self.openai_client:
+            # Простая замена для базового случая
+            replacements = {
+                'не': 'да',
+                'неудачник': 'успешный человек',
+                'некрасивая': 'красивая',
+                'не любят': 'любят',
+                'не ценят': 'ценят'
+            }
+            result = negative_belief
+            for neg, pos in replacements.items():
+                result = result.replace(neg, pos)
+            return result
+        
+        try:
+            prompt = f"""Преобразуй следующую негативную установку в позитивную, противоположную ей. 
+Верни ТОЛЬКО позитивную установку, без дополнительных объяснений.
+
+Негативная установка: "{negative_belief}"
+
+Позитивная установка:"""
+            
+            response = self.openai_client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "Ты помощник для преобразования негативных установок в позитивные. Возвращай только позитивную установку."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5,
+                max_tokens=50
+            )
+            
+            return response.choices[0].message.content.strip().strip('"').strip("'")
+        except Exception as e:
+            print(f"[PsychologistAI] Ошибка при генерации позитивной установки: {e}")
+            return f"Я достойный и ценный человек"
+    
+    def analyze_root_beliefs(self, concept_hierarchy: Dict, negative_concept: str) -> List[Dict]:
+        """Анализирует корневые установки по 5 кругам отношений"""
+        if not self.openai_client:
+            return []
+        
+        try:
+            # Собираем информацию о концепции
+            concept_data = concept_hierarchy.get(negative_concept, {})
+            founder = concept_data.get('founder', 'неизвестно')
+            purpose = concept_data.get('purpose', 'неизвестно')
+            consequences = concept_data.get('consequences', {})
+            
+            prompt = f"""Проанализируй следующую негативную установку и определи, к какому из 5 кругов отношений она относится.
+
+Негативная установка: "{negative_concept}"
+Основатель: {founder}
+Цель: {purpose}
+Последствия: {', '.join(consequences.get('emotional', [])) if consequences.get('emotional') else 'не указаны'}
+
+5 кругов отношений:
+1. Я - отношение к самому себе
+2. Семья/Отношения - отношение к партнёрам по жизни
+3. Семья и близкие - отношение к детям, родителям, родственникам, лучшим друзьям
+4. Друзья и Партнёры - отношения к коллегам, друзьям, знакомым
+5. Общество - отношение к обществу и людям в целом
+
+Определи:
+- К какому кругу относится эта установка (1-5)
+- Название круга
+- Является ли это корневой установкой (влияет на другие сферы жизни)
+
+Верни результат в формате JSON:
+{{
+    "circle_number": 1,
+    "circle_name": "Я",
+    "is_root": true,
+    "negative_belief": "{negative_concept}",
+    "positive_belief": "позитивная установка противоположная негативной"
+}}
+
+Верни ТОЛЬКО JSON, без дополнительных объяснений."""
+            
+            response = self.openai_client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "Ты помощник для анализа корневых установок. Возвращай только валидный JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5,
+                max_tokens=200
+            )
+            
+            result_text = response.choices[0].message.content.strip()
+            import re
+            json_match = re.search(r'\{.*\}', result_text, re.DOTALL)
+            if json_match:
+                result = json.loads(json_match.group())
+                return [result]
+        except Exception as e:
+            print(f"[PsychologistAI] Ошибка при анализе корневых установок: {e}")
+        
+        return []
+    
+    def generate_emotion_to_situation_transition(self, emotions_text: str, user_message: str, history: List[Dict]) -> Optional[str]:
+        """Генерирует переход от эмоций к ситуациям через GPT с вариациями формулировок"""
+        if not self.openai_client:
+            return None
+        
+        try:
+            # Формируем контекст из истории
+            context = ""
+            if history:
+                recent_messages = history[-3:]  # Берем последние 3 сообщения
+                context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in recent_messages])
+            
+            prompt = f"""Ты профессиональный психолог. Человек поделился своими эмоциями: {emotions_text}.
+
+Твоя задача: мягко и естественно перейти к вопросу о ситуации, которая вызывает эти эмоции.
+
+ВАЖНО:
+- НЕ используй шаблонные фразы типа "Я понимаю, что вы испытываете..."
+- Используй РАЗНЫЕ формулировки каждый раз
+- Будь естественным, человечным, эмпатичным
+- Вопрос должен быть: "Какая ситуация вызывает у вас это чувство прямо сейчас?"
+- Но задай его по-разному, с вариациями
+
+Примеры хороших формулировок (НЕ копируй их, создай свою):
+- "Расскажите, что происходит в вашей жизни, что вызывает у вас {emotions_text}?"
+- "Давайте разберемся, что именно в вашей ситуации сейчас вызывает это чувство?"
+- "Что происходит прямо сейчас, что заставляет вас чувствовать {emotions_text}?"
+
+Контекст диалога:
+{context}
+
+Сгенерируй ОДИН короткий ответ (1-2 предложения), который:
+1. Признает эмоции человека (но не шаблонно!)
+2. Задает вопрос о ситуации, которая вызывает эти эмоции
+3. Использует естественную, вариативную формулировку
+
+Ответ:"""
+            
+            response = self.openai_client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "Ты профессиональный психолог. Генерируй естественные, вариативные ответы без шаблонных фраз."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.8,  # Выше температура для большего разнообразия
+                max_tokens=150
+            )
+            
+            result = response.choices[0].message.content.strip()
+            return result
+        except Exception as e:
+            print(f"[PsychologistAI] Ошибка при генерации перехода к ситуациям: {e}")
+            return None
+    
+    def generate_positive_emotion_response(self, emotions_text: str, user_message: str, history: List[Dict]) -> Optional[str]:
+        """Генерирует ответ на позитивные эмоции через GPT с вариациями"""
+        if not self.openai_client:
+            return None
+        
+        try:
+            context = ""
+            if history:
+                recent_messages = history[-3:]
+                context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in recent_messages])
+            
+            prompt = f"""Ты профессиональный психолог. Человек поделился позитивными эмоциями: {emotions_text}.
+
+Твоя задача: мягко и естественно перейти к вопросу о ситуации, которая вызывает эти позитивные эмоции.
+
+ВАЖНО:
+- НЕ используй шаблонные фразы типа "Я понимаю, что вы испытываете..."
+- Используй РАЗНЫЕ формулировки каждый раз
+- Будь естественным, человечным, эмпатичным
+- Вопрос должен быть: "Какая ситуация вызывает у вас это чувство прямо сейчас?"
+- Но задай его по-разному, с вариациями
+- Признай позитивную эмоцию, но не шаблонно
+
+Примеры хороших формулировок (НЕ копируй их, создай свою):
+- "Отлично, что вы чувствуете {emotions_text}! Расскажите, что происходит в вашей жизни, что вызывает это чувство?"
+- "Здорово, что вы испытываете {emotions_text}. Что именно в вашей ситуации сейчас вызывает это?"
+- "Рад слышать, что вы чувствуете {emotions_text}. Давайте разберемся, что происходит, что заставляет вас чувствовать это?"
+
+Контекст диалога:
+{context}
+
+Сгенерируй ОДИН короткий ответ (1-2 предложения), который:
+1. Признает позитивные эмоции (но не шаблонно!)
+2. Задает вопрос о ситуации, которая вызывает эти эмоции
+3. Использует естественную, вариативную формулировку
+
+Ответ:"""
+            
+            response = self.openai_client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "Ты профессиональный психолог. Генерируй естественные, вариативные ответы без шаблонных фраз."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.8,
+                max_tokens=150
+            )
+            
+            result = response.choices[0].message.content.strip()
+            return result
+        except Exception as e:
+            print(f"[PsychologistAI] Ошибка при генерации ответа на позитивные эмоции: {e}")
+            return None
 

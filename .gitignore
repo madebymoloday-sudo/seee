@@ -38,10 +38,14 @@ Thumbs.db
 *.log
 /tmp/
 
+# Uploads
+uploads/
+
 # Concept files (optional - раскомментируйте если не хотите коммитить)
 # concept_files/
 
 # Ngrok
 ngrok.log
 /tmp/ngrok*.log
+
 

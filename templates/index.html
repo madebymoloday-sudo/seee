@@ -16,7 +16,7 @@
                     <span>+</span> Новая сессия
                 </button>
                 <button class="btn-map" id="mapBtn">
-                    🗺️ Карта не территория
+                    ⚡ Нейрокарта
                 </button>
             </div>
             
@@ -26,6 +26,8 @@
             
             <div class="sidebar-footer">
                 <button class="btn-download" id="downloadDocBtn">Скачать документ</button>
+                <button class="btn-add-to-map" id="addSessionToMapBtn" style="display: none;">➕ Добавить сессию в Нейрокарту</button>
+                <button class="btn-feedback" id="feedbackBtn">📝 Обратная связь</button>
                 <button class="btn-cabinet" id="cabinetBtn">👤 Личный кабинет</button>
                 <a href="/logout" class="btn-logout">Выйти</a>
             </div>
@@ -67,6 +69,22 @@
             </div>
             
             <div class="input-container">
+                <div id="navigationButtonsContainer" style="display: none; margin-bottom: 10px; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn-navigation" id="goToBeliefBtn">
+                        🎯 Перейти к убеждению
+                    </button>
+                    <button type="button" class="btn-navigation" id="skipStepBtn">
+                        ⏭️ Пропустить
+                    </button>
+                    <button type="button" class="btn-navigation" id="editConceptBtn">
+                        ✏️ Дополнить
+                    </button>
+                </div>
+                <div id="difficultyButtonContainer" style="display: none; margin-bottom: 10px;">
+                    <button type="button" class="btn-difficulty" id="difficultyBtn">
+                        ❓ Затрудняюсь ответить
+                    </button>
+                </div>
                 <form id="messageForm">
                     <textarea 
                         id="messageInput" 
@@ -203,6 +221,117 @@
                         <button class="btn-save" id="saveLanguage">Сохранить</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для приостановки сессии -->
+    <div id="pauseSessionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Приостановить сессию</h2>
+                <button class="modal-close" id="closePauseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="pauseSessionForm">
+                    <div class="form-group">
+                        <label for="feelingAfter">Как вы себя чувствуете после сессии?</label>
+                        <textarea id="feelingAfter" rows="6" placeholder="Опишите ваше состояние..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="emotionAfter">Какую эмоцию испытываете?</label>
+                        <input type="text" id="emotionAfter" placeholder="Например: спокойствие, тревога, радость...">
+                    </div>
+                    <div class="form-group">
+                        <label for="howSessionWent">Как проходила сессия?</label>
+                        <textarea id="howSessionWent" rows="6" placeholder="Опишите, как прошла сессия..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="interestingThoughts">Какие интересные мысли были на этой сессии?</label>
+                        <textarea id="interestingThoughts" rows="6" placeholder="Запишите интересные мысли..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-save">Сохранить</button>
+                        <button type="button" class="btn-cancel" id="cancelPauseModal">Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для редактирования концепции -->
+    <div id="editConceptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Дополнить концепцию</h2>
+                <button class="modal-close" id="closeEditConceptModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Выберите убеждение для редактирования:</label>
+                    <select id="editConceptSelect" class="form-control">
+                        <option value="">-- Выберите убеждение --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Что вы хотите отредактировать?</label>
+                    <select id="editFieldSelect" class="form-control">
+                        <option value="">-- Выберите поле --</option>
+                        <option value="name">Убеждение</option>
+                        <option value="composition">Части убеждения</option>
+                        <option value="founder">Основатель</option>
+                        <option value="purpose">Цель</option>
+                        <option value="consequences">Последствия</option>
+                        <option value="conclusions">Вывод</option>
+                        <option value="comments">Комментарий</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-save" id="confirmEditBtn">Продолжить</button>
+                    <button type="button" class="btn-cancel" id="cancelEditConceptModal">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для обратной связи -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Обратная связь</h2>
+                <button class="modal-close" id="closeFeedbackModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="feedback-description">
+                    <p>Тут вы можете сообщить об ошибках, негативном или позитивном опыте. Будем рады вашей обратной связи, благодарим, что помогаете нам становиться лучше!</p>
+                </div>
+                <form id="feedbackForm">
+                    <div class="form-group">
+                        <label for="feedbackAboutSelf">Расскажите о себе *</label>
+                        <textarea id="feedbackAboutSelf" rows="3" placeholder="Пол, возраст, кто вы и чем занимаетесь..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedbackExpectations">Какие у вас были ожидания от процесса? *</label>
+                        <textarea id="feedbackExpectations" rows="3" placeholder="Опишите ваши ожидания..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedbackExpectationsMet">Сбылись ли эти ожидания? *</label>
+                        <textarea id="feedbackExpectationsMet" rows="3" placeholder="Опишите, сбылись ли ваши ожидания..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedbackHowItWent">Как всё прошло? *</label>
+                        <textarea id="feedbackHowItWent" rows="3" placeholder="Опишите, как прошёл процесс..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedbackFile">Прикрепить файл (скриншот, видео)</label>
+                        <input type="file" id="feedbackFile" accept="image/*,video/*">
+                        <small class="form-hint">Можно прикрепить скриншот или видео для лучшего понимания</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-save">Отправить</button>
+                        <button type="button" class="btn-cancel" id="cancelFeedbackModal">Отмена</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

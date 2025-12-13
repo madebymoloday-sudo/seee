@@ -109,7 +109,7 @@ def init_db():
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                   FOREIGN KEY (session_id) REFERENCES sessions (id))''')
     
-    # Таблица для карты "Карта не территория"
+    # Таблица для Нейрокарты
     # Изменена структура: одна запись = одна комбинация событие-эмоция-идея
     c.execute('''CREATE TABLE IF NOT EXISTS event_map
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,6 +122,66 @@ def init_db():
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                   FOREIGN KEY (user_id) REFERENCES users (id))''')
+    
+    # Таблица "До и После" для отслеживания убеждений
+    c.execute('''CREATE TABLE IF NOT EXISTS before_after_beliefs
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  user_id INTEGER NOT NULL,
+                  session_id INTEGER,
+                  belief_before TEXT NOT NULL,
+                  belief_after TEXT,
+                  is_task INTEGER DEFAULT 0,
+                  circle_number INTEGER,
+                  circle_name TEXT,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  FOREIGN KEY (user_id) REFERENCES users (id),
+                  FOREIGN KEY (session_id) REFERENCES sessions (id))''')
+    
+    # Таблица для обратной связи (баги, скриншоты, видео)
+    c.execute('''CREATE TABLE IF NOT EXISTS feedback
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  user_id INTEGER NOT NULL,
+                  session_id INTEGER,
+                  description TEXT NOT NULL,
+                  file_path TEXT,
+                  file_type TEXT,
+                  status TEXT DEFAULT 'new',
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  FOREIGN KEY (user_id) REFERENCES users (id),
+                  FOREIGN KEY (session_id) REFERENCES sessions (id))''')
+    
+    # Таблица для статистики обучения GPT
+    c.execute('''CREATE TABLE IF NOT EXISTS gpt_statistics
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  session_id INTEGER NOT NULL,
+                  user_id INTEGER NOT NULL,
+                  message_count INTEGER DEFAULT 0,
+                  avg_response_time REAL,
+                  user_satisfaction_score REAL,
+                  difficulty_encountered INTEGER DEFAULT 0,
+                  root_beliefs_identified INTEGER DEFAULT 0,
+                  positive_transformations INTEGER DEFAULT 0,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  FOREIGN KEY (session_id) REFERENCES sessions (id),
+                  FOREIGN KEY (user_id) REFERENCES users (id))''')
+    
+    # Таблица для корневых установок
+    c.execute('''CREATE TABLE IF NOT EXISTS root_beliefs
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  user_id INTEGER NOT NULL,
+                  session_id INTEGER,
+                  circle_number INTEGER NOT NULL,
+                  circle_name TEXT NOT NULL,
+                  negative_belief TEXT NOT NULL,
+                  positive_belief TEXT,
+                  is_task INTEGER DEFAULT 0,
+                  status TEXT DEFAULT 'identified',
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  FOREIGN KEY (user_id) REFERENCES users (id),
+                  FOREIGN KEY (session_id) REFERENCES sessions (id))''')
     
     # Таблица журнала сессий
     c.execute('''CREATE TABLE IF NOT EXISTS session_journal
@@ -205,9 +265,41 @@ def migrate_database():
             c.execute("PRAGMA table_info(event_map)")
             event_map_columns = [col[1] for col in c.fetchall()]
             
+            if 'emotion' not in event_map_columns:
+                c.execute('ALTER TABLE event_map ADD COLUMN emotion TEXT')
+                print("[Migration] Добавлена колонка emotion в event_map")
+            
+            if 'idea' not in event_map_columns:
+                c.execute('ALTER TABLE event_map ADD COLUMN idea TEXT')
+                print("[Migration] Добавлена колонка idea в event_map")
+            
             if 'is_completed' not in event_map_columns:
                 c.execute('ALTER TABLE event_map ADD COLUMN is_completed INTEGER DEFAULT 0')
                 print("[Migration] Добавлена колонка is_completed в event_map")
+        except sqlite3.OperationalError:
+            # Таблица еще не создана, будет создана при init_db
+            pass
+        
+        # Миграция таблицы feedback - добавляем новые поля для структурированной обратной связи
+        try:
+            c.execute("PRAGMA table_info(feedback)")
+            feedback_columns = [col[1] for col in c.fetchall()]
+            
+            if 'about_self' not in feedback_columns:
+                c.execute('ALTER TABLE feedback ADD COLUMN about_self TEXT')
+                print("[Migration] Добавлена колонка about_self в feedback")
+            
+            if 'expectations' not in feedback_columns:
+                c.execute('ALTER TABLE feedback ADD COLUMN expectations TEXT')
+                print("[Migration] Добавлена колонка expectations в feedback")
+            
+            if 'expectations_met' not in feedback_columns:
+                c.execute('ALTER TABLE feedback ADD COLUMN expectations_met TEXT')
+                print("[Migration] Добавлена колонка expectations_met в feedback")
+            
+            if 'how_it_went' not in feedback_columns:
+                c.execute('ALTER TABLE feedback ADD COLUMN how_it_went TEXT')
+                print("[Migration] Добавлена колонка how_it_went в feedback")
         except sqlite3.OperationalError:
             # Таблица еще не создана, будет создана при init_db
             pass
@@ -271,7 +363,7 @@ def index():
 
 @app.route('/map')
 def map_page():
-    """Страница 'Карта не территория'"""
+    """Страница 'Нейрокарта'"""
     if 'user_id' not in session:
         return redirect(url_for('login'))
     return render_template('map.html')
@@ -400,8 +492,8 @@ def create_session():
     
     return jsonify({'id': session_id, 'title': 'Новая сессия'})
 
-@app.route('/api/sessions/<int:session_id>', methods=['DELETE'])
-def delete_session(session_id):
+@app.route('/api/sessions/<int:session_id>', methods=['DELETE', 'PUT'])
+def delete_or_update_session(session_id):
     if 'user_id' not in session:
         return jsonify({'error': 'Не авторизован'}), 401
     
@@ -414,14 +506,37 @@ def delete_session(session_id):
         conn.close()
         return jsonify({'error': 'Доступ запрещен'}), 403
     
-    # Удаляем все связанные данные
-    c.execute('DELETE FROM messages WHERE session_id = ?', (session_id,))
-    c.execute('DELETE FROM concept_hierarchies WHERE session_id = ?', (session_id,))
-    c.execute('DELETE FROM sessions WHERE id = ?', (session_id,))
-    conn.commit()
-    conn.close()
+    if request.method == 'DELETE':
+        # Удаляем все связанные данные
+        c.execute('DELETE FROM messages WHERE session_id = ?', (session_id,))
+        c.execute('DELETE FROM concept_hierarchies WHERE session_id = ?', (session_id,))
+        c.execute('DELETE FROM sessions WHERE id = ?', (session_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
     
-    return jsonify({'success': True})
+    elif request.method == 'PUT':
+        # Обновляем название сессии
+        data = request.json
+        new_title = data.get('title', '').strip()
+        
+        if not new_title:
+            conn.close()
+            return jsonify({'error': 'Название не может быть пустым'}), 400
+        
+        # Ограничиваем длину названия
+        if len(new_title) > 100:
+            new_title = new_title[:100]
+        
+        c.execute('UPDATE sessions SET title = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+                 (new_title, session_id))
+        conn.commit()
+        conn.close()
+        
+        # Отправляем обновление через Socket.IO
+        socketio.emit('session_title_updated', {'session_id': session_id, 'title': new_title})
+        
+        return jsonify({'success': True, 'title': new_title})
 
 @app.route('/api/sessions/<int:session_id>/messages')
 def get_messages(session_id):
@@ -617,9 +732,67 @@ def handle_message(data):
     
     conn.close()
     
+    # Определяем, нужно ли показывать кнопки навигации
+    show_navigation = False
+    available_concepts = []
+    current_field = None
+    
+    # Получаем состояние сессии для определения доступных концепций
+    state = psychologist_ai.get_session_state(session_id, history)
+    if state.get('concept_hierarchy'):
+        available_concepts = list(state['concept_hierarchy'].keys())
+        current_field = state.get('current_field')
+        
+        # Показываем кнопки навигации если:
+        # 1. Есть несколько концепций (кнопка "Перейти к убеждению")
+        # 2. Мы на этапе заполнения поля (кнопка "Пропустить")
+        if len(available_concepts) > 1 or current_field:
+            show_navigation = True
+    
+    # Сохраняем корневые установки и До/После если сессия завершена
+    if ai_response.get('session_complete') and ai_response.get('root_beliefs'):
+        conn = get_db()
+        c = conn.cursor()
+        
+        for root_belief in ai_response['root_beliefs']:
+            # Сохраняем в root_beliefs
+            c.execute('''INSERT INTO root_beliefs 
+                         (user_id, session_id, circle_number, circle_name, negative_belief, positive_belief, is_task, status)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                     (user_id, session_id, 
+                      root_belief.get('circle_number'),
+                      root_belief.get('circle_name', ''),
+                      root_belief.get('negative_belief', ''),
+                      root_belief.get('positive_belief', ''),
+                      1 if root_belief.get('is_root') else 0,
+                      'identified'))
+            
+            # Сохраняем в before_after_beliefs
+            c.execute('''INSERT INTO before_after_beliefs 
+                         (user_id, session_id, belief_before, belief_after, is_task, circle_number, circle_name)
+                         VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                     (user_id, session_id,
+                      root_belief.get('negative_belief', ''),
+                      root_belief.get('positive_belief', '') if not root_belief.get('is_root') else None,
+                      1,  # Задача
+                      root_belief.get('circle_number'),
+                      root_belief.get('circle_name', '')))
+        
+        conn.commit()
+        conn.close()
+    
+    # Обновляем статистику GPT
+    update_gpt_statistics(session_id, user_id, len(history), ai_response.get('session_complete', False))
+    
     emit('response', {
         'message': ai_response['text'],
-        'concept_data': ai_response.get('concept_data')
+        'concept_data': ai_response.get('concept_data'),
+        'show_navigation': show_navigation,
+        'available_concepts': available_concepts,
+        'current_field': current_field,
+        'plan': ai_response.get('plan'),
+        'session_complete': ai_response.get('session_complete', False),
+        'root_beliefs': ai_response.get('root_beliefs', [])
     })
 
 @app.route('/api/sessions/<int:session_id>/document')
@@ -959,7 +1132,7 @@ def test_payment():
         'message': f'Платеж обработан, комиссии распределены'
     })
 
-# API для карты "Карта не территория"
+# API для Нейрокарты
 @app.route('/api/map/entries', methods=['GET'])
 def get_map_entries():
     """Получить все записи карты пользователя"""
@@ -1104,230 +1277,828 @@ def toggle_map_entry_completion(entry_id):
 @socketio.on('map_message')
 def handle_map_message(data):
     """Обработка сообщений для карты"""
-    if 'user_id' not in session:
-        emit('map_error', {'error': 'Unauthorized'})
-        return
-    
-    message = data.get('message', '').strip().lower()
-    if not message:
-        return
-    
-    # Получаем состояние диалога из сессии
-    if 'map_state' not in session:
-        session['map_state'] = {
-            'stage': 'waiting_start',  # waiting_start, event, emotions, ideas
-            'current_event': None,
-            'current_emotions': None,
-            'current_ideas': None
-        }
-    
-    state = session['map_state']
-    
-    # Проверяем, готов ли пользователь начать
-    if state['stage'] == 'waiting_start':
-        # Более гибкое распознавание команды старт (учитываем опечатки)
-        start_commands = ['старт', 'start', 'начать', 'готов', 'готовы', 'начнем', 'начинаем']
-        # Проверяем точное совпадение или похожие варианты
-        message_normalized = message.lower().strip()
-        is_start_command = (
-            message_normalized in start_commands or
-            'старт' in message_normalized or
-            'start' in message_normalized or
-            message_normalized.startswith('стар') or
-            message_normalized.startswith('страт')  # Опечатка "страт"
-        )
+    try:
+        if 'user_id' not in session:
+            emit('map_error', {'error': 'Unauthorized'})
+            return
         
-        if is_start_command:
-            state['stage'] = 'event'
-            session['map_state'] = state
-            session.modified = True
-            emit('map_response', {
-                'text': 'Отлично! Давайте начнем. Какое событие происходит у вас в жизни?',
-                'buttons': []
-            })
-        else:
-            emit('map_response', {
-                'text': 'Напишите "старт" (или "start"), если готовы начать заполнять вашу карту или хотите дополнить её.'
-            })
-        return
-    
-    # Обработка в зависимости от этапа
-    if state['stage'] == 'event':
-        # Сохраняем событие
-        state['current_event'] = message
-        state['stage'] = 'emotion_count'
-        session['map_state'] = state
-        session.modified = True
-        emit('map_response', {
-            'text': 'Спасибо. Теперь давайте разберем эмоции. Сколько эмоций вы испытываете по поводу этого события?',
-            'buttons': [
-                {'text': 'Одна эмоция', 'value': 'one'},
-                {'text': 'Несколько эмоций', 'value': 'many'}
-            ]
-        })
-    elif state['stage'] == 'emotion_count':
-        # Определяем сколько эмоций
-        if 'одна' in message or 'one' in message or message == '1':
-            state['emotion_count'] = 'one'
-            state['stage'] = 'emotion'
-        elif 'несколько' in message or 'many' in message or 'неск' in message:
-            state['emotion_count'] = 'many'
-            state['stage'] = 'emotion'
-        else:
-            # Пытаемся определить по кнопке
-            if message in ['one', 'many']:
-                state['emotion_count'] = message
-                state['stage'] = 'emotion'
-            else:
+        message = data.get('message', '').strip()
+        if not message:
+            return
+        
+        # Сохраняем оригинальный регистр для сообщения (не приводим к lower сразу)
+        message_lower = message.lower()
+        
+        # Получаем состояние диалога из сессии
+        if 'map_state' not in session:
+            session['map_state'] = {
+                'stage': 'waiting_start',  # waiting_start, emotion_count, emotion, event, idea
+                'current_event': None,
+                'current_emotions': [],
+                'current_ideas': [],
+                'current_emotion_index': 0,
+                'emotion_count': None
+            }
+        
+        state = session['map_state']
+        
+        # Проверяем, готов ли пользователь начать
+        if state['stage'] == 'waiting_start':
+            # Более гибкое распознавание команды старт (учитываем опечатки)
+            start_commands = ['старт', 'start', 'начать', 'готов', 'готовы', 'начнем', 'начинаем']
+            # Проверяем точное совпадение или похожие варианты
+            message_normalized = message_lower.strip()
+            is_start_command = (
+                message_normalized in start_commands or
+                'старт' in message_normalized or
+                'start' in message_normalized or
+                message_normalized.startswith('стар') or
+                message_normalized.startswith('страт')  # Опечатка "страт"
+            )
+            
+            if is_start_command:
+                state['stage'] = 'emotion_count'
+                session['map_state'] = state
+                session.modified = True
                 emit('map_response', {
-                    'text': 'Пожалуйста, выберите: одна эмоция или несколько эмоций?',
+                    'text': 'Отлично! Давайте начнем. Сколько эмоций вы испытываете сейчас?',
                     'buttons': [
                         {'text': 'Одна эмоция', 'value': 'one'},
                         {'text': 'Несколько эмоций', 'value': 'many'}
                     ]
                 })
+            else:
+                emit('map_response', {
+                    'text': 'Напишите "старт" (или "start"), если готовы начать заполнять вашу карту или хотите дополнить её.'
+                })
+            return
+    
+        # Обработка в зависимости от этапа
+        # НОВЫЙ ПОРЯДОК: 1. Эмоции, 2. Ситуация, 3. Идея
+        if state['stage'] == 'emotion_count':
+            # Определяем сколько эмоций
+            if 'одна' in message_lower or 'one' in message_lower or message_lower == '1':
+                state['emotion_count'] = 'one'
+                state['stage'] = 'emotion'
+            elif 'несколько' in message_lower or 'many' in message_lower or 'неск' in message_lower:
+                state['emotion_count'] = 'many'
+                state['stage'] = 'emotion'
+            else:
+                # Пытаемся определить по кнопке
+                if message_lower in ['one', 'many']:
+                    state['emotion_count'] = message_lower
+                    state['stage'] = 'emotion'
+                # Если пользователь хочет добавить еще запись (ответил "да", "хочу" и т.д.)
+                elif message_lower == 'yes' or any(word in message_lower for word in ['да', 'хочу', 'добавить', 'еще', 'ещё', 'продолжить', 'продолжим']):
+                    # Пользователь хочет добавить еще запись - показываем выбор количества эмоций
+                    emit('map_response', {
+                        'text': 'Отлично! Сколько эмоций вы хотите добавить?',
+                        'buttons': [
+                            {'text': 'Одна эмоция', 'value': 'one'},
+                            {'text': 'Несколько эмоций', 'value': 'many'}
+                        ]
+                    })
+                    return
+                # Если пользователь не хочет добавлять (ответил "нет", "закончить" и т.д.)
+                elif message_lower == 'no' or any(word in message_lower for word in ['нет', 'не', 'закончить', 'закончил', 'закончила', 'готово', 'всё', 'все']):
+                    # Переходим в состояние ожидания старта
+                    state['stage'] = 'waiting_start'
+                    session['map_state'] = state
+                    session.modified = True
+                    emit('map_response', {
+                        'text': 'Хорошо! Если захотите добавить еще запись в будущем, напишите "старт".'
+                    })
+                    return
+                else:
+                    emit('map_response', {
+                        'text': 'Пожалуйста, выберите: одна эмоция или несколько эмоций?',
+                        'buttons': [
+                            {'text': 'Одна эмоция', 'value': 'one'},
+                            {'text': 'Несколько эмоций', 'value': 'many'}
+                        ]
+                    })
+                    return
+            
+            session['map_state'] = state
+            session.modified = True
+            
+            if state['emotion_count'] == 'one':
+                emit('map_response', {
+                    'text': 'Хорошо. Опишите одну эмоцию, которую вы испытываете сейчас. Напишите название эмоции (например: тревога, радость, грусть, злость).',
+                    'buttons': [
+                        {'text': '❓ Затрудняюсь ответить', 'value': 'difficulty'}
+                    ]
+                })
+            else:
+                emit('map_response', {
+                    'text': 'Хорошо. Опишите первую эмоцию, которую вы испытываете сейчас. Напишите название эмоции (например: тревога, радость, грусть, злость). После этого мы добавим остальные.',
+                    'buttons': [
+                        {'text': '❓ Затрудняюсь ответить', 'value': 'difficulty'}
+                    ]
+                })
+        elif state['stage'] == 'emotion':
+            # Проверяем, не нажата ли кнопка "Затрудняюсь ответить"
+            if message_lower == 'difficulty' or 'затрудняюсь' in message_lower:
+                emit('map_response', {
+                    'text': 'Понимаю, что вопрос может быть сложным. Давайте попробуем подойти к этому с другой стороны. Можете описать, что именно вызывает затруднение? Или просто скажите, что чувствуете в данный момент.',
+                    'buttons': [
+                        {'text': '❓ Затрудняюсь ответить', 'value': 'difficulty'}
+                    ]
+                })
                 return
-        
-        session['map_state'] = state
-        session.modified = True
-        
-        if state['emotion_count'] == 'one':
-            emit('map_response', {
-                'text': 'Хорошо. Опишите одну эмоцию, которую вы испытываете по поводу этого события. Напишите название эмоции (например: тревога, радость, грусть, злость).'
-            })
-        else:
-            emit('map_response', {
-                'text': 'Хорошо. Опишите первую эмоцию, которую вы испытываете по поводу этого события. Напишите название эмоции (например: тревога, радость, грусть, злость). После этого мы добавим остальные.'
-            })
-    elif state['stage'] == 'emotion':
-        # Сохраняем эмоцию
-        emotion_text = message.strip()
-        if not emotion_text:
-            emit('map_response', {
-                'text': 'Пожалуйста, опишите эмоцию.'
-            })
-            return
-        
-        state['current_emotions'].append(emotion_text)
-        state['current_emotion'] = emotion_text
-        state['current_emotion_index'] = len(state['current_emotions']) - 1
-        state['stage'] = 'idea'
-        session['map_state'] = state
-        session.modified = True
-        
-        emit('map_response', {
-            'text': f'Понятно, вы испытываете "{emotion_text}". Теперь подумайте: какая идея, мысль или убеждение вызывает у вас эту эмоцию? Например, если вы чувствуете тревогу, возможно, идея "я не справлюсь" вызывает эту тревогу. Какая идея стоит за эмоцией "{emotion_text}"?'
-        })
-    elif state['stage'] == 'idea':
-        # Сохраняем идею для текущей эмоции
-        idea_text = message.strip()
-        if not idea_text:
-            emit('map_response', {
-                'text': 'Пожалуйста, опишите идею.'
-            })
-            return
-        
-        # Сохраняем идею для текущей эмоции
-        while len(state['current_ideas']) <= state['current_emotion_index']:
-            state['current_ideas'].append([])
-        state['current_ideas'][state['current_emotion_index']] = [idea_text]  # Пока одна идея на эмоцию
-        
-        # Создаем запись в карте для этой комбинации событие-эмоция-идея
-        conn = get_db()
-        c = conn.cursor()
-        
-        # Определяем номер события (берем максимальный для этого события или создаем новый)
-        c.execute('''SELECT MAX(event_number) FROM event_map 
-                     WHERE user_id = ? AND event = ?''', 
-                  (session['user_id'], state['current_event']))
-        max_num = c.fetchone()[0]
-        
-        if max_num is None:
-            # Это первая запись для этого события
-            c.execute('SELECT MAX(event_number) FROM event_map WHERE user_id = ?', (session['user_id'],))
-            max_num = c.fetchone()[0]
-            event_number = (max_num or 0) + 1
-        else:
-            event_number = max_num
-        
-        c.execute('''INSERT INTO event_map (user_id, event_number, event, emotion, idea)
-                     VALUES (?, ?, ?, ?, ?)''',
-                  (session['user_id'], event_number, state['current_event'], 
-                   state['current_emotion'], idea_text))
-        conn.commit()
-        entry_id = c.lastrowid
-        conn.close()
-        
-        # Проверяем, нужно ли добавить еще эмоции
-        if state['emotion_count'] == 'many':
-            # Спрашиваем, есть ли еще эмоции
-            state['stage'] = 'next_emotion'
+            
+            # Сохраняем эмоцию (ШАГ 1: Эмоции)
+            emotion_text = message.strip()
+            if not emotion_text:
+                emit('map_response', {
+                    'text': 'Пожалуйста, опишите эмоцию.',
+                    'buttons': [
+                        {'text': '❓ Затрудняюсь ответить', 'value': 'difficulty'}
+                    ]
+                })
+                return
+            
+            state['current_emotions'].append(emotion_text)
+            state['current_emotion'] = emotion_text
+            state['current_emotion_index'] = len(state['current_emotions']) - 1
+            
+            # Если выбрано несколько эмоций, спрашиваем, есть ли еще
+            if state['emotion_count'] == 'many':
+                state['stage'] = 'next_emotion'
+                session['map_state'] = state
+                session.modified = True
+                
+                emit('map_response', {
+                    'text': f'Понятно, вы испытываете "{emotion_text}". Есть ли еще эмоции?',
+                    'buttons': [
+                        {'text': 'Ещё одна', 'value': 'yes'},
+                        {'text': 'Это всё', 'value': 'no'}
+                    ]
+                })
+            else:
+                # Одна эмоция - переходим к ситуации
+                state['stage'] = 'event'
+                session['map_state'] = state
+                session.modified = True
+                
+                emit('map_response', {
+                    'text': f'Понятно, вы испытываете "{emotion_text}". Теперь расскажите: какая ситуация вызывает у вас это чувство прямо сейчас?',
+                    'buttons': [
+                        {'text': '❓ Затрудняюсь ответить', 'value': 'difficulty'}
+                    ]
+                })
+        elif state['stage'] == 'event':
+            # Проверяем, не нажата ли кнопка "Затрудняюсь ответить"
+            if message_lower == 'difficulty' or 'затрудняюсь' in message_lower:
+                emit('map_response', {
+                    'text': 'Понимаю, что вопрос может быть сложным. Давайте попробуем подойти к этому с другой стороны. Можете описать, что именно вызывает затруднение? Или просто скажите, что чувствуете в данный момент.',
+                    'buttons': [
+                        {'text': '❓ Затрудняюсь ответить', 'value': 'difficulty'}
+                    ]
+                })
+                return
+            
+            # Сохраняем ситуацию (ШАГ 2: Ситуация)
+            state['current_event'] = message
+            state['stage'] = 'idea'  # Переходим к идее
             session['map_state'] = state
             session.modified = True
             
             emit('map_response', {
-                'text': f'Отлично! Запись добавлена: событие "{state["current_event"]}", эмоция "{state["current_emotion"]}", идея "{idea_text}". Есть ли еще эмоции по поводу этого события?',
+                'text': f'Спасибо. Теперь подумайте: какая идея, мысль или убеждение вызывает у вас эмоцию "{state["current_emotion"]}" в этой ситуации? Например, если вы чувствуете тревогу, возможно, идея "я не справлюсь" вызывает эту тревогу. Какая идея стоит за эмоцией "{state["current_emotion"]}"?',
                 'buttons': [
-                    {'text': 'Да, добавить еще эмоцию', 'value': 'yes'},
+                    {'text': '❓ Затрудняюсь ответить', 'value': 'difficulty'}
+                ]
+            })
+        elif state['stage'] == 'idea':
+            # Проверяем, не нажата ли кнопка "Затрудняюсь ответить"
+            if message_lower == 'difficulty' or 'затрудняюсь' in message_lower:
+                emit('map_response', {
+                    'text': 'Понимаю, что вопрос может быть сложным. Давайте попробуем подойти к этому с другой стороны. Можете описать, что именно вызывает затруднение? Или просто скажите, что чувствуете в данный момент.',
+                    'buttons': [
+                        {'text': '❓ Затрудняюсь ответить', 'value': 'difficulty'}
+                    ]
+                })
+                return
+            
+            # Сохраняем идею для текущей эмоции
+            idea_text_raw = message.strip()
+            if not idea_text_raw:
+                emit('map_response', {
+                    'text': 'Пожалуйста, опишите идею.',
+                    'buttons': [
+                        {'text': '❓ Затрудняюсь ответить', 'value': 'difficulty'}
+                    ]
+                })
+                return
+            
+            # Сокращаем идею через GPT до краткого описания (до 50-60 символов)
+            idea_text = idea_text_raw
+            try:
+                from psychologist_ai import PsychologistAI
+                ai = PsychologistAI()
+                if ai.openai_client and len(idea_text_raw) > 40:  # Сокращаем только если длиннее 40 символов
+                    shortened = ai._shorten_idea(idea_text_raw)
+                    if shortened:
+                        idea_text = shortened
+            except Exception as e:
+                print(f"[Map] Ошибка при сокращении идеи: {e}")
+                # Если не удалось сократить, используем оригинальный текст, но обрезаем до 60 символов
+                if len(idea_text_raw) > 60:
+                    idea_text = idea_text_raw[:57] + '...'
+            
+            # Сохраняем идею для текущей эмоции
+            while len(state['current_ideas']) <= state['current_emotion_index']:
+                state['current_ideas'].append([])
+            state['current_ideas'][state['current_emotion_index']] = [idea_text]  # Пока одна идея на эмоцию
+            
+            # Создаем запись в карте для этой комбинации событие-эмоция-идея
+            conn = get_db()
+            c = conn.cursor()
+            
+            # Определяем номер события (берем максимальный для этого события или создаем новый)
+            c.execute('''SELECT MAX(event_number) FROM event_map 
+                         WHERE user_id = ? AND event = ?''', 
+                      (session['user_id'], state['current_event']))
+            max_num = c.fetchone()[0]
+            
+            if max_num is None:
+                # Это первая запись для этого события
+                c.execute('SELECT MAX(event_number) FROM event_map WHERE user_id = ?', (session['user_id'],))
+                max_num = c.fetchone()[0]
+                event_number = (max_num or 0) + 1
+            else:
+                event_number = max_num
+            
+            c.execute('''INSERT INTO event_map (user_id, event_number, event, emotion, idea)
+                         VALUES (?, ?, ?, ?, ?)''',
+                      (session['user_id'], event_number, state['current_event'], 
+                       state['current_emotion'], idea_text))
+            conn.commit()
+            entry_id = c.lastrowid
+            conn.close()
+            
+            # Сохраняем значения перед сбросом состояния
+            saved_event = state['current_event']
+            saved_emotion = state['current_emotion']
+            
+            # После сохранения идеи, если было несколько эмоций, создаем записи для всех эмоций
+            if state['emotion_count'] == 'many' and len(state['current_emotions']) > 1:
+                # Создаем записи для остальных эмоций с той же ситуацией и идеей
+                conn = get_db()
+                c = conn.cursor()
+                for emotion in state['current_emotions']:
+                    if emotion != state['current_emotion']:  # Пропускаем уже сохраненную
+                        c.execute('''INSERT INTO event_map (user_id, event_number, event, emotion, idea)
+                                     VALUES (?, ?, ?, ?, ?)''',
+                                 (session['user_id'], event_number, state['current_event'], 
+                                  emotion, idea_text))
+                conn.commit()
+                conn.close()
+            
+            # Завершаем запись
+            # Сбрасываем состояние для следующей записи
+            state['stage'] = 'emotion_count'
+            state['current_event'] = None
+            state['emotion_count'] = None
+            state['current_emotions'] = []
+            state['current_emotion_index'] = 0
+            state['current_emotion'] = None
+            state['current_ideas'] = []
+            
+            session['map_state'] = state
+            session.modified = True
+            
+            # Отправляем ответ с сохраненными значениями
+            emit('map_response', {
+                'text': 'Отлично! Запись добавлена в вашу карту. Хотите добавить еще одну запись?',
+                'buttons': [
+                    {'text': 'Да, добавить еще', 'value': 'yes'},
                     {'text': 'Нет, закончить', 'value': 'no'}
                 ],
                 'entry_added': {
                     'id': entry_id,
                     'event_number': event_number,
-                    'event': state['current_event'],
-                    'emotion': state['current_emotion'],
+                    'event': saved_event or '',
+                    'emotion': saved_emotion or '',
                     'idea': idea_text
                 }
             })
+        elif state['stage'] == 'next_emotion':
+            # Пользователь решил добавить еще эмоцию или закончить
+            if 'да' in message_lower or 'yes' in message_lower or message_lower == 'yes' or 'еще' in message_lower or 'ещё одна' in message_lower or message_lower == 'yes':
+                state['stage'] = 'emotion'
+                session['map_state'] = state
+                session.modified = True
+                emit('map_response', {
+                    'text': 'Хорошо. Опишите следующую эмоцию, которую вы испытываете сейчас.',
+                    'buttons': [
+                        {'text': '❓ Затрудняюсь ответить', 'value': 'difficulty'}
+                    ]
+                })
+            else:
+                # Все эмоции собраны, переходим к ситуации
+                state['stage'] = 'event'
+                session['map_state'] = state
+                session.modified = True
+                
+                emotions_list = ', '.join(state['current_emotions'])
+                emit('map_response', {
+                    'text': f'Отлично! Вы перечислили эмоции: {emotions_list}. Теперь расскажите: какая ситуация вызывает у вас эти чувства прямо сейчас?',
+                    'buttons': [
+                        {'text': '❓ Затрудняюсь ответить', 'value': 'difficulty'}
+                    ]
+                })
+    except Exception as e:
+        print(f"[Map] Ошибка при обработке сообщения карты: {e}")
+        import traceback
+        traceback.print_exc()
+        emit('map_error', {'error': f'Произошла ошибка: {str(e)}'})
+
+# API для обратной связи
+@app.route('/api/feedback', methods=['POST'])
+def submit_feedback():
+    """Отправить обратную связь (баг, предложение)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    try:
+        about_self = request.form.get('about_self', '').strip()
+        expectations = request.form.get('expectations', '').strip()
+        expectations_met = request.form.get('expectations_met', '').strip()
+        how_it_went = request.form.get('how_it_went', '').strip()
+        session_id = request.form.get('session_id')
+        
+        # Проверяем обязательные поля
+        if not about_self:
+            return jsonify({'error': 'Поле "Расскажите о себе" обязательно'}), 400
+        if not expectations:
+            return jsonify({'error': 'Поле "Ожидания от процесса" обязательно'}), 400
+        if not expectations_met:
+            return jsonify({'error': 'Поле "Сбылись ли ожидания" обязательно'}), 400
+        if not how_it_went:
+            return jsonify({'error': 'Поле "Как всё прошло" обязательно'}), 400
+        
+        # Формируем описание из всех полей для обратной совместимости
+        description = f"""О себе: {about_self}
+
+Ожидания: {expectations}
+
+Сбылись ли ожидания: {expectations_met}
+
+Как всё прошло: {how_it_went}"""
+        
+        # Обработка файла если есть
+        file_path = None
+        file_type = None
+        if 'file' in request.files:
+            file = request.files['file']
+            if file.filename:
+                # Сохраняем файл
+                import os
+                upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads', 'feedback')
+                os.makedirs(upload_dir, exist_ok=True)
+                
+                filename = f"{session['user_id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
+                file_path = os.path.join(upload_dir, filename)
+                file.save(file_path)
+                
+                # Определяем тип файла
+                if file.content_type.startswith('image/'):
+                    file_type = 'image'
+                elif file.content_type.startswith('video/'):
+                    file_type = 'video'
+                else:
+                    file_type = 'other'
+        
+        conn = get_db()
+        c = conn.cursor()
+        c.execute('''INSERT INTO feedback (user_id, session_id, description, about_self, expectations, expectations_met, how_it_went, file_path, file_type)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                 (session['user_id'], session_id, description, about_self, expectations, expectations_met, how_it_went, file_path, file_type))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Обратная связь отправлена. Спасибо!'})
+    except Exception as e:
+        return jsonify({'error': f'Ошибка при отправке: {str(e)}'}), 500
+
+# API для "До и После"
+@app.route('/api/before-after', methods=['GET'])
+def get_before_after():
+    """Получить таблицу До и После для пользователя"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''SELECT id, session_id, belief_before, belief_after, is_task, 
+                 circle_number, circle_name, created_at
+                 FROM before_after_beliefs 
+                 WHERE user_id = ? 
+                 ORDER BY created_at DESC''', (session['user_id'],))
+    
+    entries = []
+    for row in c.fetchall():
+        entries.append({
+            'id': row[0],
+            'session_id': row[1],
+            'belief_before': row[2],
+            'belief_after': row[3] or '',
+            'is_task': bool(row[4]),
+            'circle_number': row[5],
+            'circle_name': row[6] or '',
+            'created_at': row[7]
+        })
+    conn.close()
+    return jsonify({'entries': entries})
+
+@app.route('/api/before-after', methods=['POST'])
+def create_before_after():
+    """Создать запись До и После"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    data = request.json
+    session_id = data.get('session_id')
+    belief_before = data.get('belief_before', '').strip()
+    belief_after = data.get('belief_after', '').strip()
+    is_task = data.get('is_task', False)
+    circle_number = data.get('circle_number')
+    circle_name = data.get('circle_name', '').strip()
+    
+    if not belief_before:
+        return jsonify({'error': 'Убеждение "До" обязательно'}), 400
+    
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''INSERT INTO before_after_beliefs 
+                 (user_id, session_id, belief_before, belief_after, is_task, circle_number, circle_name)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)''',
+             (session['user_id'], session_id, belief_before, belief_after, 
+              1 if is_task else 0, circle_number, circle_name))
+    conn.commit()
+    entry_id = c.lastrowid
+    conn.close()
+    
+    return jsonify({'success': True, 'entry_id': entry_id})
+
+# API для добавления сессии в Нейрокарту
+@app.route('/api/sessions/<int:session_id>/add-to-map', methods=['POST'])
+def add_session_to_map(session_id):
+    """Добавить структуру сессии в Нейрокарту через GPT"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Не авторизован'}), 401
+    
+    conn = get_db()
+    c = conn.cursor()
+    
+    # Проверяем доступ
+    c.execute('SELECT user_id FROM sessions WHERE id = ?', (session_id,))
+    session_user = c.fetchone()
+    if not session_user or session_user[0] != session['user_id']:
+        conn.close()
+        return jsonify({'error': 'Доступ запрещен'}), 403
+    
+    # Получаем сообщения сессии
+    c.execute('''SELECT role, content FROM messages 
+                 WHERE session_id = ? 
+                 ORDER BY timestamp ASC''', (session_id,))
+    messages = [{'role': row[0], 'content': row[1]} for row in c.fetchall()]
+    
+    # Получаем данные концепций
+    c.execute('SELECT concept_data FROM concept_hierarchies WHERE session_id = ?', (session_id,))
+    concept_row = c.fetchone()
+    concept_data = json.loads(concept_row[0]) if concept_row and concept_row[0] else {}
+    
+    conn.close()
+    
+    # Используем GPT для преобразования сессии в таблицу Нейрокарты
+    try:
+        from psychologist_ai import PsychologistAI
+        ai = PsychologistAI()
+        
+        # Формируем промпт для GPT
+        conversation_text = '\n'.join([f"{msg['role']}: {msg['content']}" for msg in messages])
+        concept_summary = '\n'.join([f"- {name}: {data.get('name', name)}" for name, data in list(concept_data.items())[:5]])
+        
+        prompt = f"""Проанализируй следующий диалог психолога с клиентом и извлеки структурированные данные для таблицы Нейрокарты.
+
+Диалог:
+{conversation_text}
+
+Система убеждений (основные идеи):
+{concept_summary}
+
+Извлеки из диалога:
+1. События (конкретные ситуации, факты)
+2. Эмоции (чувства относительно событий)
+3. Идеи/Убеждения (мысли, которые вызывают эмоции)
+
+Верни результат в формате JSON:
+{{
+    "entries": [
+        {{
+            "event": "название события",
+            "emotion": "название эмоции",
+            "idea": "название идеи/убеждения"
+        }}
+    ]
+}}
+
+ВАЖНО:
+- Событие = конкретное событие, факт (например: "работа завтра", "встреча с начальником")
+- Эмоция = чувство (например: "тревога", "грусть", "радость")
+- Идея = убеждение, мысль (например: "я не справлюсь", "меня не ценят")
+
+Верни ТОЛЬКО JSON, без дополнительных объяснений."""
+
+        if ai.openai_client:
+            response = ai.openai_client.chat.completions.create(
+                model=ai.model,
+                messages=[
+                    {"role": "system", "content": "Ты помощник для извлечения структурированных данных из диалога психолога. Возвращай только валидный JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=1000
+            )
+            
+            result_text = response.choices[0].message.content.strip()
+            # Извлекаем JSON из ответа (может быть обернут в markdown)
+            import re
+            json_match = re.search(r'\{.*\}', result_text, re.DOTALL)
+            if json_match:
+                result_data = json.loads(json_match.group())
+                
+                # Сохраняем записи в event_map
+                conn = get_db()
+                c = conn.cursor()
+                
+                # Определяем номер события
+                c.execute('SELECT MAX(event_number) FROM event_map WHERE user_id = ?', (session['user_id'],))
+                max_num = c.fetchone()[0]
+                event_number = (max_num or 0) + 1
+                
+                entries_added = 0
+                for entry in result_data.get('entries', []):
+                    if entry.get('event') and entry.get('emotion') and entry.get('idea'):
+                        c.execute('''INSERT INTO event_map (user_id, event_number, event, emotion, idea)
+                                     VALUES (?, ?, ?, ?, ?)''',
+                                 (session['user_id'], event_number, entry['event'], 
+                                  entry['emotion'], entry['idea']))
+                        entries_added += 1
+                
+                conn.commit()
+                conn.close()
+                
+                return jsonify({
+                    'success': True, 
+                    'message': f'Сессия добавлена в Нейрокарту. Добавлено {entries_added} записей.',
+                    'entries_added': entries_added
+                })
+            else:
+                return jsonify({'error': 'Не удалось извлечь данные из ответа GPT'}), 500
         else:
-            # Одна эмоция - завершаем
-            # Сбрасываем состояние для следующего события
-            state['stage'] = 'event'
-            state['current_event'] = None
-            state['emotion_count'] = None
-            state['current_emotions'] = []
-            state['current_emotion_index'] = 0
-            state['current_emotion'] = None
-            state['current_ideas'] = []
+            return jsonify({'error': 'GPT недоступен для преобразования сессии'}), 500
             
-            session['map_state'] = state
-            session.modified = True
-            
-            emit('map_response', {
-                'text': 'Отлично! Запись добавлена в вашу карту. Хотите добавить еще одно событие? Если да, расскажите о следующем событии, которое происходит в вашей жизни.',
-                'entry_added': {
-                    'id': entry_id,
-                    'event_number': event_number,
-                    'event': state.get('current_event', ''),
-                    'emotion': state['current_emotion'],
-                    'idea': idea_text
-                }
-            })
-    elif state['stage'] == 'next_emotion':
-        # Пользователь решил добавить еще эмоцию или закончить
-        if 'да' in message or 'yes' in message or message == 'yes' or 'еще' in message:
-            state['stage'] = 'emotion'
-            session['map_state'] = state
-            session.modified = True
-            emit('map_response', {
-                'text': 'Хорошо. Опишите следующую эмоцию, которую вы испытываете по поводу этого события.'
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Ошибка при преобразовании сессии: {str(e)}'}), 500
+
+# API для обработки "Затрудняюсь ответить"
+@socketio.on('difficulty_response')
+def handle_difficulty_response(data):
+    """Обработка кнопки 'Затрудняюсь ответить'"""
+    if 'user_id' not in session:
+        emit('error', {'message': 'Не авторизован'})
+        return
+    
+    session_id = data.get('session_id')
+    if not session_id:
+        emit('error', {'message': 'Неверные данные'})
+        return
+    
+    # Отправляем специальное сообщение боту
+    emit('response', {
+        'message': 'Понимаю, что вопрос может быть сложным. Давайте попробуем подойти к этому с другой стороны. Можете описать, что именно вызывает затруднение? Или просто скажите, что чувствуете в данный момент.'
+    })
+
+# API для обработки "Перейти к убеждению"
+@socketio.on('go_to_belief')
+def handle_go_to_belief(data):
+    """Обработка кнопки 'Перейти к убеждению'"""
+    if 'user_id' not in session:
+        emit('error', {'message': 'Не авторизован'})
+        return
+    
+    session_id = data.get('session_id')
+    concept_name = data.get('concept_name')
+    
+    if not session_id:
+        emit('error', {'message': 'Неверные данные'})
+        return
+    
+    # Получаем историю для определения состояния
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''SELECT role, content FROM messages 
+                 WHERE session_id = ? 
+                 ORDER BY timestamp ASC''', (session_id,))
+    history = [{'role': row[0], 'content': row[1]} for row in c.fetchall()]
+    conn.close()
+    
+    # Получаем состояние и переключаемся на выбранную концепцию
+    state = psychologist_ai.get_session_state(session_id, history)
+    
+    if concept_name and concept_name in state.get('concept_hierarchy', {}):
+        state['current_concept'] = concept_name
+        state['current_field'] = 'composition'
+        state['stage'] = 'concept_hierarchy'
+        
+        # Отправляем сообщение о переходе
+        emit('response', {
+            'message': f'Хорошо, давайте разберем идею "{concept_name}". Из чего состоит эта идея? Почему вы так думаете?',
+            'show_navigation': True,
+            'available_concepts': list(state.get('concept_hierarchy', {}).keys()),
+            'current_field': 'composition'
+        })
+    else:
+        # Если концепция не выбрана, отправляем список доступных
+        available_concepts = list(state.get('concept_hierarchy', {}).keys())
+        if available_concepts:
+            concepts_list = '\n'.join([f"{i+1}. {concept}" for i, concept in enumerate(available_concepts)])
+            emit('response', {
+                'message': f'Выберите убеждение, которое хотите разобрать:\n\n{concepts_list}\n\nНапишите номер или название убеждения.',
+                'show_navigation': True,
+                'available_concepts': available_concepts,
+                'waiting_for_concept_selection': True
             })
         else:
-            # Завершаем работу с этим событием
-            state['stage'] = 'event'
-            state['current_event'] = None
-            state['emotion_count'] = None
-            state['current_emotions'] = []
-            state['current_emotion_index'] = 0
-            state['current_emotion'] = None
-            state['current_ideas'] = []
+            emit('error', {'message': 'Нет доступных убеждений для разбора'})
+
+# API для обработки "Дополнить"
+@socketio.on('edit_concept')
+def handle_edit_concept(data):
+    """Обработка кнопки 'Дополнить' для редактирования концепции"""
+    if 'user_id' not in session:
+        emit('error', {'message': 'Не авторизован'})
+        return
+    
+    session_id = data.get('session_id')
+    concept_name = data.get('concept_name')
+    field_name = data.get('field_name')
+    
+    if not session_id or not concept_name or not field_name:
+        emit('error', {'message': 'Неверные данные'})
+        return
+    
+    # Получаем историю для определения состояния
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''SELECT role, content FROM messages 
+                 WHERE session_id = ? 
+                 ORDER BY timestamp ASC''', (session_id,))
+    history = [{'role': row[0], 'content': row[1]} for row in c.fetchall()]
+    conn.close()
+    
+    # Получаем состояние
+    state = psychologist_ai.get_session_state(session_id, history)
+    
+    if concept_name not in state.get('concept_hierarchy', {}):
+        emit('error', {'message': 'Убеждение не найдено'})
+        return
+    
+    # Переключаемся на редактирование выбранного поля
+    state['current_concept'] = concept_name
+    state['current_field'] = field_name
+    state['stage'] = 'concept_hierarchy'
+    state['editing_mode'] = True
+    
+    # Формируем вопрос в зависимости от поля
+    field_questions = {
+        'name': f'Как вы хотите изменить название убеждения "{concept_name}"?',
+        'composition': f'Какие части убеждения "{concept_name}" вы хотите добавить или изменить?',
+        'founder': f'Кто был основателем идеи "{concept_name}"? (можно дополнить или изменить)',
+        'purpose': f'С какой целью появилась идея "{concept_name}"? (можно дополнить или изменить)',
+        'consequences': f'Какие последствия имеет идея "{concept_name}"? (можно дополнить или изменить)',
+        'conclusions': f'Какие выводы по поводу идеи "{concept_name}"? (можно дополнить или изменить)',
+        'comments': f'Какие комментарии по поводу идеи "{concept_name}"? (можно дополнить)'
+    }
+    
+    question = field_questions.get(field_name, f'Что вы хотите изменить в поле "{field_name}" для убеждения "{concept_name}"?')
+    
+    emit('response', {
+        'message': question,
+        'show_navigation': True,
+        'available_concepts': list(state.get('concept_hierarchy', {}).keys()),
+        'current_field': field_name,
+        'editing_mode': True
+    })
+
+# API для обработки "Пропустить"
+@socketio.on('skip_step')
+def handle_skip_step(data):
+    """Обработка кнопки 'Пропустить'"""
+    if 'user_id' not in session:
+        emit('error', {'message': 'Не авторизован'})
+        return
+    
+    session_id = data.get('session_id')
+    if not session_id:
+        emit('error', {'message': 'Неверные данные'})
+        return
+    
+    # Получаем историю для определения состояния
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''SELECT role, content FROM messages 
+                 WHERE session_id = ? 
+                 ORDER BY timestamp ASC''', (session_id,))
+    history = [{'role': row[0], 'content': row[1]} for row in c.fetchall()]
+    conn.close()
+    
+    # Получаем состояние и пропускаем текущий этап
+    state = psychologist_ai.get_session_state(session_id, history)
+    current_field = state.get('current_field')
+    concept = state.get('current_concept')
+    
+    # Определяем следующий этап
+    field_order = ['composition', 'founder', 'purpose', 'consequences', 'conclusions', 'comments']
+    
+    if current_field in field_order:
+        current_index = field_order.index(current_field)
+        if current_index < len(field_order) - 1:
+            next_field = field_order[current_index + 1]
+            state['current_field'] = next_field
             
-            session['map_state'] = state
-            session.modified = True
+            # Генерируем вопрос для следующего этапа
+            if next_field == 'founder':
+                question = f'Хорошо, пропустим состав. Кто был основателем идеи "{concept}"?'
+            elif next_field == 'purpose':
+                question = f'Понятно. С какой целью появилась идея "{concept}"?'
+            elif next_field == 'consequences':
+                question = f'Хорошо. Какие эмоциональные последствия имеет существование идеи "{concept}" для вас?'
+            elif next_field == 'conclusions':
+                question = f'Теперь давайте подведем итоги. Что вы думаете по поводу идеи "{concept}"?'
+            elif next_field == 'comments':
+                question = f'Есть ли еще какие-то комментарии по поводу идеи "{concept}"?'
+            else:
+                question = 'Продолжаем работу.'
             
-            emit('map_response', {
-                'text': 'Отлично! Все записи по этому событию добавлены. Хотите добавить еще одно событие? Если да, расскажите о следующем событии, которое происходит в вашей жизни.'
+            emit('response', {
+                'message': question,
+                'show_navigation': True,
+                'available_concepts': list(state.get('concept_hierarchy', {}).keys()),
+                'current_field': next_field
             })
+        else:
+            emit('response', {
+                'message': 'Мы завершили работу с этой идеей. Хотите обсудить что-то еще?',
+                'show_navigation': False
+            })
+    else:
+        emit('error', {'message': 'Нет активного этапа для пропуска'})
+
+def update_gpt_statistics(session_id: int, user_id: int, message_count: int, session_complete: bool):
+    """Обновляет статистику обучения GPT"""
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Проверяем, есть ли уже запись статистики для этой сессии
+        c.execute('SELECT id, message_count, root_beliefs_identified, positive_transformations FROM gpt_statistics WHERE session_id = ?', (session_id,))
+        stat_row = c.fetchone()
+        
+        if stat_row:
+            # Обновляем существующую запись
+            stat_id, old_msg_count, old_root_beliefs, old_transformations = stat_row
+            new_msg_count = max(old_msg_count, message_count)
+            
+            # Если сессия завершена, увеличиваем счетчики
+            if session_complete:
+                new_root_beliefs = old_root_beliefs + 1
+                new_transformations = old_transformations + 1
+            else:
+                new_root_beliefs = old_root_beliefs
+                new_transformations = old_transformations
+            
+            c.execute('''UPDATE gpt_statistics 
+                         SET message_count = ?, root_beliefs_identified = ?, positive_transformations = ?, updated_at = CURRENT_TIMESTAMP
+                         WHERE id = ?''',
+                     (new_msg_count, new_root_beliefs, new_transformations, stat_id))
+        else:
+            # Создаем новую запись
+            c.execute('''INSERT INTO gpt_statistics 
+                         (session_id, user_id, message_count, root_beliefs_identified, positive_transformations)
+                         VALUES (?, ?, ?, ?, ?)''',
+                     (session_id, user_id, message_count, 1 if session_complete else 0, 1 if session_complete else 0))
+        
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Statistics] Ошибка обновления статистики: {e}")
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, port=5003, host='0.0.0.0')

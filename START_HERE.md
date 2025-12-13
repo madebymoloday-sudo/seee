@@ -84,3 +84,6 @@ python3 run.py
 - Быстрый деплой: `QUICK_DEPLOY.md`
 - Настройка ngrok: `NGROK_SETUP.md`
 
+
+
+

@@ -14,6 +14,30 @@ const mapTableBody = document.getElementById('mapTableBody');
 
 // Загрузка записей карты при загрузке страницы
 loadMapEntries();
+loadBeforeAfterEntries();
+
+// Переключение вкладок
+const mapTabBtns = document.querySelectorAll('.map-tab-btn');
+mapTabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        const tabName = this.getAttribute('data-tab');
+        
+        // Убираем активный класс со всех кнопок и контента
+        mapTabBtns.forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.map-tab-content').forEach(c => c.classList.remove('active'));
+        
+        // Добавляем активный класс к выбранной вкладке
+        this.classList.add('active');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+        
+        // Загружаем данные для выбранной вкладки
+        if (tabName === 'before-after') {
+            loadBeforeAfterEntries();
+        } else {
+            loadMapEntries();
+        }
+    });
+});
 
 // Обработка отправки сообщения
 mapMessageForm.addEventListener('submit', function(e) {
@@ -46,6 +70,59 @@ socket.on('map_response', function(data) {
         loadMapEntries();
     }
 });
+
+// Загрузка записей "До и После"
+async function loadBeforeAfterEntries() {
+    try {
+        const response = await fetch('/api/before-after');
+        const data = await response.json();
+        
+        if (data.entries) {
+            renderBeforeAfterTable(data.entries);
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки До и После:', error);
+    }
+}
+
+// Отображение таблицы "До и После"
+function renderBeforeAfterTable(entries) {
+    const tbody = document.getElementById('beforeAfterTableBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (entries.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="4" style="text-align: center; padding: 20px; color: var(--text-secondary);">Пока нет записей "До и После". Они появятся после завершения сессий.</td>';
+        tbody.appendChild(row);
+        return;
+    }
+    
+    entries.forEach(entry => {
+        const row = document.createElement('tr');
+        if (entry.is_task) {
+            row.classList.add('task-row');
+        }
+        
+        const circleNames = {
+            1: 'Я',
+            2: 'Семья/Отношения',
+            3: 'Семья и близкие',
+            4: 'Друзья и Партнёры',
+            5: 'Общество'
+        };
+        
+        row.innerHTML = `
+            <td>${escapeHtml(entry.belief_before)}</td>
+            <td>${entry.belief_after ? escapeHtml(entry.belief_after) : '<span style="color: var(--ultramarine); font-weight: 600;">Задача</span>'}</td>
+            <td>${circleNames[entry.circle_number] || entry.circle_name || '—'}</td>
+            <td>${entry.is_task ? '<span style="color: var(--ultramarine);">Задача</span>' : 'Завершено'}</td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
 
 socket.on('map_error', function(data) {
     addMessage('ai', 'Произошла ошибка: ' + data.error);
