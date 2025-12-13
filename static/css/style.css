@@ -45,6 +45,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    margin: 0 auto;
 }
 
 /* Логотип для десктопной версии - над окном */
