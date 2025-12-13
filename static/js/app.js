@@ -1102,6 +1102,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (mobileThemeToggle) {
         mobileThemeToggle.addEventListener('click', function(e) {
             e.stopPropagation();
+            // Не закрываем меню при клике на тумблер
             if (themeToggle) {
                 themeToggle.click();
             }
@@ -1111,6 +1112,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     function toggleTheme() {
         const isDark = document.body.classList.toggle('dark-mode');
         if (themeToggle) {
+            // Зеленый = светлая тема, серый = темная тема
             if (isDark) {
                 themeToggle.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
