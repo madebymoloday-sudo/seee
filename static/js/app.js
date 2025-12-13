@@ -281,15 +281,10 @@ function addMessage(role, content, saveToServer = true, showDifficultyButton = f
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${role}`;
     
-    const avatar = document.createElement('div');
-    avatar.className = 'message-avatar';
-    avatar.textContent = role === 'user' ? 'В' : 'AI';
-    
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
     contentDiv.textContent = content;
     
-    messageDiv.appendChild(avatar);
     messageDiv.appendChild(contentDiv);
     
     // Добавляем стикер "Затрудняюсь ответить" под сообщением AI
@@ -303,7 +298,7 @@ function addMessage(role, content, saveToServer = true, showDifficultyButton = f
                 difficultyBtn.click();
             }
         });
-        contentDiv.appendChild(stickerDiv);
+        messageDiv.appendChild(stickerDiv);
     }
     
     messagesContainer.appendChild(messageDiv);
@@ -323,15 +318,10 @@ function showTypingIndicator() {
     typingDiv.className = 'message assistant';
     typingDiv.id = 'typingIndicator';
     
-    const avatar = document.createElement('div');
-    avatar.className = 'message-avatar';
-    avatar.textContent = 'AI';
-    
     const typingContent = document.createElement('div');
     typingContent.className = 'message-content';
     typingContent.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
     
-    typingDiv.appendChild(avatar);
     typingDiv.appendChild(typingContent);
     messagesContainer.appendChild(typingDiv);
     
