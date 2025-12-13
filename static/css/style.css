@@ -51,16 +51,42 @@ body {
     border: 1px solid var(--border);
 }
 
-.login-logo-container {
+/* Логотип для десктопной версии - над окном */
+.login-logo-desktop {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    display: block;
 }
 
-.login-logo {
-    max-width: 180px;
+.login-logo-desktop .login-logo {
+    max-width: 200px;
     height: auto;
     display: block;
     margin: 0 auto;
+}
+
+/* Логотип для мобильной версии - внутри рамки справа сверху */
+.login-logo-mobile {
+    display: none;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    text-align: right;
+}
+
+.login-logo-mobile .login-logo {
+    max-width: 80px;
+    height: auto;
+    display: block;
+}
+
+.login-box {
+    background: var(--bg-primary);
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(30, 64, 175, 0.15);
+    border: 1px solid var(--border);
+    position: relative;
 }
 
 .login-box h1 {
@@ -1076,12 +1102,22 @@ body {
         gap: 8px;
     }
     
-    .login-logo {
-        max-width: 120px;
+    /* На мобильной версии скрываем десктопный логотип и показываем мобильный */
+    .login-logo-desktop {
+        display: none;
+    }
+    
+    .login-logo-mobile {
+        display: block;
+    }
+    
+    .login-logo-mobile .login-logo {
+        max-width: 70px;
     }
     
     .login-box {
         padding: 25px 15px;
+        padding-top: 60px; /* Дополнительный отступ сверху для логотипа */
     }
     
     .login-box h1 {

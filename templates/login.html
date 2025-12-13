@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S.E.E.E. - Вход</title>
+    <title>SEEE - Вход</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="login-page">
     <div class="login-container">
+        <div class="login-logo-container login-logo-desktop">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SEEE" class="login-logo">
+        </div>
         <div class="login-box">
-            <div class="login-logo-container">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="S.E.E.E." class="login-logo">
+            <div class="login-logo-container login-logo-mobile">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SEEE" class="login-logo">
             </div>
-            <h1>S.E.E.E.</h1>
+            <h1>SEEE</h1>
             <p class="subtitle">Архитектура мышления сильного ИИ для перестройки вашего мышления</p>
             
             <form id="loginForm">
