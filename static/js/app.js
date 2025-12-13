@@ -11,7 +11,7 @@ function initSocket() {
     });
     
     socket.on('response', function(data) {
-        // Показываем кнопку "Затрудняюсь ответить" только если это не навигационные кнопки
+        // Показываем стикер "Затрудняюсь ответить" только если это не навигационные кнопки
         const showDifficulty = !data.show_navigation && currentSessionId;
         addMessage('assistant', data.message, true, showDifficulty);
         hideTypingIndicator();

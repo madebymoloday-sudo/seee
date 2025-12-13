@@ -611,6 +611,10 @@ body {
     word-wrap: break-word;
 }
 
+.message.assistant {
+    justify-content: flex-start;
+}
+
 .message.assistant .message-content {
     color: var(--text-primary);
     background: var(--message-ai-bg);
