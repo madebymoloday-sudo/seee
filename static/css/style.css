@@ -1422,11 +1422,19 @@ body.dark-mode .mobile-menu-content::before {
         text-align: center;
         font-size: 16px;
         margin: 0;
+        display: block !important;
     }
     
     .header-logo {
         height: 30px;
         width: auto;
+        display: block !important;
+    }
+    
+    .header-right {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
     }
     
     .desktop-only {
