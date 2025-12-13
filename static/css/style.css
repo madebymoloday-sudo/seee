@@ -699,7 +699,7 @@ body {
 .btn-mobile-menu-toggle {
     width: 40px;
     height: 40px;
-    background: rgba(0, 0, 0, 0.05);
+    background: transparent;
     border: none;
     border-radius: 50%;
     color: var(--ultramarine);
@@ -710,11 +710,11 @@ body {
     flex-shrink: 0;
     transition: all 0.2s;
     padding: 0;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: none;
 }
 
 .btn-mobile-menu-toggle:hover {
-    background: rgba(0, 0, 0, 0.08);
+    background: transparent;
 }
 
 .btn-mobile-menu-toggle svg {
