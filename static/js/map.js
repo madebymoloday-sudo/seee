@@ -9,7 +9,6 @@ let mapState = {
 // Элементы DOM
 const mapMessageForm = document.getElementById('mapMessageForm');
 const mapMessageInput = document.getElementById('mapMessageInput');
-const mapChatMessages = document.getElementById('mapChatMessages');
 const mapTableBody = document.getElementById('mapTableBody');
 
 // Загрузка записей карты при загрузке страницы
@@ -40,35 +39,77 @@ mapTabBtns.forEach(btn => {
 });
 
 // Обработка отправки сообщения
-mapMessageForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const message = mapMessageInput.value.trim();
-    if (!message) return;
-    
-    // Добавляем сообщение пользователя в чат
-    addMessage('user', message);
-    mapMessageInput.value = '';
-    
-    // Отправляем сообщение на сервер
-    socket.emit('map_message', { message: message });
-});
-
-// Обработка Enter и Shift+Enter
-mapMessageInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+if (mapMessageForm) {
+    mapMessageForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        mapMessageForm.dispatchEvent(new Event('submit'));
-    }
-});
+        const message = mapMessageInput.value.trim();
+        if (!message) return;
+        
+        mapMessageInput.value = '';
+        
+        // Отправляем сообщение на сервер
+        socket.emit('map_message', { message: message });
+    });
+}
+
+if (mapMessageInput) {
+    // Автоматическое изменение высоты textarea
+    mapMessageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+    });
+    
+    mapMessageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (mapMessageForm) {
+                mapMessageForm.dispatchEvent(new Event('submit'));
+            }
+        }
+    });
+}
+
+// Кнопка отправки
+const mapSendBtn = document.getElementById('mapSendBtn');
+if (mapSendBtn) {
+    mapSendBtn.addEventListener('click', function() {
+        if (mapMessageForm) {
+            mapMessageForm.dispatchEvent(new Event('submit'));
+        }
+    });
+}
+
+// Мобильное меню для карты
+const mapMobileMenuToggle = document.getElementById('mapMobileMenuToggle');
+const mapMobileMenu = document.getElementById('mapMobileMenu');
+const mapMobileMenuOverlay = document.getElementById('mapMobileMenuOverlay');
+
+if (mapMobileMenuToggle) {
+    mapMobileMenuToggle.addEventListener('click', function() {
+        if (mapMobileMenu) {
+            mapMobileMenu.classList.toggle('active');
+        }
+    });
+}
+
+if (mapMobileMenuOverlay) {
+    mapMobileMenuOverlay.addEventListener('click', function() {
+        if (mapMobileMenu) {
+            mapMobileMenu.classList.remove('active');
+        }
+    });
+}
 
 // Обработка ответов от сервера
 socket.on('map_response', function(data) {
-    addMessage('ai', data.text, data.buttons);
-    
     // Если добавлена новая запись, обновляем таблицу
     if (data.entry_added) {
         loadMapEntries();
     }
+    
+    // Если есть кнопки, можно показать их в таблице или просто обновить
+    // Пока просто обновляем таблицу
+    loadMapEntries();
 });
 
 // Загрузка записей "До и После"
