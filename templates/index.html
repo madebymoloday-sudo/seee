@@ -37,9 +37,12 @@
         <main class="chat-container">
             <div class="chat-header">
                 <h2 id="chatTitle">Новая сессия</h2>
-                <button class="btn-pause-session" id="pauseSessionBtn" style="display: none;">
-                    ⏸️ Приостановить сессию
-                </button>
+                <div class="header-right">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="S.E.E.E." class="header-logo">
+                    <button class="btn-pause-session" id="pauseSessionBtn" style="display: none;">
+                        ⏸️ Приостановить сессию
+                    </button>
+                </div>
             </div>
             
             <div class="messages-container" id="messagesContainer">
