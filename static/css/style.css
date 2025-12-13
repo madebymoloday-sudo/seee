@@ -382,6 +382,17 @@ body {
     gap: 24px;
 }
 
+.logo-container {
+    margin-bottom: 30px;
+}
+
+.logo-container img {
+    max-width: 200px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
 .welcome-message {
     max-width: 800px;
     margin: 0 auto;
