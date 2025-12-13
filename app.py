@@ -8,6 +8,7 @@ import uuid
 import secrets
 from datetime import datetime
 from psychologist_ai import PsychologistAI
+from urllib.parse import urlparse
 from mlm_system import (
     generate_referral_code, create_referral_structure, 
     process_payment, get_referral_tree, get_user_balance, get_user_transactions
@@ -21,9 +22,29 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Инициализация базы данных
 def init_db():
-    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'psychologist.db')
-    conn = sqlite3.connect(db_path)
-    c = conn.cursor()
+    # Проверяем, есть ли DATABASE_URL (PostgreSQL на Railway)
+    database_url = os.environ.get('DATABASE_URL')
+    
+    if database_url:
+        # Используем PostgreSQL
+        import psycopg2
+        from psycopg2.extras import RealDictCursor
+        
+        # Парсим DATABASE_URL
+        result = urlparse(database_url)
+        conn = psycopg2.connect(
+            database=result.path[1:],  # Убираем первый /
+            user=result.username,
+            password=result.password,
+            host=result.hostname,
+            port=result.port
+        )
+        c = conn.cursor()
+    else:
+        # Используем SQLite для локальной разработки
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'psychologist.db')
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
     
     # Таблица пользователей
     c.execute('''CREATE TABLE IF NOT EXISTS users
@@ -230,8 +251,24 @@ init_db()
 
 def get_db():
     """Получает соединение с базой данных"""
-    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'psychologist.db')
-    return sqlite3.connect(db_path)
+    database_url = os.environ.get('DATABASE_URL')
+    
+    if database_url:
+        # Используем PostgreSQL
+        import psycopg2
+        result = urlparse(database_url)
+        conn = psycopg2.connect(
+            database=result.path[1:],
+            user=result.username,
+            password=result.password,
+            host=result.hostname,
+            port=result.port
+        )
+        return conn
+    else:
+        # Используем SQLite для локальной разработки
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'psychologist.db')
+        return sqlite3.connect(db_path)
 
 def migrate_database():
     """Миграция базы данных: добавляет недостающие колонки и генерирует коды"""
