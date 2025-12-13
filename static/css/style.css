@@ -21,11 +21,11 @@
 }
 
 /* Закругленные углы для всех кнопок */
-button:not(.modal-close):not(.theme-toggle),
-.btn,
-input[type="button"],
-input[type="submit"],
-a.btn {
+button:not(.modal-close):not(.theme-toggle):not(.btn-mobile-menu-toggle):not(.btn-send):not(.btn-send-mobile),
+.btn:not(.btn-mobile-menu-toggle):not(.btn-send):not(.btn-send-mobile),
+input[type="button"]:not(.btn-mobile-menu-toggle):not(.btn-send):not(.btn-send-mobile),
+input[type="submit"]:not(.btn-mobile-menu-toggle):not(.btn-send):not(.btn-send-mobile),
+a.btn:not(.btn-mobile-menu-toggle):not(.btn-send):not(.btn-send-mobile) {
     border-radius: 12px !important;
 }
 
@@ -919,6 +919,37 @@ body.dark-mode .mobile-menu-content::before {
 .btn-send:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Мобильная кнопка отправки */
+.btn-send-mobile {
+    width: 40px;
+    height: 40px;
+    background: var(--ultramarine);
+    border: none;
+    border-radius: 50% !important;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-send-mobile:hover:not(:disabled) {
+    background: var(--ultramarine-dark);
+}
+
+.btn-send-mobile:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-send-mobile svg {
+    stroke: white;
+    color: white;
 }
 
 /* Scrollbar */
