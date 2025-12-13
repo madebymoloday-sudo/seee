@@ -2076,6 +2076,13 @@ def submit_feedback():
         conn.commit()
         conn.close()
         
+        # Отправляем уведомления на email и в Telegram
+        try:
+            send_feedback_notifications(session['user_id'], about_self, expectations, expectations_met, how_it_went, file_path)
+        except Exception as e:
+            print(f"[Feedback] Ошибка отправки уведомлений: {e}")
+            # Не прерываем процесс, если уведомления не отправились
+        
         return jsonify({'success': True, 'message': 'Обратная связь отправлена. Спасибо!'})
     except Exception as e:
         return jsonify({'error': f'Ошибка при отправке: {str(e)}'}), 500
