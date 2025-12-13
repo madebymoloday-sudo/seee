@@ -1084,6 +1084,30 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
+    // Клик на логотип - открытие информации о SEEE
+    const headerLogo = document.getElementById('headerLogo');
+    const aboutModal = document.getElementById('aboutModal');
+    const closeAboutModal = document.getElementById('closeAboutModal');
+    
+    if (headerLogo && aboutModal) {
+        headerLogo.addEventListener('click', function() {
+            aboutModal.style.display = 'flex';
+        });
+    }
+    
+    if (closeAboutModal && aboutModal) {
+        closeAboutModal.addEventListener('click', function() {
+            aboutModal.style.display = 'none';
+        });
+        
+        // Закрытие при клике вне модального окна
+        aboutModal.addEventListener('click', function(e) {
+            if (e.target === aboutModal) {
+                aboutModal.style.display = 'none';
+            }
+        });
+    }
+    
     // Мобильное меню - стрелка внизу
     const mobileMenuToggleBottom = document.getElementById('mobileMenuToggleBottom');
     const mobileMenu = document.getElementById('mobileMenu');
