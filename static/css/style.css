@@ -642,22 +642,29 @@ body {
 }
 
 .btn-mobile-menu-toggle {
-    width: 44px;
-    height: 44px;
-    background: var(--ultramarine);
+    width: 40px;
+    height: 40px;
+    background: var(--bg-secondary);
     border: none;
     border-radius: 50%;
-    color: white;
+    color: var(--ultramarine);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    padding: 0;
 }
 
 .btn-mobile-menu-toggle:hover {
-    background: var(--ultramarine-dark);
+    background: var(--bg-tertiary);
+}
+
+.btn-mobile-menu-toggle svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--ultramarine);
 }
 
 .mobile-menu {
@@ -679,35 +686,67 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: 1001;
 }
 
 .mobile-menu-content {
     position: fixed;
     bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 16px;
+    right: 16px;
     background: white;
-    border-radius: 16px 16px 0 0;
-    padding: 16px;
-    min-width: 200px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 20px 20px 8px 8px;
+    padding: 12px 8px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
     z-index: 1002;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: slideUpMenu 0.3s ease-out;
+}
+
+@keyframes slideUpMenu {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Облако из стрелочки */
+.mobile-menu-content::before {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    right: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid white;
 }
 
 .mobile-menu-item {
     width: 100%;
-    padding: 16px;
+    padding: 14px 16px;
     background: none;
     border: none;
     text-align: left;
     font-size: 16px;
     color: var(--text-primary);
     cursor: pointer;
-    border-radius: 8px;
-    margin-bottom: 8px;
+    border-radius: 12px;
+    margin-bottom: 4px;
     transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .mobile-menu-item:hover {
@@ -1311,18 +1350,26 @@ body {
     #messageForm {
         gap: 8px;
         max-width: 100%;
+        display: flex;
+        align-items: center;
     }
     
     #messageInput {
         border-radius: 24px;
         padding: 12px 20px;
         font-size: 16px;
+        flex: 1;
     }
     
     .btn-mobile-menu-toggle {
         width: 40px;
         height: 40px;
         border-radius: 50%;
+        order: -1;
+    }
+    
+    .btn-send-mobile {
+        order: 1;
     }
     
     .map-header {

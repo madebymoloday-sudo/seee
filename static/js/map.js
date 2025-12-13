@@ -57,6 +57,19 @@ if (mapMessageInput) {
     mapMessageInput.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        
+        // Показываем/скрываем кнопку отправки на мобильной версии
+        const mapSendBtnMobile = document.getElementById('mapSendBtnMobile');
+        const mapMobileMenuToggle = document.getElementById('mapMobileMenuToggle');
+        if (mapSendBtnMobile && mapMobileMenuToggle) {
+            if (this.value.trim().length > 0) {
+                mapSendBtnMobile.classList.add('active');
+                mapMobileMenuToggle.style.display = 'none';
+            } else {
+                mapSendBtnMobile.classList.remove('active');
+                mapMobileMenuToggle.style.display = 'flex';
+            }
+        }
     });
     
     mapMessageInput.addEventListener('keydown', function(e) {
@@ -73,6 +86,16 @@ if (mapMessageInput) {
 const mapSendBtn = document.getElementById('mapSendBtn');
 if (mapSendBtn) {
     mapSendBtn.addEventListener('click', function() {
+        if (mapMessageForm) {
+            mapMessageForm.dispatchEvent(new Event('submit'));
+        }
+    });
+}
+
+// Мобильная кнопка отправки
+const mapSendBtnMobile = document.getElementById('mapSendBtnMobile');
+if (mapSendBtnMobile) {
+    mapSendBtnMobile.addEventListener('click', function() {
         if (mapMessageForm) {
             mapMessageForm.dispatchEvent(new Event('submit'));
         }

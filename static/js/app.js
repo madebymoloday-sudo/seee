@@ -347,6 +347,18 @@ const sendBtn = document.getElementById('sendBtn');
 messageInput.addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+    
+    // Показываем/скрываем кнопку отправки на мобильной версии
+    const sendBtnMobile = document.getElementById('sendBtnMobile');
+    if (sendBtnMobile) {
+        if (this.value.trim().length > 0) {
+            sendBtnMobile.classList.add('active');
+            document.getElementById('mobileMenuToggleBottom').style.display = 'none';
+        } else {
+            sendBtnMobile.classList.remove('active');
+            document.getElementById('mobileMenuToggleBottom').style.display = 'flex';
+        }
+    }
 });
 
 // Обработка клавиш для отправки сообщения
@@ -375,6 +387,16 @@ sendBtn.addEventListener('click', function(e) {
     e.stopPropagation();
     messageForm.dispatchEvent(new Event('submit'));
 });
+
+// Обработчик для мобильной кнопки отправки
+const sendBtnMobile = document.getElementById('sendBtnMobile');
+if (sendBtnMobile) {
+    sendBtnMobile.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        messageForm.dispatchEvent(new Event('submit'));
+    });
+}
 
 // Обработчики кнопок
 document.getElementById('newChatBtn').addEventListener('click', createNewSession);

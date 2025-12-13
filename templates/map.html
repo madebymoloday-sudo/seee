@@ -65,6 +65,11 @@
         <!-- Окно ввода внизу -->
         <div class="input-container">
             <form id="mapMessageForm">
+                <button type="button" class="btn-mobile-menu-toggle mobile-only" id="mapMobileMenuToggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 15l-6-6-6 6"/>
+                    </svg>
+                </button>
                 <textarea 
                     id="mapMessageInput" 
                     placeholder="Напишите ваше сообщение..." 
@@ -76,9 +81,10 @@
                         <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                <button type="button" class="btn-mobile-menu-toggle mobile-only" id="mapMobileMenuToggle">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 15l-6-6-6 6"/>
+                <button type="button" class="btn-send-mobile mobile-only" id="mapSendBtnMobile" style="display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
             </form>
