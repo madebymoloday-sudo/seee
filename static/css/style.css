@@ -1593,10 +1593,22 @@ body.dark-mode .mobile-menu-content::before {
         -webkit-backdrop-filter: none !important;
         z-index: 1000 !important;
         box-shadow: none !important;
+        transition: transform 0.3s ease;
+    }
+    
+    /* Когда боковое меню открыто, сдвигаем input-container вправо */
+    body.sidebar-open .input-container {
+        transform: translateX(280px);
+    }
+    
+    /* Когда мобильное меню открыто, поднимаем input-container */
+    body.mobile-menu-open .input-container {
+        transform: translateY(-200px);
     }
     
     .messages-container {
         padding-bottom: 100px;
+        padding-top: 70px;
         z-index: 1;
     }
     

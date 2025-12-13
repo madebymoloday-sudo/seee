@@ -1013,6 +1013,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         mobileMenuToggle.addEventListener('click', function() {
             sidebar.classList.add('mobile-open');
             mobileSidebarOverlay.classList.add('active');
+            document.body.classList.add('sidebar-open');
         });
     }
     
@@ -1020,6 +1021,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         mobileSidebarOverlay.addEventListener('click', function() {
             sidebar.classList.remove('mobile-open');
             mobileSidebarOverlay.classList.remove('active');
+            document.body.classList.remove('sidebar-open');
         });
     }
     
@@ -1048,6 +1050,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (mobileSidebarOverlay) {
                     mobileSidebarOverlay.classList.add('active');
                 }
+                document.body.classList.add('sidebar-open');
             }
         }
         
@@ -1057,6 +1060,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (mobileSidebarOverlay) {
                 mobileSidebarOverlay.classList.remove('active');
             }
+            document.body.classList.remove('sidebar-open');
         }
     }
     
