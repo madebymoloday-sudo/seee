@@ -99,8 +99,19 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             const tabName = this.getAttribute('data-tab');
             switchTab(tabName);
+            // Прокручиваем к активной вкладке
+            btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         });
     });
+    
+    // Поиск в личном кабинете
+    const cabinetSearchInput = document.getElementById('cabinetSearchInput');
+    if (cabinetSearchInput) {
+        cabinetSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            performCabinetSearch(searchTerm);
+        });
+    }
     
     // Обработка формы реквизитов
     const paymentForm = document.getElementById('paymentForm');

@@ -117,8 +117,9 @@
                 </div>
                 <form id="messageForm">
                     <button type="button" class="btn-mobile-menu-toggle mobile-only" id="mobileMenuToggleBottom">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ultramarine)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 19V8M8 12l4-4 4 4" stroke="var(--ultramarine)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 8c0-1.5 1.5-3 4-3s4 1.5 4 3" stroke="var(--ultramarine)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                         </svg>
                     </button>
                     <textarea 
@@ -127,13 +128,13 @@
                         rows="1"
                         autocomplete="off"></textarea>
                     <button type="button" class="btn-send desktop-only" id="sendBtn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6A8EEB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M2 4c0 2 2 4 4 4s4-2 4-4M4 8c0 2 2 4 4 4s4-2 4-4M6 12c0 2 2 4 4 4s4-2 4-4M10 16c2 0 4 2 4 4M14 20c2 0 4 2 4 4M16 18c0-1.5 1.5-3 4-3s4 1.5 4 3M18 16c-1.5 0-3 1.5-3 4s1.5 4 3 4M20 18l-2-2 2-2"/>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
                     <button type="button" class="btn-send-mobile mobile-only" id="sendBtnMobile" style="display: none;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M2 4c0 2 2 4 4 4s4-2 4-4M4 8c0 2 2 4 4 4s4-2 4-4M6 12c0 2 2 4 4 4s4-2 4-4M10 16c2 0 4 2 4 4M14 20c2 0 4 2 4 4M16 18c0-1.5 1.5-3 4-3s4 1.5 4 3M18 16c-1.5 0-3 1.5-3 4s1.5 4 3 4M20 18l-2-2 2-2"/>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
                 </form>
@@ -166,6 +167,9 @@
                 <button class="modal-close" id="closeCabinet">&times;</button>
             </div>
             <div class="modal-body">
+                <div class="cabinet-search">
+                    <input type="text" id="cabinetSearchInput" placeholder="Поиск разделов, сессий, идей, убеждений, мыслей, дат...">
+                </div>
                 <div class="cabinet-tabs">
                     <button class="tab-btn active" data-tab="referrals">Рефералы</button>
                     <button class="tab-btn" data-tab="balance">Баланс</button>
