@@ -963,5 +963,63 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         });
     }
+    
+    // Мобильное меню - гамбургер слева
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
+    
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', function() {
+            sidebar.classList.add('mobile-open');
+            mobileSidebarOverlay.classList.add('active');
+        });
+    }
+    
+    if (mobileSidebarOverlay) {
+        mobileSidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('mobile-open');
+            mobileSidebarOverlay.classList.remove('active');
+        });
+    }
+    
+    // Мобильное меню - стрелка внизу
+    const mobileMenuToggleBottom = document.getElementById('mobileMenuToggleBottom');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+    const mobilePauseSession = document.getElementById('mobilePauseSession');
+    const mobileCabinet = document.getElementById('mobileCabinet');
+    
+    if (mobileMenuToggleBottom) {
+        mobileMenuToggleBottom.addEventListener('click', function() {
+            mobileMenu.classList.toggle('active');
+        });
+    }
+    
+    if (mobileMenuOverlay) {
+        mobileMenuOverlay.addEventListener('click', function() {
+            mobileMenu.classList.remove('active');
+        });
+    }
+    
+    if (mobilePauseSession) {
+        mobilePauseSession.addEventListener('click', function() {
+            const pauseBtn = document.getElementById('pauseSessionBtn');
+            if (pauseBtn && pauseBtn.style.display !== 'none') {
+                pauseBtn.click();
+            }
+            mobileMenu.classList.remove('active');
+        });
+    }
+    
+    if (mobileCabinet) {
+        mobileCabinet.addEventListener('click', function() {
+            const cabinetBtn = document.getElementById('cabinetBtn');
+            if (cabinetBtn) {
+                cabinetBtn.click();
+            }
+            mobileMenu.classList.remove('active');
+        });
+    }
 });
 

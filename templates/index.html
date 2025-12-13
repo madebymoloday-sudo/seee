@@ -9,8 +9,9 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Боковая панель с сессиями -->
-        <aside class="sidebar">
+        <!-- Мобильное боковое меню -->
+        <div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <button class="btn-new-chat" id="newChatBtn">
                     <span>+</span> Новая сессия
@@ -36,10 +37,17 @@
         <!-- Основная область чата -->
         <main class="chat-container">
             <div class="chat-header">
-                <h2 id="chatTitle">Новая сессия</h2>
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <h2 id="chatTitle" class="chat-title-center">Новая сессия</h2>
                 <div class="header-right">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SEEE" class="header-logo">
-                    <button class="btn-pause-session" id="pauseSessionBtn" style="display: none;">
+                    <button class="btn-pause-session desktop-only" id="pauseSessionBtn" style="display: none;">
                         ⏸️ Приостановить сессию
                     </button>
                 </div>
@@ -70,6 +78,24 @@
                     </div>
                     
                     <p class="reassurance">Вы работаете с той же технологией мышления, что и сильный ИИ. Это не психология — это архитектура мышления, доступная вам для перестройки собственного мышления.</p>
+                    
+                    <div class="info-section">
+                        <h4>С какими ситуациями может помочь SEEE:</h4>
+                        <p>SEEE помогает перестроить архитектуру мышления в различных жизненных ситуациях:</p>
+                        <ul>
+                            <li><strong>Депрессия</strong> — работа с негативными убеждениями, которые вызывают подавленное состояние</li>
+                            <li><strong>Комплексы</strong> — разбор и перестройка идей о себе, которые мешают жить полноценной жизнью</li>
+                            <li><strong>Неуверенность в себе</strong> — выявление и изменение убеждений, которые блокируют вашу уверенность</li>
+                            <li><strong>Тревожность и страхи</strong> — работа с идеями, которые вызывают постоянное беспокойство</li>
+                            <li><strong>Проблемы в отношениях</strong> — разбор убеждений, мешающих строить здоровые отношения</li>
+                            <li><strong>Профессиональные блоки</strong> — выявление и изменение идей, ограничивающих карьерный рост</li>
+                            <li><strong>Низкая самооценка</strong> — перестройка убеждений о собственной ценности</li>
+                            <li><strong>Эмоциональные зависимости</strong> — работа с идеями, создающими зависимость от других людей или ситуаций</li>
+                            <li><strong>Прокрастинация</strong> — разбор убеждений, которые мешают действовать</li>
+                            <li><strong>Чувство вины и стыда</strong> — работа с идеями, вызывающими постоянное чувство вины</li>
+                        </ul>
+                    </div>
+                    
                     <p>Начните диалог, написав мне сообщение ниже.</p>
                 </div>
             </div>
@@ -97,13 +123,31 @@
                         placeholder="Напишите ваше сообщение..." 
                         rows="1"
                         autocomplete="off"></textarea>
-                    <button type="button" class="btn-send" id="sendBtn">
+                    <button type="button" class="btn-send desktop-only" id="sendBtn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                             <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
+                    <button type="button" class="btn-mobile-menu-toggle mobile-only" id="mobileMenuToggleBottom">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 15l-6-6-6 6"/>
+                        </svg>
+                    </button>
                 </form>
+                
+                <!-- Мобильное меню -->
+                <div class="mobile-menu" id="mobileMenu">
+                    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+                    <div class="mobile-menu-content">
+                        <button class="mobile-menu-item" id="mobilePauseSession">
+                            ⏸️ Приостановить сессию
+                        </button>
+                        <button class="mobile-menu-item" id="mobileCabinet">
+                            👤 Личный кабинет
+                        </button>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
