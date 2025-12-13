@@ -636,19 +636,20 @@ body {
 /* Стикер "Затрудняюсь ответить" под сообщением AI */
 .message-difficulty-sticker {
     display: block;
-    margin-top: 6px;
-    padding: 6px 12px;
-    background: rgba(106, 142, 235, 0.08);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    border-radius: 12px;
+    margin-top: 4px;
+    margin-left: 0;
+    padding: 4px 10px;
+    background: rgba(106, 142, 235, 0.06);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    border-radius: 10px;
     border: none;
     cursor: pointer;
     transition: all 0.2s;
-    font-size: 13px;
-    color: rgba(106, 142, 235, 0.7);
+    font-size: 12px;
+    color: rgba(106, 142, 235, 0.6);
     font-weight: 400;
-    opacity: 0.7;
+    opacity: 0.6;
     align-self: flex-start;
 }
 
