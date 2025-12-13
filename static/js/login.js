@@ -80,5 +80,86 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Вход через Google
+    const googleSignInBtn = document.getElementById('googleSignInBtn');
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener('click', function() {
+            // Используем Google Identity Services
+            google.accounts.id.initialize({
+                client_id: 'YOUR_GOOGLE_CLIENT_ID', // Нужно будет заменить на реальный ID
+                callback: handleGoogleSignIn
+            });
+            
+            google.accounts.id.prompt((notification) => {
+                if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                    // Показываем popup для входа
+                    google.accounts.oauth2.initTokenClient({
+                        client_id: 'YOUR_GOOGLE_CLIENT_ID',
+                        scope: 'email profile',
+                        callback: async (response) => {
+                            if (response.access_token) {
+                                // Получаем информацию о пользователе
+                                const userInfo = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                                    headers: {
+                                        'Authorization': `Bearer ${response.access_token}`
+                                    }
+                                });
+                                const userData = await userInfo.json();
+                                
+                                // Отправляем на сервер
+                                try {
+                                    const response = await fetch('/api/auth/google', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({ 
+                                            token: response.access_token,
+                                            user: userData
+                                        })
+                                    });
+                                    
+                                    const data = await response.json();
+                                    
+                                    if (data.success) {
+                                        window.location.href = '/';
+                                    } else {
+                                        showError(data.error || 'Ошибка входа через Google');
+                                    }
+                                } catch (error) {
+                                    showError('Ошибка соединения с сервером');
+                                }
+                            }
+                        }
+                    }).requestAccessToken();
+                }
+            });
+        });
+    }
+    
+    function handleGoogleSignIn(response) {
+        // Обработка ответа от Google
+        if (response.credential) {
+            fetch('/api/auth/google', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token: response.credential })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/';
+                } else {
+                    showError(data.error || 'Ошибка входа через Google');
+                }
+            })
+            .catch(error => {
+                showError('Ошибка соединения с сервером');
+            });
+        }
+    }
 });
 

@@ -9,6 +9,8 @@ import secrets
 from datetime import datetime
 from psychologist_ai import PsychologistAI
 from urllib.parse import urlparse
+from google.oauth2 import id_token
+from google.auth.transport import requests
 from mlm_system import (
     generate_referral_code, create_referral_structure, 
     process_payment, get_referral_tree, get_user_balance, get_user_transactions
@@ -55,6 +57,9 @@ def init_db():
                   referred_by INTEGER,
                   user_id TEXT UNIQUE,
                   language TEXT DEFAULT 'ru',
+                  google_id TEXT UNIQUE,
+                  email TEXT,
+                  full_name TEXT,
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                   FOREIGN KEY (referred_by) REFERENCES users (id))''')
     
@@ -297,6 +302,18 @@ def migrate_database():
             c.execute('ALTER TABLE users ADD COLUMN language TEXT DEFAULT "ru"')
             print("[Migration] Добавлена колонка language")
         
+        if 'google_id' not in columns:
+            c.execute('ALTER TABLE users ADD COLUMN google_id TEXT')
+            print("[Migration] Добавлена колонка google_id")
+        
+        if 'email' not in columns:
+            c.execute('ALTER TABLE users ADD COLUMN email TEXT')
+            print("[Migration] Добавлена колонка email")
+        
+        if 'full_name' not in columns:
+            c.execute('ALTER TABLE users ADD COLUMN full_name TEXT')
+            print("[Migration] Добавлена колонка full_name")
+        
         # Миграция таблицы event_map
         try:
             c.execute("PRAGMA table_info(event_map)")
@@ -426,6 +443,90 @@ def login():
             return jsonify({'success': False, 'error': 'Неверное имя пользователя или пароль'})
     
     return render_template('login.html')
+
+@app.route('/api/auth/google', methods=['POST'])
+def google_auth():
+    """Обработка входа через Google"""
+    try:
+        token = request.json.get('token')
+        if not token:
+            return jsonify({'success': False, 'error': 'Токен не предоставлен'}), 400
+        
+        # Верифицируем токен Google
+        try:
+            idinfo = id_token.verify_oauth2_token(
+                token, 
+                requests.Request(),
+                os.environ.get('GOOGLE_CLIENT_ID', '')
+            )
+            
+            if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+                raise ValueError('Wrong issuer.')
+            
+            google_id = idinfo['sub']
+            email = idinfo.get('email')
+            name = idinfo.get('name', email)
+            
+        except ValueError as e:
+            return jsonify({'success': False, 'error': 'Неверный токен Google'}), 400
+        
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Проверяем, есть ли пользователь с таким Google ID
+        c.execute('SELECT id, username FROM users WHERE google_id = ?', (google_id,))
+        user = c.fetchone()
+        
+        if user:
+            # Пользователь существует - входим
+            session['user_id'] = user[0]
+            session['username'] = user[1]
+            session.permanent = True
+            conn.close()
+            return jsonify({'success': True, 'user_id': user[0], 'username': user[1]})
+        else:
+            # Создаем нового пользователя
+            username = email.split('@')[0] if email else f"user_{google_id[:8]}"
+            
+            # Проверяем уникальность username
+            c.execute('SELECT id FROM users WHERE username = ?', (username,))
+            if c.fetchone():
+                username = f"{username}_{google_id[:8]}"
+            
+            new_referral_code = generate_referral_code()
+            user_id_str = str(uuid.uuid4())[:8].upper()
+            
+            # Проверяем уникальность кодов
+            while True:
+                c.execute('SELECT id FROM users WHERE referral_code = ? OR user_id = ?', 
+                         (new_referral_code, user_id_str))
+                if not c.fetchone():
+                    break
+                new_referral_code = generate_referral_code()
+                user_id_str = str(uuid.uuid4())[:8].upper()
+            
+            # Создаем пользователя без пароля (только Google)
+            c.execute('''INSERT INTO users (username, password_hash, referral_code, user_id, google_id, email, full_name) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)''', 
+                     (username, '', new_referral_code, user_id_str, google_id, email, name))
+            conn.commit()
+            new_user_id = c.lastrowid
+            
+            # Создаем начальный баланс
+            c.execute('INSERT INTO balances (user_id, amount) VALUES (?, 0.00)', (new_user_id,))
+            conn.commit()
+            conn.close()
+            
+            # Устанавливаем сессию
+            session['user_id'] = new_user_id
+            session['username'] = username
+            session.permanent = True
+            
+            return jsonify({'success': True, 'user_id': new_user_id, 'username': username, 'referral_code': new_referral_code})
+            
+    except Exception as e:
+        print(f"[Google Auth] Ошибка: {e}")
+        return jsonify({'success': False, 'error': f'Ошибка авторизации: {str(e)}'}), 500
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
