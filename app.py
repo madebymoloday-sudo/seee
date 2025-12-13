@@ -314,6 +314,14 @@ def migrate_database():
             c.execute('ALTER TABLE users ADD COLUMN full_name TEXT')
             print("[Migration] Добавлена колонка full_name")
         
+        if 'two_factor_secret' not in columns:
+            c.execute('ALTER TABLE users ADD COLUMN two_factor_secret TEXT')
+            print("[Migration] Добавлена колонка two_factor_secret")
+        
+        if 'two_factor_enabled' not in columns:
+            c.execute('ALTER TABLE users ADD COLUMN two_factor_enabled INTEGER DEFAULT 0')
+            print("[Migration] Добавлена колонка two_factor_enabled")
+        
         # Миграция таблицы event_map
         try:
             c.execute("PRAGMA table_info(event_map)")

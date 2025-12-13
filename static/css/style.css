@@ -1198,6 +1198,37 @@ body.dark-mode .mobile-menu-content::before {
     background: var(--ultramarine-dark);
 }
 
+.btn-support {
+    display: inline-block;
+    padding: 12px 24px;
+    background: var(--ultramarine);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+    margin-top: 10px;
+}
+
+.btn-support:hover {
+    background: var(--ultramarine-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(106, 142, 235, 0.3);
+}
+
+#qrCodeContainer {
+    margin: 20px 0;
+    text-align: center;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+}
+
+#qrCodeContainer img {
+    max-width: 100%;
+    height: auto;
+}
+
 .info-text {
     color: var(--text-secondary);
     font-size: 14px;

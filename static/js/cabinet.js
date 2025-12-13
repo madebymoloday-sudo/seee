@@ -163,6 +163,8 @@ function switchTab(tabName) {
         loadJournal();
     } else if (tabName === 'thoughts') {
         loadThoughts();
+    } else if (tabName === 'security') {
+        loadSecurityData();
     }
 }
 
