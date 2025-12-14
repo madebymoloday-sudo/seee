@@ -1257,7 +1257,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     const aboutModal = document.getElementById('aboutModal');
     const closeAboutModal = document.getElementById('closeAboutModal');
     
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1256',message:'headerLogo element check',data:{found:!!headerLogo,display:headerLogo?window.getComputedStyle(headerLogo).display:'N/A',zIndex:headerLogo?window.getComputedStyle(headerLogo).zIndex:'N/A',pointerEvents:headerLogo?window.getComputedStyle(headerLogo).pointerEvents:'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,E'})}).catch(()=>{});
+    // #endregion
+    
     function handleHeaderLogoClick(e) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1260',message:'handleHeaderLogoClick called',data:{type:e.type,target:e.target?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
+        // #endregion
         e.preventDefault();
         e.stopPropagation();
         console.log('[Mobile] Header logo clicked');
@@ -1267,8 +1274,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     if (headerLogo && aboutModal) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1270',message:'Adding headerLogo handlers',data:{hasClickHandler:true,hasTouchstartHandler:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
         headerLogo.addEventListener('click', handleHeaderLogoClick);
         headerLogo.addEventListener('touchstart', function(e) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1272',message:'headerLogo touchstart fired',data:{type:e.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
+            // #endregion
             e.preventDefault();
             handleHeaderLogoClick(e);
         }, { passive: false });
