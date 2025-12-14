@@ -227,13 +227,30 @@ async function loadSession(sessionId) {
         
         if (messages.length === 0) {
             showWelcomeMessage();
+            // При приветственном сообщении прокручиваем к началу
+            setTimeout(() => {
+                const messagesContainer = document.getElementById('messagesContainer');
+                if (messagesContainer) {
+                    messagesContainer.scrollTop = 0;
+                }
+            }, 100);
         } else {
             messages.forEach(msg => {
                 addMessage(msg.role, msg.content, false);
             });
-            // Прокручиваем после загрузки всех сообщений
+            // Прокручиваем после загрузки всех сообщений только если есть несколько сообщений
+            // Если это первое сообщение, прокручиваем к началу
             setTimeout(() => {
-                scrollToBottom();
+                const messagesContainer = document.getElementById('messagesContainer');
+                if (messagesContainer) {
+                    if (messages.length === 1) {
+                        // Первое сообщение - прокручиваем к началу
+                        messagesContainer.scrollTop = 0;
+                    } else {
+                        // Несколько сообщений - прокручиваем к концу
+                        scrollToBottom();
+                    }
+                }
             }, 200);
         }
     } catch (error) {
