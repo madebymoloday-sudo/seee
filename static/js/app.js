@@ -34,7 +34,10 @@ function updateSessionTitle(sessionId, newTitle) {
         session.title = newTitle;
         renderSessions();
         if (sessionId === currentSessionId) {
-            document.getElementById('chatTitle').textContent = newTitle;
+            const chatTitle = document.getElementById('chatTitle');
+            if (chatTitle) {
+                chatTitle.textContent = newTitle;
+            }
         }
     }
 }
