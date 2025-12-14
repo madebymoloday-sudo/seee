@@ -52,8 +52,52 @@ body.dark-mode .chat-container,
 body.dark-mode .messages-container,
 body.dark-mode .sidebar,
 body.dark-mode .modal,
-body.dark-mode .modal-content {
+body.dark-mode .modal-content,
+body.dark-mode .chat-header,
+body.dark-mode .welcome-message,
+body.dark-mode .message,
+body.dark-mode .message-content,
+body.dark-mode .input-container,
+body.dark-mode #messageInput,
+body.dark-mode .mobile-menu-content,
+body.dark-mode .mobile-menu-overlay,
+body.dark-mode .session-item,
+body.dark-mode .cabinet-section,
+body.dark-mode .tab-content,
+body.dark-mode .form-group,
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select,
+body.dark-mode button:not(.btn-send-mobile) {
     background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+body.dark-mode .message.assistant .message-content {
+    background-color: var(--message-ai-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+body.dark-mode .message.user .message-content {
+    background-color: var(--message-user-bg) !important;
+    color: white !important;
+}
+
+body.dark-mode .sidebar {
+    background-color: var(--bg-secondary) !important;
+    border-right-color: var(--border) !important;
+}
+
+body.dark-mode .modal-content {
+    background-color: var(--bg-secondary) !important;
+}
+
+body.dark-mode .mobile-menu-content {
+    background-color: var(--bg-secondary) !important;
+}
+
+body.dark-mode #messageInput {
+    background-color: var(--bg-secondary) !important;
     color: var(--text-primary) !important;
 }
 

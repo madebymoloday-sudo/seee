@@ -1373,7 +1373,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const menuLeft = arrowRect.left + arrowRect.width / 2 - menuWidth / 2;
                     // Убеждаемся, что меню не выходит за левый край
                     const finalLeft = Math.max(8, Math.min(menuLeft, window.innerWidth - menuWidth - 8));
-                    const menuBottom = window.innerHeight - arrowRect.top + 10;
+                    // Позиционируем меню прямо над кнопкой
+                    // bottom - это расстояние от низа экрана до низа меню
+                    // Высота кнопки + небольшой отступ (8px) + высота меню
+                    const buttonHeight = arrowRect.height;
+                    const menuBottom = buttonHeight + 8; // Меню будет на 8px выше кнопки
                     
                     mobileMenuContent.style.left = finalLeft + 'px';
                     mobileMenuContent.style.bottom = menuBottom + 'px';
