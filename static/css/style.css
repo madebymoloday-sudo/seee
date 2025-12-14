@@ -770,11 +770,12 @@ body.dark-mode .chat-title-center {
     right: 0 !important;
     z-index: 1000 !important;
     box-shadow: none;
-    transform: none !important;
+    transform: translateZ(0) !important;
+    -webkit-transform: translateZ(0) !important;
     will-change: auto !important;
-    /* Убеждаемся, что контейнер не двигается */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
+    /* Убеждаемся, что контейнер всегда внизу и не двигается */
+    margin: 0 !important;
+    top: auto !important;
 }
 
 /* Для веб-версии делаем полностью прозрачным */
