@@ -700,6 +700,13 @@ body.dark-mode .messages-container {
     margin: 20px 0;
     font-style: italic;
     color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode .welcome-message .reassurance {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-left-color: var(--ultramarine) !important;
 }
 
 .message {
