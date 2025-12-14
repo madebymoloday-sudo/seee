@@ -649,8 +649,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     const savedViewMode = localStorage.getItem('viewMode') || 'auto';
     if (savedViewMode === 'mobile') {
         document.body.classList.add('force-mobile-view');
+        document.body.classList.remove('force-web-view');
     } else if (savedViewMode === 'web') {
         document.body.classList.remove('force-mobile-view');
+        document.body.classList.add('force-web-view');
+    } else {
+        // Автоматический режим - определяем по размеру экрана
+        const isMobileDevice = window.innerWidth <= 768;
+        if (isMobileDevice) {
+            document.body.classList.add('force-mobile-view');
+        } else {
+            document.body.classList.add('force-web-view');
+        }
     }
     
     // Проверяем параметр session в URL ДО загрузки сессий

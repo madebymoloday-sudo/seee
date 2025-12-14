@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Переключение версии интерфейса (мобильная/веб)
     const viewModeToggle = document.getElementById('viewModeToggle');
     if (viewModeToggle) {
-        // Загружаем сохраненное значение
+        // Загружаем сохраненное значение (по умолчанию 'auto' - автоматическое определение)
         const savedViewMode = localStorage.getItem('viewMode') || 'auto';
         const isMobileView = savedViewMode === 'mobile';
         
@@ -148,9 +148,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isMobileView) {
             viewModeToggle.classList.add('active');
             document.body.classList.add('force-mobile-view');
-        } else {
+            document.body.classList.remove('force-web-view');
+        } else if (savedViewMode === 'web') {
             viewModeToggle.classList.remove('active');
             document.body.classList.remove('force-mobile-view');
+            document.body.classList.add('force-web-view');
+        } else {
+            // Автоматический режим - определяем по размеру экрана
+            const isMobileDevice = window.innerWidth <= 768;
+            if (isMobileDevice) {
+                viewModeToggle.classList.add('active');
+                document.body.classList.add('force-mobile-view');
+            } else {
+                viewModeToggle.classList.remove('active');
+                document.body.classList.add('force-web-view');
+            }
         }
         
         // Обработчик клика
@@ -160,10 +172,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isActive) {
                 // Включаем мобильную версию
                 document.body.classList.add('force-mobile-view');
+                document.body.classList.remove('force-web-view');
                 localStorage.setItem('viewMode', 'mobile');
             } else {
                 // Включаем веб-версию
                 document.body.classList.remove('force-mobile-view');
+                document.body.classList.add('force-web-view');
                 localStorage.setItem('viewMode', 'web');
             }
         });

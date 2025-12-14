@@ -1379,22 +1379,32 @@ body.force-mobile-view .input-container {
 }
 
 /* Принудительная веб-версия */
-body:not(.force-mobile-view) .mobile-only {
+body.force-web-view .mobile-only {
     display: none !important;
 }
 
-body:not(.force-mobile-view) .desktop-only {
+body.force-web-view .desktop-only {
     display: block !important;
 }
 
-/* На мобильных устройствах по умолчанию показываем мобильную версию, если не установлено иное */
+/* По умолчанию на мобильных устройствах показываем мобильную версию, на десктопе - веб */
 @media (max-width: 768px) {
-    body:not(.force-mobile-view):not([data-view-mode="web"]) .mobile-only {
+    body:not(.force-web-view) .mobile-only {
         display: block !important;
     }
     
-    body:not(.force-mobile-view):not([data-view-mode="web"]) .desktop-only {
+    body:not(.force-web-view) .desktop-only {
         display: none !important;
+    }
+}
+
+@media (min-width: 769px) {
+    body:not(.force-mobile-view) .mobile-only {
+        display: none !important;
+    }
+    
+    body:not(.force-mobile-view) .desktop-only {
+        display: block !important;
     }
 }
 
