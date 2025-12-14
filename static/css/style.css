@@ -56,7 +56,13 @@ body.dark-mode .modal {
 }
 
 body.dark-mode .modal-content {
-body.dark-mode .chat-header,
+    background-color: var(--bg-secondary) !important;
+}
+
+body.dark-mode .chat-header {
+    background: transparent !important;
+}
+
 body.dark-mode .welcome-message {
     background-color: var(--bg-primary) !important;
     color: var(--text-primary) !important;
