@@ -1642,6 +1642,29 @@ body.dark-mode .mobile-menu-content::before {
         background: transparent !important;
     }
     
+    /* Убираем белый фон который появляется при открытии клавиатуры */
+    html {
+        background: transparent !important;
+    }
+    
+    /* Убираем белый фон у всех возможных элементов при фокусе на input */
+    #messageInput:focus,
+    #messageInput:focus-visible,
+    #messageInput:active {
+        background: var(--bg-primary) !important;
+    }
+    
+    /* Убираем белый фон у form при фокусе */
+    #messageForm:focus-within {
+        background: transparent !important;
+    }
+    
+    /* Убираем белый фон который может добавить браузер */
+    body:has(#messageInput:focus) .input-container,
+    body:has(#messageForm:focus-within) .input-container {
+        background: transparent !important;
+    }
+    
     .input-container * {
         pointer-events: auto !important;
     }

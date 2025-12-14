@@ -423,15 +423,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Обработчик для мобильной кнопки отправки
     const sendBtnMobile = document.getElementById('sendBtnMobile');
+    function handleSendClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Mobile] Send button clicked');
+        if (messageInput && messageInput.value.trim()) {
+            messageForm.dispatchEvent(new Event('submit'));
+        }
+    }
     if (sendBtnMobile) {
-        sendBtnMobile.addEventListener('click', function(e) {
+        sendBtnMobile.addEventListener('click', handleSendClick);
+        sendBtnMobile.addEventListener('touchstart', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            console.log('[Mobile] Send button clicked');
-            if (messageInput.value.trim()) {
-                messageForm.dispatchEvent(new Event('submit'));
-            }
-        });
+            handleSendClick(e);
+        }, { passive: false });
     }
     
     // Обработчики кнопок
@@ -1038,19 +1043,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     const sidebar = document.getElementById('sidebar');
     const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
     
-    if (mobileMenuToggle) {
-        mobileMenuToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('[Mobile] Hamburger menu clicked');
-            if (sidebar) {
-                sidebar.classList.toggle('mobile-open');
-                if (mobileSidebarOverlay) {
-                    mobileSidebarOverlay.classList.toggle('active');
-                }
-                document.body.classList.toggle('sidebar-open');
+    function handleHamburgerClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Mobile] Hamburger menu clicked');
+        if (sidebar) {
+            sidebar.classList.toggle('mobile-open');
+            if (mobileSidebarOverlay) {
+                mobileSidebarOverlay.classList.toggle('active');
             }
-        });
+            document.body.classList.toggle('sidebar-open');
+        }
+    }
+    
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', handleHamburgerClick);
+        mobileMenuToggle.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            handleHamburgerClick(e);
+        }, { passive: false });
     }
     
     if (mobileSidebarOverlay) {
@@ -1102,32 +1113,53 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Кнопка "Боковая панель" в меню
     const mobileSidebarBtn = document.getElementById('mobileSidebarBtn');
-    if (mobileSidebarBtn) {
-        mobileSidebarBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('[Mobile] Боковая панель clicked');
-            // Открываем боковое меню (sidebar)
-            if (sidebar) {
-                sidebar.classList.add('mobile-open');
-                document.body.classList.add('sidebar-open');
+    function handleSidebarBtnClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Mobile] Боковая панель clicked');
+        // Открываем боковое меню (sidebar)
+        if (sidebar) {
+            sidebar.classList.add('mobile-open');
+            if (mobileSidebarOverlay) {
+                mobileSidebarOverlay.classList.add('active');
             }
-            // Закрываем мобильное меню снизу
+            document.body.classList.add('sidebar-open');
+        }
+        // Закрываем мобильное меню снизу
+        if (mobileMenu) {
             mobileMenu.classList.remove('active');
-            document.body.classList.remove('mobile-menu-open');
-        });
+        }
+        document.body.classList.remove('mobile-menu-open');
+    }
+    if (mobileSidebarBtn) {
+        mobileSidebarBtn.addEventListener('click', handleSidebarBtnClick);
+        mobileSidebarBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            handleSidebarBtnClick(e);
+        }, { passive: false });
     }
     
     // Кнопка "Обратная связь" в меню
     const mobileFeedbackBtn = document.getElementById('mobileFeedbackBtn');
-    if (mobileFeedbackBtn) {
-        mobileFeedbackBtn.addEventListener('click', function() {
-            const feedbackBtn = document.getElementById('feedbackBtn');
-            if (feedbackBtn) {
-                feedbackBtn.click();
-            }
+    function handleFeedbackBtnClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Mobile] Feedback button clicked');
+        const feedbackBtn = document.getElementById('feedbackBtn');
+        if (feedbackBtn) {
+            feedbackBtn.click();
+        }
+        if (mobileMenu) {
             mobileMenu.classList.remove('active');
-        });
+        }
+        document.body.classList.remove('mobile-menu-open');
+    }
+    if (mobileFeedbackBtn) {
+        mobileFeedbackBtn.addEventListener('click', handleFeedbackBtnClick);
+        mobileFeedbackBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            handleFeedbackBtnClick(e);
+        }, { passive: false });
     }
     
     // Клик на логотип - открытие информации о SEEE
@@ -1135,13 +1167,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     const aboutModal = document.getElementById('aboutModal');
     const closeAboutModal = document.getElementById('closeAboutModal');
     
-    if (headerLogo && aboutModal) {
-        headerLogo.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('[Mobile] Header logo clicked');
+    function handleHeaderLogoClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Mobile] Header logo clicked');
+        if (aboutModal) {
             aboutModal.style.display = 'flex';
-        });
+        }
+    }
+    
+    if (headerLogo && aboutModal) {
+        headerLogo.addEventListener('click', handleHeaderLogoClick);
+        headerLogo.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            handleHeaderLogoClick(e);
+        }, { passive: false });
     }
     
     if (closeAboutModal && aboutModal) {
@@ -1166,12 +1206,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     const mobileMenuToggle = document.getElementById('mobileMenuToggle');
     const sidebar = document.querySelector('.sidebar');
     
-    if (mobileMenuToggleBottom) {
-        mobileMenuToggleBottom.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('[Mobile] Menu toggle clicked');
-            // Не закрываем клавиатуру
+    function handleMenuToggleClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Mobile] Menu toggle clicked');
+        // Не закрываем клавиатуру
+        if (mobileMenu) {
             mobileMenu.classList.toggle('active');
             // Добавляем класс для поднятия input-container
             if (mobileMenu.classList.contains('active')) {
@@ -1179,7 +1219,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else {
                 document.body.classList.remove('mobile-menu-open');
             }
-        });
+        }
+    }
+    
+    if (mobileMenuToggleBottom) {
+        mobileMenuToggleBottom.addEventListener('click', handleMenuToggleClick);
+        mobileMenuToggleBottom.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            handleMenuToggleClick(e);
+        }, { passive: false });
     }
     
     if (mobileMenuOverlay) {
@@ -1189,26 +1237,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    // Обработка открытия бокового меню
-    if (mobileMenuToggle && sidebar) {
-        mobileMenuToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('[Mobile] Hamburger menu clicked (duplicate handler)');
-            sidebar.classList.toggle('mobile-open');
-            if (sidebar.classList.contains('mobile-open')) {
-                if (mobileSidebarOverlay) {
-                    mobileSidebarOverlay.classList.add('active');
-                }
-                document.body.classList.add('sidebar-open');
-            } else {
-                if (mobileSidebarOverlay) {
-                    mobileSidebarOverlay.classList.remove('active');
-                }
-                document.body.classList.remove('sidebar-open');
-            }
-        });
-    }
+    // Убираем дублирующийся обработчик - уже есть выше
     
     // Закрытие бокового меню при клике на overlay
     const sidebarOverlay = document.querySelector('.mobile-sidebar-overlay');
@@ -1225,32 +1254,48 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    if (mobilePauseSession) {
-        mobilePauseSession.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('[Mobile] Pause session clicked');
-            const pauseBtn = document.getElementById('pauseSessionBtn');
-            if (pauseBtn) {
-                pauseBtn.click();
-            }
+    function handlePauseSessionClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Mobile] Pause session clicked');
+        const pauseBtn = document.getElementById('pauseSessionBtn');
+        if (pauseBtn) {
+            pauseBtn.click();
+        }
+        if (mobileMenu) {
             mobileMenu.classList.remove('active');
-            document.body.classList.remove('mobile-menu-open');
-        });
+        }
+        document.body.classList.remove('mobile-menu-open');
+    }
+    
+    if (mobilePauseSession) {
+        mobilePauseSession.addEventListener('click', handlePauseSessionClick);
+        mobilePauseSession.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            handlePauseSessionClick(e);
+        }, { passive: false });
+    }
+    
+    function handleCabinetClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Mobile] Cabinet clicked');
+        const cabinetBtn = document.getElementById('cabinetBtn');
+        if (cabinetBtn) {
+            cabinetBtn.click();
+        }
+        if (mobileMenu) {
+            mobileMenu.classList.remove('active');
+        }
+        document.body.classList.remove('mobile-menu-open');
     }
     
     if (mobileCabinet) {
-        mobileCabinet.addEventListener('click', function(e) {
+        mobileCabinet.addEventListener('click', handleCabinetClick);
+        mobileCabinet.addEventListener('touchstart', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            console.log('[Mobile] Cabinet clicked');
-            const cabinetBtn = document.getElementById('cabinetBtn');
-            if (cabinetBtn) {
-                cabinetBtn.click();
-            }
-            mobileMenu.classList.remove('active');
-            document.body.classList.remove('mobile-menu-open');
-        });
+            handleCabinetClick(e);
+        }, { passive: false });
     }
     
     // Тумблер темы
