@@ -1322,49 +1322,80 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    function handlePauseSessionClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('[Mobile] Pause session clicked');
-        const pauseBtn = document.getElementById('pauseSessionBtn');
-        if (pauseBtn) {
-            pauseBtn.click();
-        }
-        if (mobileMenu) {
-            mobileMenu.classList.remove('active');
-        }
-        document.body.classList.remove('mobile-menu-open');
-    }
-    
-    if (mobilePauseSession) {
-        mobilePauseSession.addEventListener('click', handlePauseSessionClick);
-        mobilePauseSession.addEventListener('touchstart', function(e) {
+    // Кнопки в мобильном меню - используем делегирование событий
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#mobilePauseSession')) {
             e.preventDefault();
-            handlePauseSessionClick(e);
-        }, { passive: false });
-    }
-    
-    function handleCabinetClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('[Mobile] Cabinet clicked');
-        const cabinetBtn = document.getElementById('cabinetBtn');
-        if (cabinetBtn) {
-            cabinetBtn.click();
+            e.stopPropagation();
+            const pauseBtn = document.getElementById('pauseSessionBtn');
+            if (pauseBtn) {
+                pauseBtn.click();
+            }
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu) {
+                mobileMenu.classList.remove('active');
+            }
+            document.body.classList.remove('mobile-menu-open');
         }
-        if (mobileMenu) {
-            mobileMenu.classList.remove('active');
-        }
-        document.body.classList.remove('mobile-menu-open');
-    }
-    
-    if (mobileCabinet) {
-        mobileCabinet.addEventListener('click', handleCabinetClick);
-        mobileCabinet.addEventListener('touchstart', function(e) {
+        
+        if (e.target.closest('#mobileCabinet')) {
             e.preventDefault();
-            handleCabinetClick(e);
-        }, { passive: false });
-    }
+            e.stopPropagation();
+            const cabinetBtn = document.getElementById('cabinetBtn');
+            if (cabinetBtn) {
+                cabinetBtn.click();
+            }
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu) {
+                mobileMenu.classList.remove('active');
+            }
+            document.body.classList.remove('mobile-menu-open');
+        }
+        
+        if (e.target.closest('#mobileSidebarBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const sidebar = document.getElementById('sidebar');
+            const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
+            if (sidebar) {
+                sidebar.classList.add('mobile-open');
+                if (mobileSidebarOverlay) {
+                    mobileSidebarOverlay.classList.add('active');
+                }
+                document.body.classList.add('sidebar-open');
+            }
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu) {
+                mobileMenu.classList.remove('active');
+            }
+            document.body.classList.remove('mobile-menu-open');
+        }
+        
+        if (e.target.closest('#mobileFeedbackBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const feedbackBtn = document.getElementById('feedbackBtn');
+            if (feedbackBtn) {
+                feedbackBtn.click();
+            }
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu) {
+                mobileMenu.classList.remove('active');
+            }
+            document.body.classList.remove('mobile-menu-open');
+        }
+    }, true);
+    
+    document.addEventListener('touchstart', function(e) {
+        if (e.target.closest('#mobilePauseSession') || 
+            e.target.closest('#mobileCabinet') || 
+            e.target.closest('#mobileSidebarBtn') || 
+            e.target.closest('#mobileFeedbackBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.target.closest('#mobilePauseSession, #mobileCabinet, #mobileSidebarBtn, #mobileFeedbackBtn').click();
+        }
+    }, { passive: false, capture: true });
     
     // Тумблер темы
     const themeToggle = document.getElementById('themeToggle');
