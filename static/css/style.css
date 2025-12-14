@@ -799,11 +799,11 @@ body.dark-mode .mobile-menu-content::before {
     content: '';
     position: absolute;
     bottom: -6px;
-    left: 20px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
     width: 12px;
     height: 12px;
     background: white;
-    transform: rotate(45deg);
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -1840,12 +1840,14 @@ body.dark-mode .mobile-menu-content::before {
     }
     
     .mobile-menu-content {
-        left: 8px;
+        left: 50%;
+        transform: translateX(-50%);
         bottom: 90px;
     }
     
     .mobile-menu-content::before {
-        left: 16px;
+        left: 50%;
+        transform: translateX(-50%) rotate(45deg);
     }
     
     .btn-send-mobile {
