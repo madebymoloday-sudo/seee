@@ -375,7 +375,16 @@ function hideTypingIndicator() {
 // Прокрутка вниз
 function scrollToBottom() {
     const messagesContainer = document.getElementById('messagesContainer');
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    if (!messagesContainer) return;
+    
+    // Учитываем высоту input-container, чтобы сообщения не улетали слишком высоко
+    const inputContainer = document.querySelector('.input-container');
+    const inputHeight = inputContainer ? inputContainer.offsetHeight : 0;
+    
+    // Прокручиваем с учетом высоты input-container
+    setTimeout(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight - inputHeight - 20; // 20px дополнительный отступ
+    }, 50);
 }
 
 // Обработка отправки сообщения
