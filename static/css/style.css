@@ -54,10 +54,34 @@ body.dark-mode .sidebar,
 body.dark-mode .modal,
 body.dark-mode .modal-content,
 body.dark-mode .chat-header,
-body.dark-mode .welcome-message,
+body.dark-mode .welcome-message {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+body.dark-mode .welcome-message h3,
+body.dark-mode .welcome-message p,
+body.dark-mode .welcome-message .info-section,
+body.dark-mode .welcome-message .info-section h4,
+body.dark-mode .welcome-message .info-section ul,
+body.dark-mode .welcome-message .info-section li,
+body.dark-mode .welcome-message .info-section strong,
+body.dark-mode .welcome-message .reassurance {
+    color: var(--text-primary) !important;
+}
+
+body.dark-mode .welcome-message .info-section {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border) !important;
+}
+
+body.dark-mode
 body.dark-mode .message,
 body.dark-mode .message-content,
-body.dark-mode .input-container,
+body.dark-mode .input-container {
+    background: transparent !important;
+}
+
 body.dark-mode #messageInput,
 body.dark-mode .mobile-menu-content,
 body.dark-mode .mobile-menu-overlay,

@@ -1598,6 +1598,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
         
+        // НЕ закрываем боковую панель при переключении темы
+        // Убираем любые обработчики, которые могут закрывать панель
+        
         // Обновляем мобильный переключатель
         const mobileThemeToggleEl = document.getElementById('mobileThemeToggle');
         if (mobileThemeToggleEl) {
