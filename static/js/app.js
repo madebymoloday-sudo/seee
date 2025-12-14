@@ -473,61 +473,31 @@ document.addEventListener('DOMContentLoaded', async function() {
         return true;
     });
     
-    // Обработчик для мобильной кнопки отправки
-    const sendBtnMobile = document.getElementById('sendBtnMobile');
-    
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:462',message:'sendBtnMobile element check',data:{found:!!sendBtnMobile,display:sendBtnMobile?window.getComputedStyle(sendBtnMobile).display:'N/A',zIndex:sendBtnMobile?window.getComputedStyle(sendBtnMobile).zIndex:'N/A',pointerEvents:sendBtnMobile?window.getComputedStyle(sendBtnMobile).pointerEvents:'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,E'})}).catch(()=>{});
-    // #endregion
-    
+    // Обработчик для мобильной кнопки отправки - используем делегирование событий
     function handleSendClick(e) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:468',message:'handleSendClick called',data:{type:e.type,target:e.target?.id,currentTarget:e.currentTarget?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
-        // #endregion
         e.preventDefault();
         e.stopPropagation();
-        console.log('[Mobile] Send button clicked', e);
+        const btn = e.target.closest('#sendBtnMobile');
+        if (!btn) return;
         if (messageInput && messageInput.value.trim()) {
-            console.log('[Mobile] Submitting form');
             messageForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        } else {
-            console.log('[Mobile] No text to send');
         }
     }
-    if (sendBtnMobile) {
-        console.log('[Mobile] Setting up send button handlers');
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:477',message:'Adding send button handlers',data:{hasClickHandler:true,hasTouchstartHandler:true,elementId:sendBtnMobile.id,listenersBefore:sendBtnMobile.onclick?'has onclick':'no onclick'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D,H'})}).catch(()=>{});
-        // #endregion
-        // Удаляем старые обработчики если есть
-        const newSendBtn = sendBtnMobile.cloneNode(true);
-        sendBtnMobile.parentNode.replaceChild(newSendBtn, sendBtnMobile);
-        const freshSendBtn = document.getElementById('sendBtnMobile');
-        
-        freshSendBtn.addEventListener('click', handleSendClick, true);
-        freshSendBtn.addEventListener('touchstart', function(e) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:485',message:'touchstart event fired',data:{type:e.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
-            // #endregion
-            console.log('[Mobile] Send button touchstart');
+    
+    // Используем делегирование событий на document
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#sendBtnMobile')) {
+            handleSendClick(e);
+        }
+    }, true);
+    
+    document.addEventListener('touchstart', function(e) {
+        if (e.target.closest('#sendBtnMobile')) {
             e.preventDefault();
             e.stopPropagation();
             handleSendClick(e);
-        }, { passive: false, capture: true });
-        freshSendBtn.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }, { passive: false, capture: true });
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:495',message:'Send button handlers attached',data:{listenersAfter:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-        // #endregion
-    } else {
-        console.error('[Mobile] sendBtnMobile not found!');
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:500',message:'sendBtnMobile not found',data:{documentReadyState:document.readyState},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,G'})}).catch(()=>{});
-        // #endregion
-    }
+        }
+    }, { passive: false, capture: true });
     
     // Обработчики кнопок
     const newChatBtn = document.getElementById('newChatBtn');
@@ -1128,22 +1098,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    // Мобильное меню - гамбургер слева
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-    const sidebar = document.getElementById('sidebar');
-    const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
-    
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1091',message:'mobileMenuToggle element check',data:{found:!!mobileMenuToggle,display:mobileMenuToggle?window.getComputedStyle(mobileMenuToggle).display:'N/A',zIndex:mobileMenuToggle?window.getComputedStyle(mobileMenuToggle).zIndex:'N/A',pointerEvents:mobileMenuToggle?window.getComputedStyle(mobileMenuToggle).pointerEvents:'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,E'})}).catch(()=>{});
-    // #endregion
-    
+    // Мобильное меню - гамбургер слева - используем делегирование событий
     function handleHamburgerClick(e) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1098',message:'handleHamburgerClick called',data:{type:e.type,target:e.target?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
-        // #endregion
         e.preventDefault();
         e.stopPropagation();
-        console.log('[Mobile] Hamburger menu clicked');
+        const sidebar = document.getElementById('sidebar');
+        const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
         if (sidebar) {
             sidebar.classList.toggle('mobile-open');
             if (mobileSidebarOverlay) {
@@ -1153,28 +1113,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
-    if (mobileMenuToggle) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1111',message:'Adding hamburger handlers',data:{hasClickHandler:true,hasTouchstartHandler:true,elementId:mobileMenuToggle.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D,H'})}).catch(()=>{});
-        // #endregion
-        // Удаляем старые обработчики если есть
-        const newToggle = mobileMenuToggle.cloneNode(true);
-        mobileMenuToggle.parentNode.replaceChild(newToggle, mobileMenuToggle);
-        const freshToggle = document.getElementById('mobileMenuToggle');
-        
-        freshToggle.addEventListener('click', handleHamburgerClick);
-        freshToggle.addEventListener('touchstart', function(e) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1119',message:'hamburger touchstart fired',data:{type:e.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
-            // #endregion
-            e.preventDefault();
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#mobileMenuToggle')) {
             handleHamburgerClick(e);
-        }, { passive: false });
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1125',message:'Hamburger handlers attached',data:{listenersAfter:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-        // #endregion
-    }
+        }
+    }, true);
+    
+    document.addEventListener('touchstart', function(e) {
+        if (e.target.closest('#mobileMenuToggle')) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleHamburgerClick(e);
+        }
+    }, { passive: false, capture: true });
     
     if (mobileSidebarOverlay) {
         mobileSidebarOverlay.addEventListener('click', function() {
@@ -1274,49 +1225,32 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, { passive: false });
     }
     
-    // Клик на логотип - открытие информации о SEEE
-    const headerLogo = document.getElementById('headerLogo');
-    const aboutModal = document.getElementById('aboutModal');
-    const closeAboutModal = document.getElementById('closeAboutModal');
-    
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1256',message:'headerLogo element check',data:{found:!!headerLogo,display:headerLogo?window.getComputedStyle(headerLogo).display:'N/A',zIndex:headerLogo?window.getComputedStyle(headerLogo).zIndex:'N/A',pointerEvents:headerLogo?window.getComputedStyle(headerLogo).pointerEvents:'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,E'})}).catch(()=>{});
-    // #endregion
-    
+    // Клик на логотип - открытие информации о SEEE - используем делегирование событий
     function handleHeaderLogoClick(e) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1260',message:'handleHeaderLogoClick called',data:{type:e.type,target:e.target?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
-        // #endregion
         e.preventDefault();
         e.stopPropagation();
-        console.log('[Mobile] Header logo clicked');
+        const aboutModal = document.getElementById('aboutModal');
         if (aboutModal) {
             aboutModal.style.display = 'flex';
         }
     }
     
-    if (headerLogo && aboutModal) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1270',message:'Adding headerLogo handlers',data:{hasClickHandler:true,hasTouchstartHandler:true,elementId:headerLogo.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D,H'})}).catch(()=>{});
-        // #endregion
-        // Удаляем старые обработчики если есть
-        const newLogo = headerLogo.cloneNode(true);
-        headerLogo.parentNode.replaceChild(newLogo, headerLogo);
-        const freshLogo = document.getElementById('headerLogo');
-        
-        freshLogo.addEventListener('click', handleHeaderLogoClick);
-        freshLogo.addEventListener('touchstart', function(e) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1278',message:'headerLogo touchstart fired',data:{type:e.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
-            // #endregion
-            e.preventDefault();
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#headerLogo')) {
             handleHeaderLogoClick(e);
-        }, { passive: false });
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1284',message:'HeaderLogo handlers attached',data:{listenersAfter:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-        // #endregion
-    }
+        }
+    }, true);
+    
+    document.addEventListener('touchstart', function(e) {
+        if (e.target.closest('#headerLogo')) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleHeaderLogoClick(e);
+        }
+    }, { passive: false, capture: true });
+    
+    const closeAboutModal = document.getElementById('closeAboutModal');
+    const aboutModal = document.getElementById('aboutModal');
     
     if (closeAboutModal && aboutModal) {
         closeAboutModal.addEventListener('click', function() {
