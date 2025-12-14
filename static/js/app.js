@@ -377,10 +377,16 @@ function scrollToBottom() {
     const messagesContainer = document.getElementById('messagesContainer');
     if (!messagesContainer) return;
     
-    // Просто прокручиваем до конца - padding-bottom в CSS уже учитывает высоту input-container
-    setTimeout(() => {
+    // Используем requestAnimationFrame для более плавной прокрутки
+    requestAnimationFrame(() => {
+        // Прокручиваем до самого конца
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }, 100);
+        
+        // Дополнительная проверка через небольшую задержку для случаев, когда контент еще загружается
+        setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 50);
+    });
 }
 
 // Обработка отправки сообщения
