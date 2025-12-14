@@ -1274,23 +1274,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     // Мобильное меню - стрелка внизу - используем делегирование событий
-    function handleMenuToggleClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const mobileMenu = document.getElementById('mobileMenu');
-        if (mobileMenu) {
-            mobileMenu.classList.toggle('active');
-            if (mobileMenu.classList.contains('active')) {
-                document.body.classList.add('mobile-menu-open');
-            } else {
-                document.body.classList.remove('mobile-menu-open');
-            }
-        }
-    }
-    
     document.addEventListener('click', function(e) {
         if (e.target.closest('#mobileMenuToggleBottom')) {
-            handleMenuToggleClick(e);
+            e.preventDefault();
+            e.stopPropagation();
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu) {
+                mobileMenu.classList.toggle('active');
+                if (mobileMenu.classList.contains('active')) {
+                    document.body.classList.add('mobile-menu-open');
+                } else {
+                    document.body.classList.remove('mobile-menu-open');
+                }
+            }
         }
     }, true);
     
@@ -1298,7 +1294,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (e.target.closest('#mobileMenuToggleBottom')) {
             e.preventDefault();
             e.stopPropagation();
-            handleMenuToggleClick(e);
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu) {
+                mobileMenu.classList.toggle('active');
+                if (mobileMenu.classList.contains('active')) {
+                    document.body.classList.add('mobile-menu-open');
+                } else {
+                    document.body.classList.remove('mobile-menu-open');
+                }
+            }
         }
     }, { passive: false, capture: true });
     
