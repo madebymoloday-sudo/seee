@@ -281,24 +281,60 @@ function addMessage(role, content, saveToServer = true, showDifficultyButton = f
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${role}`;
     
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
-    contentDiv.textContent = content;
-    
-    messageDiv.appendChild(contentDiv);
-    
-    // Добавляем стикер "Затрудняюсь ответить" под сообщением AI
-    if (role === 'assistant' && showDifficultyButton) {
-        const stickerDiv = document.createElement('div');
-        stickerDiv.className = 'message-difficulty-sticker';
-        stickerDiv.textContent = '❓ Затрудняюсь ответить';
-        stickerDiv.addEventListener('click', function() {
-            const difficultyBtn = document.getElementById('difficultyBtn');
-            if (difficultyBtn) {
-                difficultyBtn.click();
-            }
-        });
-        messageDiv.appendChild(stickerDiv);
+    // Для assistant сообщений создаем контейнер для контента и кнопки
+    if (role === 'assistant') {
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'message-content-wrapper';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.textContent = content;
+        
+        contentWrapper.appendChild(contentDiv);
+        
+        // Добавляем стикер "Затрудняюсь ответить" под сообщением AI
+        if (showDifficultyButton) {
+            const stickerDiv = document.createElement('div');
+            stickerDiv.className = 'message-difficulty-sticker';
+            stickerDiv.textContent = 'Затрудняюсь ответить';
+            stickerDiv.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (!currentSessionId) {
+                    alert('Сначала создайте сессию');
+                    return;
+                }
+                
+                if (!socket) {
+                    initSocket();
+                }
+                
+                // Отправляем через difficulty_response или через обычное сообщение
+                if (socket && socket.connected) {
+                    socket.emit('difficulty_response', {
+                        session_id: currentSessionId
+                    });
+                } else {
+                    // Если сокет не подключен, отправляем через обычное сообщение
+                    if (socket) {
+                        socket.emit('message', {
+                            session_id: currentSessionId,
+                            message: 'difficulty'
+                        });
+                    }
+                }
+            });
+            contentWrapper.appendChild(stickerDiv);
+        }
+        
+        messageDiv.appendChild(contentWrapper);
+    } else {
+        // Для пользовательских сообщений используем обычную структуру
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.textContent = content;
+        messageDiv.appendChild(contentDiv);
     }
     
     messagesContainer.appendChild(messageDiv);
