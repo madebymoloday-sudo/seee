@@ -1273,6 +1273,35 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
+    // Мобильное меню - стрелка внизу - используем делегирование событий
+    function handleMenuToggleClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (mobileMenu) {
+            mobileMenu.classList.toggle('active');
+            if (mobileMenu.classList.contains('active')) {
+                document.body.classList.add('mobile-menu-open');
+            } else {
+                document.body.classList.remove('mobile-menu-open');
+            }
+        }
+    }
+    
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#mobileMenuToggleBottom')) {
+            handleMenuToggleClick(e);
+        }
+    }, true);
+    
+    document.addEventListener('touchstart', function(e) {
+        if (e.target.closest('#mobileMenuToggleBottom')) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleMenuToggleClick(e);
+        }
+    }, { passive: false, capture: true });
+    
     // Кнопки в мобильном меню - используем делегирование событий
     document.addEventListener('click', function(e) {
         if (e.target.closest('#mobilePauseSession')) {
