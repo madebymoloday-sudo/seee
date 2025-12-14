@@ -775,6 +775,72 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
+    // Клик на название сессии - открываем модальное окно со списком сессий
+    const chatTitle = document.getElementById('chatTitle');
+    if (chatTitle) {
+        chatTitle.addEventListener('click', function() {
+            renderSessionsModal();
+            const sessionsModal = document.getElementById('sessionsModal');
+            if (sessionsModal) {
+                sessionsModal.style.display = 'flex';
+            }
+        });
+    }
+    
+    // Закрытие модального окна сессий
+    const closeSessionsModal = document.getElementById('closeSessionsModal');
+    if (closeSessionsModal) {
+        closeSessionsModal.addEventListener('click', function() {
+            const sessionsModal = document.getElementById('sessionsModal');
+            if (sessionsModal) {
+                sessionsModal.style.display = 'none';
+            }
+        });
+    }
+    
+    // Закрытие при клике вне модального окна
+    const sessionsModal = document.getElementById('sessionsModal');
+    if (sessionsModal) {
+        sessionsModal.addEventListener('click', function(e) {
+            if (e.target === sessionsModal) {
+                sessionsModal.style.display = 'none';
+            }
+        });
+    }
+    
+    // Редактирование названия текущей сессии
+    const editCurrentSessionBtn = document.getElementById('editCurrentSessionBtn');
+    if (editCurrentSessionBtn) {
+        editCurrentSessionBtn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            if (currentSessionId) {
+                const currentSession = sessions.find(s => s.id === currentSessionId);
+                if (currentSession) {
+                    await renameSession(currentSessionId, currentSession.title);
+                    renderSessionsModal();
+                }
+            }
+        });
+    }
+    
+    // Удаление текущей сессии
+    const deleteCurrentSessionBtn = document.getElementById('deleteCurrentSessionBtn');
+    if (deleteCurrentSessionBtn) {
+        deleteCurrentSessionBtn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            if (currentSessionId) {
+                const currentSession = sessions.find(s => s.id === currentSessionId);
+                if (currentSession && confirm(`Вы уверены, что хотите удалить сессию "${currentSession.title}"?`)) {
+                    await deleteSession(currentSessionId);
+                    const sessionsModal = document.getElementById('sessionsModal');
+                    if (sessionsModal) {
+                        sessionsModal.style.display = 'none';
+                    }
+                }
+            }
+        });
+    }
+    
     // Кнопка "Карта не территория"
     const mapBtn = document.getElementById('mapBtn');
     if (mapBtn) {
