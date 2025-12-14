@@ -487,10 +487,18 @@
                 <button class="modal-close" id="closeFeedbackModal">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="feedback-description">
-                    <p>Тут вы можете сообщить об ошибках, негативном или позитивном опыте. Будем рады вашей обратной связи, благодарим, что помогаете нам становиться лучше!</p>
+                <!-- Переключатель типов обратной связи -->
+                <div class="feedback-type-toggle">
+                    <button type="button" class="feedback-type-btn active" data-type="full">Полная</button>
+                    <button type="button" class="feedback-type-btn" data-type="short">Краткая</button>
                 </div>
-                <form id="feedbackForm">
+                
+                <!-- Полная форма обратной связи -->
+                <div id="fullFeedbackForm" class="feedback-form active">
+                    <div class="feedback-description">
+                        <p>Тут вы можете сообщить об ошибках, негативном или позитивном опыте. Будем рады вашей обратной связи, благодарим, что помогаете нам становиться лучше!</p>
+                    </div>
+                    <form id="feedbackForm">
                     <div class="form-group">
                         <label for="feedbackAboutSelf">Расскажите о себе *</label>
                         <textarea id="feedbackAboutSelf" rows="3" placeholder="Пол, возраст, кто вы и чем занимаетесь..." required></textarea>
@@ -516,7 +524,30 @@
                         <button type="submit" class="btn-save">Отправить</button>
                         <button type="button" class="btn-cancel" id="cancelFeedbackModal">Отмена</button>
                     </div>
-                </form>
+                    </form>
+                </div>
+                
+                <!-- Краткая форма обратной связи -->
+                <div id="shortFeedbackForm" class="feedback-form">
+                    <div class="feedback-description">
+                        <p>Краткая обратная связь с возможностью прикрепить фото или видео.</p>
+                    </div>
+                    <form id="shortFeedbackFormElement">
+                        <div class="form-group">
+                            <label for="shortFeedbackText">Ваше сообщение *</label>
+                            <textarea id="shortFeedbackText" rows="4" placeholder="Опишите вашу обратную связь..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="shortFeedbackFile">Прикрепить фото или видео</label>
+                            <input type="file" id="shortFeedbackFile" accept="image/*,video/*" multiple>
+                            <small class="form-hint">Можно прикрепить несколько файлов (фото или видео)</small>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save">Отправить</button>
+                            <button type="button" class="btn-cancel" id="cancelFeedbackModalShort">Отмена</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

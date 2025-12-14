@@ -850,12 +850,48 @@ document.addEventListener('DOMContentLoaded', async function() {
     const feedbackModal = document.getElementById('feedbackModal');
     const closeFeedbackModal = document.getElementById('closeFeedbackModal');
     const cancelFeedbackModal = document.getElementById('cancelFeedbackModal');
+    const cancelFeedbackModalShort = document.getElementById('cancelFeedbackModalShort');
     const feedbackForm = document.getElementById('feedbackForm');
+    const shortFeedbackFormElement = document.getElementById('shortFeedbackFormElement');
+    
+    // Переключение типов обратной связи
+    const feedbackTypeBtns = document.querySelectorAll('.feedback-type-btn');
+    const fullFeedbackForm = document.getElementById('fullFeedbackForm');
+    const shortFeedbackForm = document.getElementById('shortFeedbackForm');
+    
+    feedbackTypeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const type = this.getAttribute('data-type');
+            
+            // Обновляем активные кнопки
+            feedbackTypeBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Показываем нужную форму
+            if (type === 'full') {
+                fullFeedbackForm.classList.add('active');
+                shortFeedbackForm.classList.remove('active');
+            } else {
+                fullFeedbackForm.classList.remove('active');
+                shortFeedbackForm.classList.add('active');
+            }
+        });
+    });
     
     if (feedbackBtn) {
         feedbackBtn.addEventListener('click', function() {
             if (feedbackModal) {
                 feedbackModal.style.display = 'flex';
+                // По умолчанию показываем полную форму
+                if (fullFeedbackForm) fullFeedbackForm.classList.add('active');
+                if (shortFeedbackForm) shortFeedbackForm.classList.remove('active');
+                feedbackTypeBtns.forEach(btn => {
+                    if (btn.getAttribute('data-type') === 'full') {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
             }
         });
     }
@@ -876,6 +912,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
+    if (cancelFeedbackModalShort) {
+        cancelFeedbackModalShort.addEventListener('click', function() {
+            if (feedbackModal) {
+                feedbackModal.style.display = 'none';
+            }
+        });
+    }
+    
     // Закрытие модального окна обратной связи при клике вне его
     if (feedbackModal) {
         feedbackModal.addEventListener('click', function(e) {
@@ -885,12 +929,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    // Обработка формы обратной связи
+    // Обработка полной формы обратной связи
     if (feedbackForm) {
         feedbackForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const formData = new FormData();
+            formData.append('feedback_type', 'full');
             formData.append('about_self', document.getElementById('feedbackAboutSelf').value);
             formData.append('expectations', document.getElementById('feedbackExpectations').value);
             formData.append('expectations_met', document.getElementById('feedbackExpectationsMet').value);
@@ -898,7 +943,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             formData.append('session_id', currentSessionId || '');
             
             const fileInput = document.getElementById('feedbackFile');
-            if (fileInput.files.length > 0) {
+            if (fileInput && fileInput.files.length > 0) {
                 formData.append('file', fileInput.files[0]);
             }
             
@@ -913,6 +958,48 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (response.ok) {
                     alert(data.message || 'Обратная связь отправлена. Спасибо!');
                     feedbackForm.reset();
+                    if (feedbackModal) {
+                        feedbackModal.style.display = 'none';
+                    }
+                } else {
+                    alert('Ошибка: ' + (data.error || 'Не удалось отправить обратную связь'));
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка при отправке обратной связи');
+            }
+        });
+    }
+    
+    // Обработка краткой формы обратной связи
+    if (shortFeedbackFormElement) {
+        shortFeedbackFormElement.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('feedback_type', 'short');
+            formData.append('message', document.getElementById('shortFeedbackText').value);
+            formData.append('session_id', currentSessionId || '');
+            
+            const fileInput = document.getElementById('shortFeedbackFile');
+            if (fileInput && fileInput.files.length > 0) {
+                // Добавляем все выбранные файлы
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    formData.append('files', fileInput.files[i]);
+                }
+            }
+            
+            try {
+                const response = await fetch('/api/feedback', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(data.message || 'Обратная связь отправлена. Спасибо!');
+                    shortFeedbackFormElement.reset();
                     if (feedbackModal) {
                         feedbackModal.style.display = 'none';
                     }

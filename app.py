@@ -180,10 +180,20 @@ def init_db():
                   description TEXT NOT NULL,
                   file_path TEXT,
                   file_type TEXT,
+                  feedback_type TEXT DEFAULT 'full',
                   status TEXT DEFAULT 'new',
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                   FOREIGN KEY (user_id) REFERENCES users (id),
                   FOREIGN KEY (session_id) REFERENCES sessions (id))''')
+    
+    # Таблица для файлов обратной связи (для краткой формы с множественными файлами)
+    c.execute('''CREATE TABLE IF NOT EXISTS feedback_files
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  feedback_id INTEGER NOT NULL,
+                  file_path TEXT NOT NULL,
+                  file_type TEXT,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  FOREIGN KEY (feedback_id) REFERENCES feedback (id))''')
     
     # Таблица для статистики обучения GPT
     c.execute('''CREATE TABLE IF NOT EXISTS gpt_statistics
@@ -370,9 +380,26 @@ def migrate_database():
             if 'how_it_went' not in feedback_columns:
                 c.execute('ALTER TABLE feedback ADD COLUMN how_it_went TEXT')
                 print("[Migration] Добавлена колонка how_it_went в feedback")
+            
+            if 'feedback_type' not in feedback_columns:
+                c.execute('ALTER TABLE feedback ADD COLUMN feedback_type TEXT DEFAULT "full"')
+                print("[Migration] Добавлена колонка feedback_type в feedback")
         except sqlite3.OperationalError:
             # Таблица еще не создана, будет создана при init_db
             pass
+        
+        # Создаем таблицу для файлов обратной связи
+        try:
+            c.execute('''CREATE TABLE IF NOT EXISTS feedback_files
+                         (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                          feedback_id INTEGER NOT NULL,
+                          file_path TEXT NOT NULL,
+                          file_type TEXT,
+                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                          FOREIGN KEY (feedback_id) REFERENCES feedback (id))''')
+            print("[Migration] Создана таблица feedback_files")
+        except sqlite3.OperationalError as e:
+            print(f"[Migration] Ошибка создания таблицы feedback_files: {e}")
         
         conn.commit()
         
@@ -2158,11 +2185,65 @@ def submit_feedback():
         return jsonify({'error': 'Не авторизован'}), 401
     
     try:
+        feedback_type = request.form.get('feedback_type', 'full')
+        session_id = request.form.get('session_id')
+        
+        # Обработка краткой формы
+        if feedback_type == 'short':
+            message = request.form.get('message', '').strip()
+            if not message:
+                return jsonify({'error': 'Поле "Ваше сообщение" обязательно'}), 400
+            
+            description = message
+            
+            # Обработка множественных файлов для краткой формы
+            file_paths = []
+            file_types = []
+            if 'files' in request.files:
+                import os
+                upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads', 'feedback')
+                os.makedirs(upload_dir, exist_ok=True)
+                
+                files = request.files.getlist('files')
+                for file in files:
+                    if file.filename:
+                        filename = f"{session['user_id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
+                        file_path = os.path.join(upload_dir, filename)
+                        file.save(file_path)
+                        file_paths.append(file_path)
+                        
+                        # Определяем тип файла
+                        if file.content_type.startswith('image/'):
+                            file_types.append('image')
+                        elif file.content_type.startswith('video/'):
+                            file_types.append('video')
+                        else:
+                            file_types.append('other')
+            
+            # Сохраняем в базу данных
+            conn = get_db()
+            c = conn.cursor()
+            c.execute('''INSERT INTO feedback (user_id, session_id, description, feedback_type, created_at)
+                         VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)''',
+                     (session['user_id'], session_id if session_id else None, description, 'short'))
+            feedback_id = c.lastrowid
+            
+            # Сохраняем информацию о файлах
+            for file_path, file_type in zip(file_paths, file_types):
+                c.execute('''INSERT INTO feedback_files (feedback_id, file_path, file_type, created_at)
+                             VALUES (?, ?, ?, CURRENT_TIMESTAMP)''',
+                         (feedback_id, file_path, file_type))
+            
+            conn.commit()
+            conn.close()
+            
+            return jsonify({'message': 'Краткая обратная связь отправлена. Спасибо!', 'feedback_id': feedback_id})
+        
+        # Обработка полной формы (существующая логика)
         about_self = request.form.get('about_self', '').strip()
         expectations = request.form.get('expectations', '').strip()
         expectations_met = request.form.get('expectations_met', '').strip()
         how_it_went = request.form.get('how_it_went', '').strip()
-        session_id = request.form.get('session_id')
         
         # Проверяем обязательные поля
         if not about_self:

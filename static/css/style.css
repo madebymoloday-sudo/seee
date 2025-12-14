@@ -1250,6 +1250,46 @@ body.dark-mode .mobile-menu-content::before {
     max-height: 95vh;
 }
 
+/* Переключатель типов обратной связи */
+.feedback-type-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 10px;
+}
+
+.feedback-type-btn {
+    flex: 1;
+    padding: 10px 20px;
+    background: var(--bg-secondary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.3s;
+}
+
+.feedback-type-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.feedback-type-btn.active {
+    background: var(--ultramarine);
+    color: white;
+}
+
+.feedback-form {
+    display: none;
+}
+
+.feedback-form.active {
+    display: block;
+}
+
 .modal-header {
     padding: 20px;
     border-bottom: 1px solid var(--border);
