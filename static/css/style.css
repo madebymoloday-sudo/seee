@@ -1321,6 +1321,83 @@ body.dark-mode .mobile-menu-content::before {
     margin-bottom: 30px;
 }
 
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 12px 0;
+}
+
+/* Стили для тумблера версии интерфейса (как у темы) */
+#viewModeToggle {
+    width: 50px;
+    height: 30px;
+    background: #e5e5ea;
+    border-radius: 15px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+#viewModeToggle.active {
+    background: #34c759;
+}
+
+#viewModeToggle .theme-toggle-slider {
+    width: 26px;
+    height: 26px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#viewModeToggle.active .theme-toggle-slider {
+    transform: translateX(20px);
+}
+
+/* Принудительная мобильная версия */
+body.force-mobile-view .desktop-only {
+    display: none !important;
+}
+
+body.force-mobile-view .mobile-only {
+    display: block !important;
+}
+
+body.force-mobile-view .chat-header {
+    display: flex !important;
+}
+
+body.force-mobile-view .input-container {
+    position: fixed !important;
+    bottom: 0 !important;
+}
+
+/* Принудительная веб-версия */
+body:not(.force-mobile-view) .mobile-only {
+    display: none !important;
+}
+
+body:not(.force-mobile-view) .desktop-only {
+    display: block !important;
+}
+
+/* На мобильных устройствах по умолчанию показываем мобильную версию, если не установлено иное */
+@media (max-width: 768px) {
+    body:not(.force-mobile-view):not([data-view-mode="web"]) .mobile-only {
+        display: block !important;
+    }
+    
+    body:not(.force-mobile-view):not([data-view-mode="web"]) .desktop-only {
+        display: none !important;
+    }
+}
+
 .cabinet-section h3 {
     color: var(--ultramarine);
     margin-bottom: 15px;
