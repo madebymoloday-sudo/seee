@@ -843,11 +843,15 @@ body.dark-mode .chat-title-center {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: 1001;
     pointer-events: auto;
+}
+
+body.dark-mode .mobile-menu-overlay {
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .mobile-menu-content {
@@ -1884,9 +1888,9 @@ body.dark-mode .mobile-menu-content::before {
         transform: translateX(280px);
     }
     
-    /* Когда мобильное меню открыто, поднимаем input-container */
+    /* Когда мобильное меню открыто, НЕ двигаем input-container */
     body.mobile-menu-open .input-container {
-        transform: translateY(-200px);
+        transform: none !important;
     }
     
     .messages-container {
