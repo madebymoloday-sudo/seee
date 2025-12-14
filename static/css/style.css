@@ -1829,11 +1829,12 @@ body.dark-mode .mobile-menu-content::before {
         }
     }
     
-    /* Убираем белый фон когда клавиатура открыта */
+    /* Когда клавиатура открыта - убеждаемся, что input-container зафиксирован */
     body.keyboard-open .input-container {
         position: fixed !important;
         bottom: 0 !important;
-        transform: none !important;
+        transform: translateZ(0) !important;
+        -webkit-transform: translateZ(0) !important;
     }
     
     /* Дополнительная фиксация для всех состояний */
