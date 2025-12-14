@@ -731,10 +731,12 @@ body {
     left: 0;
     right: 0;
     z-index: 1000;
+    pointer-events: none;
 }
 
 .mobile-menu.active {
     display: block;
+    pointer-events: auto;
 }
 
 .mobile-menu-overlay {
