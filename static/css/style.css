@@ -86,7 +86,6 @@ body.dark-mode .welcome-message .info-section {
     border-color: var(--border) !important;
 }
 
-body.dark-mode
 body.dark-mode .message,
 body.dark-mode .message-content,
 body.dark-mode .input-container {
