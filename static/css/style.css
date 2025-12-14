@@ -1833,6 +1833,12 @@ body.force-web-view .desktop-only {
     }
     
     .mobile-menu-toggle {
+        border-radius: 50% !important;
+        width: 40px !important;
+        height: 40px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         display: flex !important;
         align-items: center;
         justify-content: center;
@@ -2100,6 +2106,12 @@ body.force-web-view .desktop-only {
     }
     
     .btn-mobile-menu-toggle {
+        border-radius: 50% !important;
+        width: 40px !important;
+        height: 40px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         width: 40px;
         height: 40px;
         border-radius: 0 !important;
