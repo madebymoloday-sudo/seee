@@ -1418,22 +1418,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     function toggleTheme() {
         const isDark = document.body.classList.toggle('dark-mode');
         if (themeToggle) {
-            // Зеленый = темная тема включена, серый = светлая тема
+            // Зеленый = светлая тема, серый = темная тема
             if (isDark) {
                 themeToggle.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
             } else {
                 themeToggle.classList.remove('dark');
                 localStorage.setItem('theme', 'light');
-            }
-        }
-        // Также обновляем мобильный переключатель
-        const mobileThemeToggle = document.getElementById('mobileThemeToggle');
-        if (mobileThemeToggle) {
-            if (isDark) {
-                mobileThemeToggle.classList.add('dark');
-            } else {
-                mobileThemeToggle.classList.remove('dark');
             }
         }
     }
