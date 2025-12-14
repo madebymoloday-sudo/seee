@@ -484,14 +484,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
-    // Используем делегирование событий на document
+    // Используем делегирование событий на document (только для мобильных)
     document.addEventListener('click', function(e) {
+        // Проверяем, что это мобильная версия
+        if (window.innerWidth >= 769) {
+            return; // На десктопе не обрабатываем
+        }
         if (e.target.closest('#sendBtnMobile')) {
             handleSendClick(e);
         }
     }, true);
     
     document.addEventListener('touchstart', function(e) {
+        // Проверяем, что это мобильная версия
+        if (window.innerWidth >= 769) {
+            return; // На десктопе не обрабатываем
+        }
         if (e.target.closest('#sendBtnMobile')) {
             e.preventDefault();
             e.stopPropagation();
@@ -1114,12 +1122,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     document.addEventListener('click', function(e) {
+        // Проверяем, что это мобильная версия
+        if (window.innerWidth >= 769) {
+            return; // На десктопе не обрабатываем
+        }
         if (e.target.closest('#mobileMenuToggle')) {
             handleHamburgerClick(e);
         }
     }, true);
     
     document.addEventListener('touchstart', function(e) {
+        // Проверяем, что это мобильная версия
+        if (window.innerWidth >= 769) {
+            return; // На десктопе не обрабатываем
+        }
         if (e.target.closest('#mobileMenuToggle')) {
             e.preventDefault();
             e.stopPropagation();
@@ -1187,12 +1203,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     document.addEventListener('click', function(e) {
+        // Проверяем, что это мобильная версия
+        if (window.innerWidth >= 769) {
+            return; // На десктопе не обрабатываем
+        }
         if (e.target.closest('#headerLogo')) {
             handleHeaderLogoClick(e);
         }
     }, true);
     
     document.addEventListener('touchstart', function(e) {
+        // Проверяем, что это мобильная версия
+        if (window.innerWidth >= 769) {
+            return; // На десктопе не обрабатываем
+        }
         if (e.target.closest('#headerLogo')) {
             e.preventDefault();
             e.stopPropagation();
@@ -1275,6 +1299,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Мобильное меню - стрелка внизу - используем делегирование событий
     document.addEventListener('click', function(e) {
+        // Проверяем, что это мобильная версия
+        if (window.innerWidth >= 769) {
+            return; // На десктопе не обрабатываем
+        }
         if (e.target.closest('#mobileMenuToggleBottom')) {
             e.preventDefault();
             e.stopPropagation();
@@ -1291,6 +1319,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     }, true);
     
     document.addEventListener('touchstart', function(e) {
+        // Проверяем, что это мобильная версия
+        if (window.innerWidth >= 769) {
+            return; // На десктопе не обрабатываем
+        }
         if (e.target.closest('#mobileMenuToggleBottom')) {
             e.preventDefault();
             e.stopPropagation();
