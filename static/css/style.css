@@ -451,6 +451,7 @@ body {
     align-items: center;
     justify-content: space-between;
     position: relative;
+    z-index: 100; /* Ниже модального окна (2000), но видим */
 }
 
 .mobile-menu-toggle {
@@ -1569,6 +1570,8 @@ body.dark-mode .mobile-menu-content::before {
         display: flex !important;
         align-items: center;
         gap: 12px;
+        position: relative;
+        z-index: 100 !important; /* Ниже модального окна, но видим */
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
