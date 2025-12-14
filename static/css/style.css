@@ -1841,14 +1841,13 @@ body.dark-mode .mobile-menu-content::before {
     }
     
     .mobile-menu-content {
-        left: 8px;
-        bottom: 90px;
+        /* Позиция будет установлена динамически через JS */
         transform: none;
     }
     
     .mobile-menu-content::before {
-        left: 20px;
-        transform: rotate(45deg);
+        left: var(--arrow-left, 50%);
+        transform: translateX(-50%) rotate(45deg);
     }
     
     .btn-send-mobile {
