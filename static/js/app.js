@@ -467,25 +467,42 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateMobileButtons();
     });
     
-    // Отслеживаем открытие/закрытие клавиатуры для устранения белого фона
-    let isKeyboardOpen = false;
+    // Подход как в ChatGPT: динамически обновляем padding-bottom для messages-container
+    function updateMessagesPadding() {
+        const messagesContainer = document.getElementById('messagesContainer');
+        const inputContainer = document.querySelector('.input-container');
+        if (messagesContainer && inputContainer) {
+            const inputHeight = inputContainer.offsetHeight;
+            // Устанавливаем padding-bottom равный высоте input-container + небольшой отступ
+            messagesContainer.style.paddingBottom = (inputHeight + 20) + 'px';
+        }
+    }
+    
+    // Обновляем padding при загрузке и изменении размера
+    updateMessagesPadding();
+    window.addEventListener('resize', updateMessagesPadding);
+    
+    // Отслеживаем открытие/закрытие клавиатуры (подход как в ChatGPT)
     let lastViewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     
     function handleViewportResize() {
         const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        if (currentHeight < lastViewportHeight * 0.75) {
-            // Клавиатура открыта
-            isKeyboardOpen = true;
+        const heightDiff = lastViewportHeight - currentHeight;
+        
+        // Если высота уменьшилась значительно (клавиатура открылась)
+        if (heightDiff > 150) {
             document.body.classList.add('keyboard-open');
+            updateMessagesPadding();
             // Прокручиваем к последнему сообщению после открытия клавиатуры
             setTimeout(() => {
                 scrollToBottom();
-            }, 300);
-        } else if (currentHeight > lastViewportHeight * 1.1) {
-            // Клавиатура закрыта
-            isKeyboardOpen = false;
+            }, 100);
+        } else if (heightDiff < -50) {
+            // Клавиатура закрылась
             document.body.classList.remove('keyboard-open');
+            updateMessagesPadding();
         }
+        
         lastViewportHeight = currentHeight;
     }
     
@@ -495,20 +512,20 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.addEventListener('resize', handleViewportResize);
     }
     
-    // Также отслеживаем фокус на input
+    // Обработка фокуса на input (как в ChatGPT)
     messageInput.addEventListener('focus', function() {
-        isKeyboardOpen = true;
         document.body.classList.add('keyboard-open');
+        updateMessagesPadding();
         // Прокручиваем к последнему сообщению после открытия клавиатуры
         setTimeout(() => {
             scrollToBottom();
-        }, 500);
+        }, 300);
     });
     
     messageInput.addEventListener('blur', function() {
         setTimeout(function() {
-            isKeyboardOpen = false;
             document.body.classList.remove('keyboard-open');
+            updateMessagesPadding();
         }, 100);
     });
     
