@@ -449,6 +449,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Инициализируем видимость кнопок при загрузке
     updateMobileButtons();
     
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:439',message:'DOMContentLoaded completed - all handlers should be attached',data:{timestamp:Date.now(),documentReadyState:document.readyState},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F,G'})}).catch(()=>{});
+    // #endregion
+    
     // Обработка клавиш для отправки сообщения
     messageInput.addEventListener('keydown', function(e) {
         // Enter отправляет сообщение
@@ -493,26 +497,35 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (sendBtnMobile) {
         console.log('[Mobile] Setting up send button handlers');
         // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:477',message:'Adding send button handlers',data:{hasClickHandler:true,hasTouchstartHandler:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:477',message:'Adding send button handlers',data:{hasClickHandler:true,hasTouchstartHandler:true,elementId:sendBtnMobile.id,listenersBefore:sendBtnMobile.onclick?'has onclick':'no onclick'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D,H'})}).catch(()=>{});
         // #endregion
-        sendBtnMobile.addEventListener('click', handleSendClick, true);
-        sendBtnMobile.addEventListener('touchstart', function(e) {
+        // Удаляем старые обработчики если есть
+        const newSendBtn = sendBtnMobile.cloneNode(true);
+        sendBtnMobile.parentNode.replaceChild(newSendBtn, sendBtnMobile);
+        const freshSendBtn = document.getElementById('sendBtnMobile');
+        
+        freshSendBtn.addEventListener('click', handleSendClick, true);
+        freshSendBtn.addEventListener('touchstart', function(e) {
             // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:480',message:'touchstart event fired',data:{type:e.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
+            fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:485',message:'touchstart event fired',data:{type:e.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
             // #endregion
             console.log('[Mobile] Send button touchstart');
             e.preventDefault();
             e.stopPropagation();
             handleSendClick(e);
         }, { passive: false, capture: true });
-        sendBtnMobile.addEventListener('touchend', function(e) {
+        freshSendBtn.addEventListener('touchend', function(e) {
             e.preventDefault();
             e.stopPropagation();
         }, { passive: false, capture: true });
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:495',message:'Send button handlers attached',data:{listenersAfter:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
     } else {
         console.error('[Mobile] sendBtnMobile not found!');
         // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:492',message:'sendBtnMobile not found',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:500',message:'sendBtnMobile not found',data:{documentReadyState:document.readyState},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,G'})}).catch(()=>{});
         // #endregion
     }
     
@@ -1142,16 +1155,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     if (mobileMenuToggle) {
         // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1111',message:'Adding hamburger handlers',data:{hasClickHandler:true,hasTouchstartHandler:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1111',message:'Adding hamburger handlers',data:{hasClickHandler:true,hasTouchstartHandler:true,elementId:mobileMenuToggle.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D,H'})}).catch(()=>{});
         // #endregion
-        mobileMenuToggle.addEventListener('click', handleHamburgerClick);
-        mobileMenuToggle.addEventListener('touchstart', function(e) {
+        // Удаляем старые обработчики если есть
+        const newToggle = mobileMenuToggle.cloneNode(true);
+        mobileMenuToggle.parentNode.replaceChild(newToggle, mobileMenuToggle);
+        const freshToggle = document.getElementById('mobileMenuToggle');
+        
+        freshToggle.addEventListener('click', handleHamburgerClick);
+        freshToggle.addEventListener('touchstart', function(e) {
             // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1113',message:'hamburger touchstart fired',data:{type:e.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
+            fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1119',message:'hamburger touchstart fired',data:{type:e.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
             // #endregion
             e.preventDefault();
             handleHamburgerClick(e);
         }, { passive: false });
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1125',message:'Hamburger handlers attached',data:{listenersAfter:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
     }
     
     if (mobileSidebarOverlay) {
@@ -1275,16 +1297,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     if (headerLogo && aboutModal) {
         // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1270',message:'Adding headerLogo handlers',data:{hasClickHandler:true,hasTouchstartHandler:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1270',message:'Adding headerLogo handlers',data:{hasClickHandler:true,hasTouchstartHandler:true,elementId:headerLogo.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D,H'})}).catch(()=>{});
         // #endregion
-        headerLogo.addEventListener('click', handleHeaderLogoClick);
-        headerLogo.addEventListener('touchstart', function(e) {
+        // Удаляем старые обработчики если есть
+        const newLogo = headerLogo.cloneNode(true);
+        headerLogo.parentNode.replaceChild(newLogo, headerLogo);
+        const freshLogo = document.getElementById('headerLogo');
+        
+        freshLogo.addEventListener('click', handleHeaderLogoClick);
+        freshLogo.addEventListener('touchstart', function(e) {
             // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1272',message:'headerLogo touchstart fired',data:{type:e.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
+            fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1278',message:'headerLogo touchstart fired',data:{type:e.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
             // #endregion
             e.preventDefault();
             handleHeaderLogoClick(e);
         }, { passive: false });
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:1284',message:'HeaderLogo handlers attached',data:{listenersAfter:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
     }
     
     if (closeAboutModal && aboutModal) {
