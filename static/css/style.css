@@ -547,7 +547,7 @@ body {
     align-items: center;
     justify-content: space-between;
     position: relative;
-    z-index: 100; /* Ниже модального окна (2000), но видим */
+    z-index: 1000; /* Выше сообщений, но ниже модального окна (2000) */
 }
 
 .mobile-menu-toggle {
@@ -1987,7 +1987,7 @@ body.force-web-view .desktop-only {
         top: 0 !important;
         left: 0 !important;
         right: 0 !important;
-        z-index: 100 !important; /* Ниже модального окна (2000), но видим */
+        z-index: 1000 !important; /* Выше сообщений, но ниже модального окна (2000) */
         background: transparent !important;
         border-bottom: none !important;
         pointer-events: auto !important;
