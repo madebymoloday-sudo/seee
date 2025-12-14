@@ -2289,9 +2289,9 @@ def submit_feedback():
         
         conn = get_db()
         c = conn.cursor()
-        c.execute('''INSERT INTO feedback (user_id, session_id, description, about_self, expectations, expectations_met, how_it_went, file_path, file_type)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                 (session['user_id'], session_id, description, about_self, expectations, expectations_met, how_it_went, file_path, file_type))
+        c.execute('''INSERT INTO feedback (user_id, session_id, description, about_self, expectations, expectations_met, how_it_went, file_path, file_type, feedback_type)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                 (session['user_id'], session_id, description, about_self, expectations, expectations_met, how_it_went, file_path, file_type, 'full'))
         conn.commit()
         conn.close()
         
