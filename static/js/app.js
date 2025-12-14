@@ -1307,9 +1307,24 @@ document.addEventListener('DOMContentLoaded', async function() {
             e.preventDefault();
             e.stopPropagation();
             const mobileMenu = document.getElementById('mobileMenu');
-            if (mobileMenu) {
+            const mobileMenuContent = document.querySelector('.mobile-menu-content');
+            const arrowButton = document.getElementById('mobileMenuToggleBottom');
+            
+            if (mobileMenu && mobileMenuContent && arrowButton) {
                 mobileMenu.classList.toggle('active');
                 if (mobileMenu.classList.contains('active')) {
+                    // Вычисляем позицию стрелки
+                    const arrowRect = arrowButton.getBoundingClientRect();
+                    const menuWidth = mobileMenuContent.offsetWidth || 240;
+                    
+                    // Позиционируем меню над стрелкой
+                    mobileMenuContent.style.left = (arrowRect.left + arrowRect.width / 2 - menuWidth / 2) + 'px';
+                    mobileMenuContent.style.bottom = (window.innerHeight - arrowRect.top + 10) + 'px';
+                    
+                    // Позиционируем стрелочку меню точно над центром стрелки
+                    const arrowLeft = arrowRect.left + arrowRect.width / 2 - arrowRect.left;
+                    mobileMenuContent.style.setProperty('--arrow-left', (arrowRect.left + arrowRect.width / 2 - parseFloat(mobileMenuContent.style.left || 0)) + 'px');
+                    
                     document.body.classList.add('mobile-menu-open');
                 } else {
                     document.body.classList.remove('mobile-menu-open');
