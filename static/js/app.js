@@ -1316,14 +1316,21 @@ document.addEventListener('DOMContentLoaded', async function() {
                     // Вычисляем позицию стрелки
                     const arrowRect = arrowButton.getBoundingClientRect();
                     const menuWidth = mobileMenuContent.offsetWidth || 240;
+                    const menuHeight = mobileMenuContent.offsetHeight || 300;
                     
-                    // Позиционируем меню над стрелкой
-                    mobileMenuContent.style.left = (arrowRect.left + arrowRect.width / 2 - menuWidth / 2) + 'px';
-                    mobileMenuContent.style.bottom = (window.innerHeight - arrowRect.top + 10) + 'px';
+                    // Позиционируем меню над стрелкой по центру
+                    const menuLeft = arrowRect.left + arrowRect.width / 2 - menuWidth / 2;
+                    // Убеждаемся, что меню не выходит за левый край
+                    const finalLeft = Math.max(8, Math.min(menuLeft, window.innerWidth - menuWidth - 8));
+                    const menuBottom = window.innerHeight - arrowRect.top + 10;
+                    
+                    mobileMenuContent.style.left = finalLeft + 'px';
+                    mobileMenuContent.style.bottom = menuBottom + 'px';
                     
                     // Позиционируем стрелочку меню точно над центром стрелки
-                    const arrowLeft = arrowRect.left + arrowRect.width / 2 - arrowRect.left;
-                    mobileMenuContent.style.setProperty('--arrow-left', (arrowRect.left + arrowRect.width / 2 - parseFloat(mobileMenuContent.style.left || 0)) + 'px');
+                    const arrowCenterX = arrowRect.left + arrowRect.width / 2;
+                    const arrowOffset = arrowCenterX - finalLeft;
+                    mobileMenuContent.style.setProperty('--arrow-left', arrowOffset + 'px');
                     
                     document.body.classList.add('mobile-menu-open');
                 } else {
