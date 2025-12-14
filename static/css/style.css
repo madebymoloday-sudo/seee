@@ -67,7 +67,9 @@ body.dark-mode .welcome-message .info-section ul,
 body.dark-mode .welcome-message .info-section li,
 body.dark-mode .welcome-message .info-section strong,
 body.dark-mode .welcome-message .reassurance {
+    background: var(--bg-secondary) !important;
     color: var(--text-primary) !important;
+    border-left-color: var(--ultramarine) !important;
 }
 
 body.dark-mode .welcome-message .info-section {
