@@ -1373,12 +1373,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const menuLeft = arrowRect.left + arrowRect.width / 2 - menuWidth / 2;
                     // Убеждаемся, что меню не выходит за левый край
                     const finalLeft = Math.max(8, Math.min(menuLeft, window.innerWidth - menuWidth - 8));
-                    // Позиционируем меню прямо над кнопкой (не слишком высоко)
+                    // Позиционируем меню прямо над input-container (не слишком высоко)
                     // bottom - это расстояние от низа экрана до низа меню
-                    // Используем фиксированное значение, чтобы меню было прямо над input-container
                     const inputContainer = document.querySelector('.input-container');
                     const inputRect = inputContainer ? inputContainer.getBoundingClientRect() : null;
-                    const menuBottom = inputRect ? (window.innerHeight - inputRect.top + 12) : 100; // 12px выше input-container
+                    // Меню должно быть на 12px выше input-container
+                    const menuBottom = inputRect ? (window.innerHeight - inputRect.top + 12) : (arrowRect.height + 12);
                     
                     mobileMenuContent.style.left = finalLeft + 'px';
                     mobileMenuContent.style.bottom = menuBottom + 'px';
@@ -1505,11 +1505,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (target) {
                 if (target.id === 'mobileThemeToggle' || target.closest('#mobileThemeToggle')) {
                     toggleTheme();
-                    const mobileMenu = document.getElementById('mobileMenu');
-                    if (mobileMenu) {
-                        mobileMenu.classList.remove('active');
-                    }
-                    document.body.classList.remove('mobile-menu-open');
+                    // НЕ закрываем меню после переключения темы
                 } else {
                     target.click();
                 }
