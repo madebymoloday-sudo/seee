@@ -447,6 +447,12 @@ function updateMobileButtons() {
 
 // Инициализация обработчиков в DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async function() {
+    // Убеждаемся, что при первой загрузке прокрутка начинается с верха
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (messagesContainer) {
+        messagesContainer.scrollTop = 0;
+    }
+    
     // #region agent log
     fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:374',message:'DOMContentLoaded started',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
     // #endregion
