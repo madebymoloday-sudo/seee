@@ -287,6 +287,8 @@ body {
 }
 
 .form-actions {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+    margin-bottom: env(safe-area-inset-bottom) !important;
     display: flex;
     gap: 10px;
     margin-top: 30px;
@@ -1213,8 +1215,13 @@ body.dark-mode .mobile-menu-content::before {
 
 .modal-body {
     padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
     overflow-y: auto;
     flex: 1;
+}
+
+#feedbackModal .modal-body {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
 }
 
 /* Поиск в личном кабинете */

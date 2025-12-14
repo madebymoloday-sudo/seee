@@ -580,3 +580,44 @@ async function saveLanguage() {
     }
 }
 
+// Загрузка данных безопасности
+async function loadSecurityData() {
+    try {
+        // Загружаем email
+        const emailResponse = await fetch('/api/cabinet/security/email');
+        if (emailResponse.ok) {
+            const emailData = await emailResponse.json();
+            const emailInput = document.getElementById('securityEmail');
+            if (emailInput) {
+                emailInput.value = emailData.email || '';
+            }
+        } else {
+            // Если ошибка, просто игнорируем (email может быть не установлен)
+            console.log('Email не загружен (возможно, не установлен)');
+        }
+        
+        // Загружаем статус 2FA
+        const twoFactorResponse = await fetch('/api/cabinet/security/2fa/status');
+        if (twoFactorResponse.ok) {
+            const twoFactorData = await twoFactorResponse.json();
+            const statusText = document.getElementById('twoFactorStatusText');
+            const disableBtn = document.getElementById('disableTwoFactor');
+            
+            if (twoFactorData.enabled) {
+                if (statusText) statusText.textContent = 'Включена';
+                if (disableBtn) disableBtn.style.display = 'block';
+            } else {
+                if (statusText) statusText.textContent = 'Не включена';
+                if (disableBtn) disableBtn.style.display = 'none';
+            }
+        } else {
+            // Если ошибка, просто устанавливаем статус "Не включена"
+            const statusText = document.getElementById('twoFactorStatusText');
+            if (statusText) statusText.textContent = 'Не включена';
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки данных безопасности:', error);
+        // Не показываем alert, просто логируем ошибку
+    }
+}
+
