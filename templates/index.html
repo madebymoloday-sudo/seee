@@ -344,11 +344,13 @@
     <div id="aboutModal" class="modal">
         <div class="modal-content about-modal">
             <div class="modal-header">
-                <h2>О SEEE</h2>
                 <button class="modal-close" id="closeAboutModal">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="welcome-message">
+                <div class="welcome-message" style="text-align: center;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SEEE" style="max-width: 200px; height: auto;">
+                    </div>
                     <h3>Добро пожаловать в SEEE</h3>
                     <p><strong>SEEE</strong> — это архитектура мышления сильного ИИ, адаптированная для человека. Мы описали, как устроено мышление человека, создали это для сильного ИИ, и теперь эта технология мышления доступна вам для перестройки собственного мышления.</p>
                     

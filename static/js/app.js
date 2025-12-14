@@ -1192,7 +1192,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Старые обработчики удалены - теперь используется делегирование событий ниже
     
-    // Клик на логотип - открытие информации о SEEE - используем делегирование событий
+    // Клик на логотип - открытие информации о SEEE
     function handleHeaderLogoClick(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1202,33 +1202,25 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
-    document.addEventListener('click', function(e) {
-        // Проверяем, что это мобильная версия
-        if (window.innerWidth >= 769) {
-            return; // На десктопе не обрабатываем
-        }
-        if (e.target.closest('#headerLogo')) {
-            handleHeaderLogoClick(e);
-        }
-    }, true);
-    
-    document.addEventListener('touchstart', function(e) {
-        // Проверяем, что это мобильная версия
-        if (window.innerWidth >= 769) {
-            return; // На десктопе не обрабатываем
-        }
-        if (e.target.closest('#headerLogo')) {
+    // Обработчик для десктопа и мобильной версии
+    const headerLogo = document.getElementById('headerLogo');
+    if (headerLogo) {
+        headerLogo.addEventListener('click', handleHeaderLogoClick);
+        headerLogo.addEventListener('touchstart', function(e) {
             e.preventDefault();
             e.stopPropagation();
             handleHeaderLogoClick(e);
-        }
-    }, { passive: false, capture: true });
+        }, { passive: false });
+    }
     
+    // Закрытие модального окна "О SEEE"
     const closeAboutModal = document.getElementById('closeAboutModal');
     const aboutModal = document.getElementById('aboutModal');
     
     if (closeAboutModal && aboutModal) {
-        closeAboutModal.addEventListener('click', function() {
+        closeAboutModal.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             aboutModal.style.display = 'none';
         });
         
