@@ -357,12 +357,12 @@ function updateMobileButtons() {
     const mobileMenuToggleBottom = document.getElementById('mobileMenuToggleBottom');
     
     if (sendBtnMobile && mobileMenuToggleBottom) {
-        const hasText = messageInput.value.trim().length > 0;
+        const hasText = messageInput && messageInput.value.trim().length > 0;
         if (hasText) {
-            sendBtnMobile.classList.add('active');
+            sendBtnMobile.style.display = 'flex';
             mobileMenuToggleBottom.style.display = 'none';
         } else {
-            sendBtnMobile.classList.remove('active');
+            sendBtnMobile.style.display = 'none';
             mobileMenuToggleBottom.style.display = 'flex';
         }
     }
@@ -398,6 +398,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateMobileButtons();
     });
     
+    // Инициализируем видимость кнопок при загрузке
+    updateMobileButtons();
+    
     // Обработка клавиш для отправки сообщения
     messageInput.addEventListener('keydown', function(e) {
         // Enter отправляет сообщение
@@ -424,7 +427,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         sendBtnMobile.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            messageForm.dispatchEvent(new Event('submit'));
+            console.log('[Mobile] Send button clicked');
+            if (messageInput.value.trim()) {
+                messageForm.dispatchEvent(new Event('submit'));
+            }
         });
     }
     
@@ -1090,12 +1096,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Кнопка "Боковая панель" в меню
     const mobileSidebarBtn = document.getElementById('mobileSidebarBtn');
     if (mobileSidebarBtn) {
-        mobileSidebarBtn.addEventListener('click', function() {
-            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-            if (mobileMenuToggle) {
-                mobileMenuToggle.click();
+        mobileSidebarBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[Mobile] Боковая панель clicked');
+            // Открываем боковое меню (sidebar)
+            if (sidebar) {
+                sidebar.classList.add('mobile-open');
+                document.body.classList.add('sidebar-open');
             }
+            // Закрываем мобильное меню снизу
             mobileMenu.classList.remove('active');
+            document.body.classList.remove('mobile-menu-open');
         });
     }
     
@@ -1148,6 +1160,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         mobileMenuToggleBottom.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            console.log('[Mobile] Menu toggle clicked');
             // Не закрываем клавиатуру
             mobileMenu.classList.toggle('active');
             // Добавляем класс для поднятия input-container
@@ -1194,22 +1207,30 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     if (mobilePauseSession) {
-        mobilePauseSession.addEventListener('click', function() {
+        mobilePauseSession.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[Mobile] Pause session clicked');
             const pauseBtn = document.getElementById('pauseSessionBtn');
-            if (pauseBtn && pauseBtn.style.display !== 'none') {
+            if (pauseBtn) {
                 pauseBtn.click();
             }
             mobileMenu.classList.remove('active');
+            document.body.classList.remove('mobile-menu-open');
         });
     }
     
     if (mobileCabinet) {
-        mobileCabinet.addEventListener('click', function() {
+        mobileCabinet.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[Mobile] Cabinet clicked');
             const cabinetBtn = document.getElementById('cabinetBtn');
             if (cabinetBtn) {
                 cabinetBtn.click();
             }
             mobileMenu.classList.remove('active');
+            document.body.classList.remove('mobile-menu-open');
         });
     }
     
