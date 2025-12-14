@@ -496,6 +496,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     messageInput.addEventListener('focus', function() {
         isKeyboardOpen = true;
         document.body.classList.add('keyboard-open');
+        // Прокручиваем к последнему сообщению после открытия клавиатуры
+        setTimeout(() => {
+            scrollToBottom();
+        }, 500);
     });
     
     messageInput.addEventListener('blur', function() {
