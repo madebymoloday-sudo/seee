@@ -680,6 +680,7 @@ body {
     display: flex;
     gap: 12px;
     align-items: flex-end;
+    background: transparent !important;
 }
 
 #messageInput {
@@ -1615,6 +1616,16 @@ body.dark-mode .mobile-menu-content::before {
     
     .input-container * {
         pointer-events: auto !important;
+    }
+    
+    #messageForm {
+        background: transparent !important;
+    }
+    
+    /* Убираем любой белый фон, который может появиться */
+    .input-container::before,
+    .input-container::after {
+        display: none !important;
     }
     
     /* Убираем фон у всех кнопок-иконок */

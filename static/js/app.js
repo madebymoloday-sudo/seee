@@ -370,9 +370,8 @@ function updateMobileButtons() {
 
 // Эти обработчики будут добавлены в DOMContentLoaded
 
-// Обработчик кнопки отправки
 // Инициализация обработчиков в DOMContentLoaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Инициализируем переменные
     messageForm = document.getElementById('messageForm');
     messageInput = document.getElementById('messageInput');
@@ -480,8 +479,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     }
-    // Закрываем первый блок DOMContentLoaded
-});
+    
+    // Инициализация Socket.IO и загрузка данных
     initSocket();
     
     // Проверяем параметр session в URL ДО загрузки сессий
