@@ -1934,8 +1934,12 @@ body.force-web-view .desktop-only {
     body.keyboard-open .input-container {
         position: fixed !important;
         bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
         transform: translateZ(0) !important;
         -webkit-transform: translateZ(0) !important;
+        margin: 0 !important;
+        top: auto !important;
     }
     
     /* Дополнительная фиксация для всех состояний */
