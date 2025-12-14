@@ -763,12 +763,14 @@ body.dark-mode .chat-title-center {
 .input-container {
     padding: 16px 24px;
     background: transparent;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
     box-shadow: none;
+    transform: none !important;
+    will-change: auto !important;
 }
 
 #messageForm {

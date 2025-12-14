@@ -478,6 +478,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Клавиатура открыта
             isKeyboardOpen = true;
             document.body.classList.add('keyboard-open');
+            // Прокручиваем к последнему сообщению после открытия клавиатуры
+            setTimeout(() => {
+                scrollToBottom();
+            }, 300);
         } else if (currentHeight > lastViewportHeight * 1.1) {
             // Клавиатура закрыта
             isKeyboardOpen = false;
