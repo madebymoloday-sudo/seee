@@ -56,51 +56,103 @@ async function loadSessions() {
 // Отображение сессий
 function renderSessions() {
     const sessionsList = document.getElementById('sessionsList');
-    sessionsList.innerHTML = '';
+    if (sessionsList) {
+        sessionsList.innerHTML = '';
+        
+        sessions.forEach(session => {
+            const item = document.createElement('div');
+            item.className = 'session-item';
+            if (session.id === currentSessionId) {
+                item.classList.add('active');
+            }
+            
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'session-title';
+            titleSpan.textContent = session.title;
+            titleSpan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                loadSession(session.id);
+                // Закрываем модальное окно после выбора сессии
+                const sessionsModal = document.getElementById('sessionsModal');
+                if (sessionsModal) {
+                    sessionsModal.style.display = 'none';
+                }
+            });
+            
+            const renameBtn = document.createElement('button');
+            renameBtn.className = 'session-rename';
+            renameBtn.innerHTML = '✏️';
+            renameBtn.setAttribute('aria-label', 'Переименовать сессию');
+            renameBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await renameSession(session.id, session.title);
+            });
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'session-delete';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.setAttribute('aria-label', 'Удалить сессию');
+            deleteBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (confirm(`Вы уверены, что хотите удалить сессию "${session.title}"?`)) {
+                    await deleteSession(session.id);
+                }
+            });
+            
+            const buttonsContainer = document.createElement('div');
+            buttonsContainer.className = 'session-buttons';
+            buttonsContainer.appendChild(renameBtn);
+            buttonsContainer.appendChild(deleteBtn);
+            
+            item.appendChild(titleSpan);
+            item.appendChild(buttonsContainer);
+            sessionsList.appendChild(item);
+        });
+    }
     
-    sessions.forEach(session => {
-        const item = document.createElement('div');
-        item.className = 'session-item';
-        if (session.id === currentSessionId) {
-            item.classList.add('active');
+    // Обновляем список в модальном окне
+    renderSessionsModal();
+}
+
+// Отображение сессий в модальном окне
+function renderSessionsModal() {
+    const sessionsModalList = document.getElementById('sessionsModalList');
+    const currentSessionHeader = document.getElementById('currentSessionHeader');
+    const currentSessionTitleText = document.getElementById('currentSessionTitleText');
+    
+    if (!sessionsModalList) return;
+    
+    sessionsModalList.innerHTML = '';
+    
+    // Показываем текущую сессию вверху
+    if (currentSessionId) {
+        const currentSession = sessions.find(s => s.id === currentSessionId);
+        if (currentSession && currentSessionHeader && currentSessionTitleText) {
+            currentSessionHeader.style.display = 'block';
+            currentSessionTitleText.textContent = currentSession.title;
         }
+    } else {
+        if (currentSessionHeader) {
+            currentSessionHeader.style.display = 'none';
+        }
+    }
+    
+    // Добавляем все сессии в список (кроме текущей, если она есть)
+    sessions.forEach(session => {
+        if (session.id === currentSessionId) return; // Текущая сессия уже показана вверху
         
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'session-title';
-        titleSpan.textContent = session.title;
-        titleSpan.addEventListener('click', (e) => {
-            e.stopPropagation();
+        const item = document.createElement('div');
+        item.className = 'session-item-modal';
+        item.textContent = session.title;
+        item.addEventListener('click', () => {
             loadSession(session.id);
-        });
-        
-        const renameBtn = document.createElement('button');
-        renameBtn.className = 'session-rename';
-        renameBtn.innerHTML = '✏️';
-        renameBtn.setAttribute('aria-label', 'Переименовать сессию');
-        renameBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            await renameSession(session.id, session.title);
-        });
-        
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'session-delete';
-        deleteBtn.innerHTML = '×';
-        deleteBtn.setAttribute('aria-label', 'Удалить сессию');
-        deleteBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (confirm(`Вы уверены, что хотите удалить сессию "${session.title}"?`)) {
-                await deleteSession(session.id);
+            const sessionsModal = document.getElementById('sessionsModal');
+            if (sessionsModal) {
+                sessionsModal.style.display = 'none';
             }
         });
         
-        const buttonsContainer = document.createElement('div');
-        buttonsContainer.className = 'session-buttons';
-        buttonsContainer.appendChild(renameBtn);
-        buttonsContainer.appendChild(deleteBtn);
-        
-        item.appendChild(titleSpan);
-        item.appendChild(buttonsContainer);
-        sessionsList.appendChild(item);
+        sessionsModalList.appendChild(item);
     });
 }
 
