@@ -1465,22 +1465,78 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             document.body.classList.remove('mobile-menu-open');
         }
+        
+        // Обработка переключения темы в мобильном меню
+        if (e.target.closest('#mobileThemeToggle') || e.target.closest('#mobileThemeToggle .theme-toggle')) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleTheme();
+            // Закрываем меню после переключения
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu) {
+                mobileMenu.classList.remove('active');
+            }
+            document.body.classList.remove('mobile-menu-open');
+        }
     }, true);
     
     document.addEventListener('touchstart', function(e) {
         if (e.target.closest('#mobilePauseSession') || 
             e.target.closest('#mobileCabinet') || 
             e.target.closest('#mobileSidebarBtn') || 
-            e.target.closest('#mobileFeedbackBtn')) {
+            e.target.closest('#mobileFeedbackBtn') ||
+            e.target.closest('#mobileThemeToggle')) {
             e.preventDefault();
             e.stopPropagation();
-            e.target.closest('#mobilePauseSession, #mobileCabinet, #mobileSidebarBtn, #mobileFeedbackBtn').click();
+            const target = e.target.closest('#mobilePauseSession, #mobileCabinet, #mobileSidebarBtn, #mobileFeedbackBtn, #mobileThemeToggle');
+            if (target) {
+                if (target.id === 'mobileThemeToggle' || target.closest('#mobileThemeToggle')) {
+                    toggleTheme();
+                    const mobileMenu = document.getElementById('mobileMenu');
+                    if (mobileMenu) {
+                        mobileMenu.classList.remove('active');
+                    }
+                    document.body.classList.remove('mobile-menu-open');
+                } else {
+                    target.click();
+                }
+            }
         }
     }, { passive: false, capture: true });
     
     // Тумблер темы
     const themeToggle = document.getElementById('themeToggle');
     const mobileThemeToggle = document.getElementById('mobileThemeToggle');
+    
+    // Функция переключения темы (определяем раньше, чтобы была доступна в делегировании)
+    function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        
+        // Обновляем десктопный переключатель
+        if (themeToggle) {
+            // Темный режим = зеленый тумблер, светлый режим = серый тумблер
+            if (isDark) {
+                themeToggle.classList.add('dark'); // Зеленый
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeToggle.classList.remove('dark'); // Серый
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        
+        // Обновляем мобильный переключатель
+        const mobileThemeToggleEl = document.getElementById('mobileThemeToggle');
+        if (mobileThemeToggleEl) {
+            const toggle = mobileThemeToggleEl.querySelector('.theme-toggle');
+            if (toggle) {
+                if (isDark) {
+                    toggle.classList.add('dark'); // Зеленый
+                } else {
+                    toggle.classList.remove('dark'); // Серый
+                }
+            }
+        }
+    }
     
     // Загружаем сохраненную тему
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -1490,9 +1546,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (themeToggle) {
             themeToggle.classList.add('dark');
         }
-        const mobileThemeToggle = document.getElementById('mobileThemeToggle');
-        if (mobileThemeToggle) {
-            const toggle = mobileThemeToggle.querySelector('.theme-toggle');
+        const mobileThemeToggleEl = document.getElementById('mobileThemeToggle');
+        if (mobileThemeToggleEl) {
+            const toggle = mobileThemeToggleEl.querySelector('.theme-toggle');
             if (toggle) {
                 toggle.classList.add('dark');
             }
@@ -1502,9 +1558,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (themeToggle) {
             themeToggle.classList.remove('dark');
         }
-        const mobileThemeToggle = document.getElementById('mobileThemeToggle');
-        if (mobileThemeToggle) {
-            const toggle = mobileThemeToggle.querySelector('.theme-toggle');
+        const mobileThemeToggleEl = document.getElementById('mobileThemeToggle');
+        if (mobileThemeToggleEl) {
+            const toggle = mobileThemeToggleEl.querySelector('.theme-toggle');
             if (toggle) {
                 toggle.classList.remove('dark');
             }
@@ -1518,40 +1574,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
+    // Прямой обработчик для мобильного переключателя (резервный, основной через делегирование)
     if (mobileThemeToggle) {
         mobileThemeToggle.addEventListener('click', function(e) {
+            e.preventDefault();
             e.stopPropagation();
-            // Не закрываем меню при клике на тумблер
-            if (themeToggle) {
-                themeToggle.click();
+            toggleTheme();
+            // Закрываем меню после переключения
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu) {
+                mobileMenu.classList.remove('active');
+                document.body.classList.remove('mobile-menu-open');
             }
         });
-    }
-    
-    function toggleTheme() {
-        const isDark = document.body.classList.toggle('dark-mode');
-        if (themeToggle) {
-            // Темный режим = зеленый тумблер, светлый режим = серый тумблер
-            if (isDark) {
-                themeToggle.classList.add('dark'); // Зеленый
-                localStorage.setItem('theme', 'dark');
-            } else {
-                themeToggle.classList.remove('dark'); // Серый
-                localStorage.setItem('theme', 'light');
-            }
-        }
-        // Также обновляем мобильный переключатель
-        const mobileThemeToggle = document.getElementById('mobileThemeToggle');
-        if (mobileThemeToggle) {
-            const toggle = mobileThemeToggle.querySelector('.theme-toggle');
-            if (toggle) {
-                if (isDark) {
-                    toggle.classList.add('dark'); // Зеленый
-                } else {
-                    toggle.classList.remove('dark'); // Серый
-                }
-            }
-        }
     }
 });
 
