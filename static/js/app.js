@@ -1179,10 +1179,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }, { passive: false, capture: true });
     
-    if (mobileSidebarOverlay) {
-        mobileSidebarOverlay.addEventListener('click', function() {
-            sidebar.classList.remove('mobile-open');
-            mobileSidebarOverlay.classList.remove('active');
+    const mobileSidebarOverlayEl = document.getElementById('mobileSidebarOverlay');
+    if (mobileSidebarOverlayEl) {
+        mobileSidebarOverlayEl.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const sidebarEl = document.getElementById('sidebar');
+            if (sidebarEl) {
+                sidebarEl.classList.remove('mobile-open');
+            }
+            mobileSidebarOverlayEl.classList.remove('active');
             document.body.classList.remove('sidebar-open');
         });
     }
@@ -1323,8 +1328,16 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Закрытие бокового меню при клике на overlay
     const sidebarOverlay = document.querySelector('.mobile-sidebar-overlay');
     if (sidebarOverlay) {
-        sidebarOverlay.addEventListener('click', function() {
-            sidebar.classList.remove('mobile-open');
+        sidebarOverlay.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const sidebar = document.getElementById('sidebar');
+            const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
+            if (sidebar) {
+                sidebar.classList.remove('mobile-open');
+            }
+            if (mobileSidebarOverlay) {
+                mobileSidebarOverlay.classList.remove('active');
+            }
             document.body.classList.remove('sidebar-open');
         });
     }
