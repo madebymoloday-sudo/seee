@@ -1824,7 +1824,14 @@ body.dark-mode .mobile-menu-content::before {
     }
     
     /* Убираем белый фон когда клавиатура открыта */
-    body.keyboard-open .input-container,
+    body.keyboard-open .input-container {
+        position: fixed !important;
+        bottom: 0 !important;
+        transform: none !important;
+    }
+    
+    /* Дополнительная фиксация для всех состояний */
+    body:has(#messageInput:focus) .input-container,
     body.keyboard-open #messageForm,
     body.keyboard-open {
         background: transparent !important;

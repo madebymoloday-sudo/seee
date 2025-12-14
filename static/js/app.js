@@ -386,16 +386,19 @@ function scrollToBottom() {
     const messagesContainer = document.getElementById('messagesContainer');
     if (!messagesContainer) return;
     
-    // Используем requestAnimationFrame для более плавной прокрутки
-    requestAnimationFrame(() => {
-        // Прокручиваем до самого конца
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        
-        // Дополнительная проверка через небольшую задержку для случаев, когда контент еще загружается
-        setTimeout(() => {
+    // Используем scrollIntoView для последнего сообщения - это более надежный способ
+    const lastMessage = messagesContainer.lastElementChild;
+    if (lastMessage) {
+        lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    } else {
+        // Если нет сообщений, просто прокручиваем до конца
+        requestAnimationFrame(() => {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }, 50);
-    });
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+        });
+    }
 }
 
 // Обработка отправки сообщения
