@@ -398,6 +398,43 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateMobileButtons();
     });
     
+    // Отслеживаем открытие/закрытие клавиатуры для устранения белого фона
+    let isKeyboardOpen = false;
+    let lastViewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    
+    function handleViewportResize() {
+        const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        if (currentHeight < lastViewportHeight * 0.75) {
+            // Клавиатура открыта
+            isKeyboardOpen = true;
+            document.body.classList.add('keyboard-open');
+        } else if (currentHeight > lastViewportHeight * 1.1) {
+            // Клавиатура закрыта
+            isKeyboardOpen = false;
+            document.body.classList.remove('keyboard-open');
+        }
+        lastViewportHeight = currentHeight;
+    }
+    
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', handleViewportResize);
+    } else {
+        window.addEventListener('resize', handleViewportResize);
+    }
+    
+    // Также отслеживаем фокус на input
+    messageInput.addEventListener('focus', function() {
+        isKeyboardOpen = true;
+        document.body.classList.add('keyboard-open');
+    });
+    
+    messageInput.addEventListener('blur', function() {
+        setTimeout(function() {
+            isKeyboardOpen = false;
+            document.body.classList.remove('keyboard-open');
+        }, 100);
+    });
+    
     // Инициализируем видимость кнопок при загрузке
     updateMobileButtons();
     
