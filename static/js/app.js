@@ -1039,10 +1039,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
     
     if (mobileMenuToggle) {
-        mobileMenuToggle.addEventListener('click', function() {
-            sidebar.classList.add('mobile-open');
-            mobileSidebarOverlay.classList.add('active');
-            document.body.classList.add('sidebar-open');
+        mobileMenuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[Mobile] Hamburger menu clicked');
+            if (sidebar) {
+                sidebar.classList.toggle('mobile-open');
+                if (mobileSidebarOverlay) {
+                    mobileSidebarOverlay.classList.toggle('active');
+                }
+                document.body.classList.toggle('sidebar-open');
+            }
         });
     }
     
@@ -1129,7 +1136,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     const closeAboutModal = document.getElementById('closeAboutModal');
     
     if (headerLogo && aboutModal) {
-        headerLogo.addEventListener('click', function() {
+        headerLogo.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[Mobile] Header logo clicked');
             aboutModal.style.display = 'flex';
         });
     }
@@ -1181,11 +1191,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Обработка открытия бокового меню
     if (mobileMenuToggle && sidebar) {
-        mobileMenuToggle.addEventListener('click', function() {
+        mobileMenuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[Mobile] Hamburger menu clicked (duplicate handler)');
             sidebar.classList.toggle('mobile-open');
             if (sidebar.classList.contains('mobile-open')) {
+                if (mobileSidebarOverlay) {
+                    mobileSidebarOverlay.classList.add('active');
+                }
                 document.body.classList.add('sidebar-open');
             } else {
+                if (mobileSidebarOverlay) {
+                    mobileSidebarOverlay.classList.remove('active');
+                }
                 document.body.classList.remove('sidebar-open');
             }
         });

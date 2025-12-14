@@ -523,6 +523,12 @@ body {
     display: none;
 }
 
+/* Убеждаемся что welcome-logo не перекрывает header */
+.logo-container.welcome-logo {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
 .welcome-message {
     max-width: 800px;
     margin: 0 auto;
@@ -1571,6 +1577,8 @@ body.dark-mode .mobile-menu-content::before {
         display: flex !important;
         align-items: center;
         justify-content: center;
+        z-index: 1002 !important;
+        position: relative !important;
     }
     
     .chat-title-center {
@@ -1579,12 +1587,16 @@ body.dark-mode .mobile-menu-content::before {
         font-size: 16px;
         margin: 0;
         display: block !important;
+        z-index: 1002 !important;
+        position: relative !important;
     }
     
     .header-logo {
         height: 30px;
         width: auto;
         display: block !important;
+        z-index: 1002 !important;
+        position: relative !important;
     }
     
     .header-right {
@@ -1615,6 +1627,19 @@ body.dark-mode .mobile-menu-content::before {
         box-shadow: none !important;
         transition: transform 0.3s ease;
         pointer-events: auto !important;
+    }
+    
+    /* Убираем белый фон у body и app-container внизу */
+    body {
+        background: transparent !important;
+    }
+    
+    .app-container {
+        background: transparent !important;
+    }
+    
+    .chat-container {
+        background: transparent !important;
     }
     
     .input-container * {
@@ -1676,6 +1701,7 @@ body.dark-mode .mobile-menu-content::before {
     }
     
     .messages-container {
+        padding-top: 60px !important; /* Отступ сверху чтобы не перекрывало header */
         padding-bottom: 100px;
         padding-top: 70px;
         z-index: 1;
@@ -1683,6 +1709,18 @@ body.dark-mode .mobile-menu-content::before {
     
     .chat-container {
         padding-bottom: 80px;
+        background: transparent !important;
+    }
+    
+    /* Убеждаемся что welcome-logo не перекрывает header на мобильной версии */
+    .logo-container.welcome-logo {
+        position: relative !important;
+        z-index: 1 !important;
+        margin-top: 0 !important;
+    }
+    
+    .welcome-message {
+        padding-top: 20px !important;
     }
     
     #messageForm {
@@ -1705,6 +1743,8 @@ body.dark-mode .mobile-menu-content::before {
         border-radius: 50%;
         order: -1;
         margin-right: 4px;
+        z-index: 1002 !important;
+        position: relative !important;
     }
     
     .mobile-menu-content {
@@ -1718,6 +1758,8 @@ body.dark-mode .mobile-menu-content::before {
     
     .btn-send-mobile {
         order: 1;
+        z-index: 1002 !important;
+        position: relative !important;
     }
     
     .map-header {
