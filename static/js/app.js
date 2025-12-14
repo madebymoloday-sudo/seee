@@ -1174,56 +1174,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
-    // Кнопка "Боковая панель" в меню
-    const mobileSidebarBtn = document.getElementById('mobileSidebarBtn');
-    function handleSidebarBtnClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('[Mobile] Боковая панель clicked');
-        // Открываем боковое меню (sidebar)
-        if (sidebar) {
-            sidebar.classList.add('mobile-open');
-            if (mobileSidebarOverlay) {
-                mobileSidebarOverlay.classList.add('active');
-            }
-            document.body.classList.add('sidebar-open');
-        }
-        // Закрываем мобильное меню снизу
-        if (mobileMenu) {
-            mobileMenu.classList.remove('active');
-        }
-        document.body.classList.remove('mobile-menu-open');
-    }
-    if (mobileSidebarBtn) {
-        mobileSidebarBtn.addEventListener('click', handleSidebarBtnClick);
-        mobileSidebarBtn.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            handleSidebarBtnClick(e);
-        }, { passive: false });
-    }
-    
-    // Кнопка "Обратная связь" в меню
-    const mobileFeedbackBtn = document.getElementById('mobileFeedbackBtn');
-    function handleFeedbackBtnClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('[Mobile] Feedback button clicked');
-        const feedbackBtn = document.getElementById('feedbackBtn');
-        if (feedbackBtn) {
-            feedbackBtn.click();
-        }
-        if (mobileMenu) {
-            mobileMenu.classList.remove('active');
-        }
-        document.body.classList.remove('mobile-menu-open');
-    }
-    if (mobileFeedbackBtn) {
-        mobileFeedbackBtn.addEventListener('click', handleFeedbackBtnClick);
-        mobileFeedbackBtn.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            handleFeedbackBtnClick(e);
-        }, { passive: false });
-    }
+    // Старые обработчики удалены - теперь используется делегирование событий ниже
     
     // Клик на логотип - открытие информации о SEEE - используем делегирование событий
     function handleHeaderLogoClick(e) {
