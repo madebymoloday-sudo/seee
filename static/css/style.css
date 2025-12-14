@@ -51,8 +51,11 @@ body.dark-mode .app-container,
 body.dark-mode .chat-container,
 body.dark-mode .messages-container,
 body.dark-mode .sidebar,
-body.dark-mode .modal,
-body.dark-mode .modal-content,
+body.dark-mode .modal {
+    background: transparent !important;
+}
+
+body.dark-mode .modal-content {
 body.dark-mode .chat-header,
 body.dark-mode .welcome-message {
     background-color: var(--bg-primary) !important;
