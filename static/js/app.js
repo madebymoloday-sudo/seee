@@ -231,7 +231,10 @@ async function loadSession(sessionId) {
             messages.forEach(msg => {
                 addMessage(msg.role, msg.content, false);
             });
-            scrollToBottom();
+            // Прокручиваем после загрузки всех сообщений
+            setTimeout(() => {
+                scrollToBottom();
+            }, 200);
         }
     } catch (error) {
         console.error('Ошибка загрузки сообщений:', error);
@@ -339,7 +342,10 @@ function addMessage(role, content, saveToServer = true, showDifficultyButton = f
     
     messagesContainer.appendChild(messageDiv);
     
-    scrollToBottom();
+    // Прокручиваем после добавления сообщения
+    setTimeout(() => {
+        scrollToBottom();
+    }, 100);
 }
 
 // Показ индикатора печати
@@ -361,7 +367,10 @@ function showTypingIndicator() {
     typingDiv.appendChild(typingContent);
     messagesContainer.appendChild(typingDiv);
     
-    scrollToBottom();
+    // Прокручиваем после добавления индикатора печати
+    setTimeout(() => {
+        scrollToBottom();
+    }, 100);
 }
 
 // Скрытие индикатора печати
