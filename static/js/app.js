@@ -1306,8 +1306,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }, { passive: false, capture: true });
     
-    // Кнопки в мобильном меню - используем делегирование событий
+    // Кнопки в мобильном меню - используем делегирование событий (только для мобильных элементов)
     document.addEventListener('click', function(e) {
+        // Проверяем, что это мобильная версия (ширина экрана < 769px)
+        if (window.innerWidth >= 769) {
+            return; // На десктопе не обрабатываем
+        }
+        
         if (e.target.closest('#mobilePauseSession')) {
             e.preventDefault();
             e.stopPropagation();
