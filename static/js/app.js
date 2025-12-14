@@ -1426,12 +1426,28 @@ document.addEventListener('DOMContentLoaded', async function() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
+        // Темный режим = зеленый тумблер
         if (themeToggle) {
             themeToggle.classList.add('dark');
         }
+        const mobileThemeToggle = document.getElementById('mobileThemeToggle');
+        if (mobileThemeToggle) {
+            const toggle = mobileThemeToggle.querySelector('.theme-toggle');
+            if (toggle) {
+                toggle.classList.add('dark');
+            }
+        }
     } else {
+        // Светлый режим = серый тумблер
         if (themeToggle) {
             themeToggle.classList.remove('dark');
+        }
+        const mobileThemeToggle = document.getElementById('mobileThemeToggle');
+        if (mobileThemeToggle) {
+            const toggle = mobileThemeToggle.querySelector('.theme-toggle');
+            if (toggle) {
+                toggle.classList.remove('dark');
+            }
         }
     }
     
@@ -1455,13 +1471,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     function toggleTheme() {
         const isDark = document.body.classList.toggle('dark-mode');
         if (themeToggle) {
-            // Зеленый = светлая тема, серый = темная тема
+            // Темный режим = зеленый тумблер, светлый режим = серый тумблер
             if (isDark) {
-                themeToggle.classList.add('dark');
+                themeToggle.classList.add('dark'); // Зеленый
                 localStorage.setItem('theme', 'dark');
             } else {
-                themeToggle.classList.remove('dark');
+                themeToggle.classList.remove('dark'); // Серый
                 localStorage.setItem('theme', 'light');
+            }
+        }
+        // Также обновляем мобильный переключатель
+        const mobileThemeToggle = document.getElementById('mobileThemeToggle');
+        if (mobileThemeToggle) {
+            const toggle = mobileThemeToggle.querySelector('.theme-toggle');
+            if (toggle) {
+                if (isDark) {
+                    toggle.classList.add('dark'); // Зеленый
+                } else {
+                    toggle.classList.remove('dark'); // Серый
+                }
             }
         }
     }

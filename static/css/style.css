@@ -845,7 +845,7 @@ body.dark-mode .mobile-menu-content::before {
     position: relative;
     width: 51px;
     height: 31px;
-    background: #34c759;
+    background: #e5e5ea; /* Серый по умолчанию (светлый режим) */
     border-radius: 31px;
     cursor: pointer;
     transition: background 0.3s;
@@ -853,7 +853,7 @@ body.dark-mode .mobile-menu-content::before {
 }
 
 .theme-toggle.dark {
-    background: #e5e5ea;
+    background: #34c759; /* Зеленый когда темный режим включен */
 }
 
 .theme-toggle::after {
