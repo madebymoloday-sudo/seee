@@ -1755,8 +1755,10 @@ body.dark-mode .mobile-menu-content::before {
     }
     
     .messages-container {
-        padding-top: 60px !important; /* Отступ сверху чтобы не перекрывало header */
+        padding-top: 80px !important; /* Отступ сверху чтобы не перекрывало header и логотип */
         padding-bottom: 100px;
+        position: relative;
+        z-index: 1;
         padding-top: 70px;
         z-index: 1;
     }
@@ -1770,11 +1772,21 @@ body.dark-mode .mobile-menu-content::before {
     .logo-container.welcome-logo {
         position: relative !important;
         z-index: 1 !important;
-        margin-top: 0 !important;
+        margin-top: 20px !important;
+        margin-bottom: 20px !important;
     }
     
     .welcome-message {
         padding-top: 20px !important;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Убеждаемся что header всегда поверх всего */
+    .chat-header {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
     
     #messageForm {
