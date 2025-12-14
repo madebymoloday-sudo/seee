@@ -610,6 +610,11 @@ body.dark-mode .chat-title-center {
     gap: 24px;
     position: relative;
     z-index: 1;
+    min-height: calc(100vh - 200px);
+}
+
+body.dark-mode .messages-container {
+    background-color: var(--bg-primary) !important;
 }
 
 .logo-container {
@@ -2063,6 +2068,19 @@ body.force-web-view .desktop-only {
         /* Убеждаемся, что контейнер может прокручиваться */
         overflow-y: auto;
         -webkit-overflow-scrolling: touch; /* Плавная прокрутка на iOS */
+        min-height: calc(100vh - 200px);
+    }
+    
+    body.dark-mode .messages-container {
+        background-color: var(--bg-primary) !important;
+    }
+    
+    body.dark-mode .chat-container {
+        background-color: var(--bg-primary) !important;
+    }
+    
+    body.dark-mode .app-container {
+        background-color: var(--bg-primary) !important;
     }
     
     .chat-container {
