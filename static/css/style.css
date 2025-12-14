@@ -2000,12 +2000,18 @@ body.force-web-view .desktop-only {
     
     /* Когда боковое меню открыто, сдвигаем input-container вправо */
     body.sidebar-open .input-container {
-        transform: translateX(280px);
+        transform: translateX(280px) translateZ(0) !important;
+        -webkit-transform: translateX(280px) translateZ(0) !important;
+        bottom: 0 !important;
+        top: auto !important;
     }
     
     /* Когда мобильное меню открыто, НЕ двигаем input-container */
     body.mobile-menu-open .input-container {
-        transform: none !important;
+        transform: translateZ(0) !important;
+        -webkit-transform: translateZ(0) !important;
+        bottom: 0 !important;
+        top: auto !important;
     }
     
     .messages-container {
