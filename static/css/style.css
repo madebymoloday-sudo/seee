@@ -2195,12 +2195,14 @@ body.force-web-view .desktop-only {
         -webkit-user-select: none;
     }
     
-    /* Когда боковое меню открыто, сдвигаем input-container вправо */
+    /* Когда боковое меню открыто, сдвигаем input-container вправо и поднимаем выше клавиатуры */
     body.sidebar-open .input-container {
         transform: translateX(280px) translateZ(0) !important;
         -webkit-transform: translateX(280px) translateZ(0) !important;
-        bottom: 0 !important;
+        bottom: calc(0px + env(safe-area-inset-bottom)) !important;
         top: auto !important;
+        z-index: 1001 !important; /* Выше sidebar, чтобы была видна */
+        padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
     }
     
     /* Когда мобильное меню открыто, НЕ двигаем input-container */
