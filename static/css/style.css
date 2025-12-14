@@ -1031,7 +1031,7 @@ body.dark-mode .mobile-menu-content::before {
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 2000; /* Выше чем input-container (1000) и header (100) */
     left: 0;
     top: 0;
     width: 100%;
@@ -1055,6 +1055,8 @@ body.dark-mode .mobile-menu-content::before {
     display: flex;
     flex-direction: column;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 2001;
 }
 
 .about-modal {

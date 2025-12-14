@@ -1213,7 +1213,27 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, { passive: false });
     }
     
-    // Закрытие модального окна "О SEEE"
+    // Закрытие модального окна "О SEEE" - используем делегирование для надежности
+    document.addEventListener('click', function(e) {
+        const closeAboutModal = document.getElementById('closeAboutModal');
+        const aboutModal = document.getElementById('aboutModal');
+        
+        // Закрытие по кнопке
+        if (e.target.closest('#closeAboutModal') || e.target === closeAboutModal) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (aboutModal) {
+                aboutModal.style.display = 'none';
+            }
+        }
+        
+        // Закрытие при клике вне модального окна
+        if (e.target === aboutModal && aboutModal) {
+            aboutModal.style.display = 'none';
+        }
+    }, true);
+    
+    // Также добавляем прямые обработчики для надежности
     const closeAboutModal = document.getElementById('closeAboutModal');
     const aboutModal = document.getElementById('aboutModal');
     
@@ -1222,14 +1242,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             e.preventDefault();
             e.stopPropagation();
             aboutModal.style.display = 'none';
-        });
+        }, true);
         
         // Закрытие при клике вне модального окна
         aboutModal.addEventListener('click', function(e) {
             if (e.target === aboutModal) {
+                e.preventDefault();
+                e.stopPropagation();
                 aboutModal.style.display = 'none';
             }
-        });
+        }, true);
     }
     
     // Мобильное меню - стрелка внизу
