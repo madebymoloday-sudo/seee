@@ -368,34 +368,7 @@ function updateMobileButtons() {
     }
 }
 
-// Автоматическое изменение высоты textarea
-messageInput.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-    
-    // Обновляем видимость кнопок
-    updateMobileButtons();
-});
-
-// Обработка клавиш для отправки сообщения
-messageInput.addEventListener('keydown', function(e) {
-    // Enter отправляет сообщение
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        e.stopPropagation();
-        messageForm.dispatchEvent(new Event('submit'));
-        return false;
-    }
-    
-    // Shift+Enter делает перенос строки (не предотвращаем стандартное поведение)
-    if (e.key === 'Enter' && e.shiftKey) {
-        // Разрешаем стандартное поведение - перенос строки
-        return true;
-    }
-    
-    // Все остальные клавиши (включая пробел) работают как обычно
-    return true;
-});
+// Эти обработчики будут добавлены в DOMContentLoaded
 
 // Обработчик кнопки отправки
 // Инициализация обработчиков в DOMContentLoaded
@@ -412,23 +385,56 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Привязываем обработчики
     sendBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    messageForm.dispatchEvent(new Event('submit'));
-});
-
-// Обработчик для мобильной кнопки отправки
-const sendBtnMobile = document.getElementById('sendBtnMobile');
-if (sendBtnMobile) {
-    sendBtnMobile.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
         messageForm.dispatchEvent(new Event('submit'));
     });
-}
-
-// Обработчики кнопок
-document.getElementById('newChatBtn').addEventListener('click', createNewSession);
+    
+    // Автоматическое изменение высоты textarea
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        
+        // Обновляем видимость кнопок
+        updateMobileButtons();
+    });
+    
+    // Обработка клавиш для отправки сообщения
+    messageInput.addEventListener('keydown', function(e) {
+        // Enter отправляет сообщение
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            messageForm.dispatchEvent(new Event('submit'));
+            return false;
+        }
+        
+        // Shift+Enter делает перенос строки (не предотвращаем стандартное поведение)
+        if (e.key === 'Enter' && e.shiftKey) {
+            // Разрешаем стандартное поведение - перенос строки
+            return true;
+        }
+        
+        // Все остальные клавиши (включая пробел) работают как обычно
+        return true;
+    });
+    
+    // Обработчик для мобильной кнопки отправки
+    const sendBtnMobile = document.getElementById('sendBtnMobile');
+    if (sendBtnMobile) {
+        sendBtnMobile.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            messageForm.dispatchEvent(new Event('submit'));
+        });
+    }
+    
+    // Обработчики кнопок
+    const newChatBtn = document.getElementById('newChatBtn');
+    if (newChatBtn) {
+        newChatBtn.addEventListener('click', createNewSession);
+    }
+    
     const downloadDocBtn = document.getElementById('downloadDocBtn');
     if (downloadDocBtn) {
         downloadDocBtn.addEventListener('click', async function() {
@@ -471,11 +477,11 @@ document.getElementById('newChatBtn').addEventListener('click', createNewSession
     } catch (error) {
         console.error('Ошибка загрузки документа:', error);
         alert(`Ошибка загрузки документа: ${error.message}`);
+        }
+    });
     }
+    // Закрываем первый блок DOMContentLoaded
 });
-
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', async function() {
     initSocket();
     
     // Проверяем параметр session в URL ДО загрузки сессий
