@@ -934,19 +934,23 @@ body.dark-mode .mobile-menu-content::before {
 
 /* Мобильная кнопка отправки */
 .btn-send-mobile {
-    width: 44px;
-    height: 44px;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
     background: var(--ultramarine) !important;
     border: none;
     border-radius: 50% !important;
     color: white !important;
     cursor: pointer;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
     flex-shrink: 0;
     box-shadow: 0 2px 4px rgba(106, 142, 235, 0.3) !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 .btn-send-mobile:hover:not(:disabled) {
@@ -963,8 +967,11 @@ body.dark-mode .mobile-menu-content::before {
 .btn-send-mobile svg {
     stroke: white !important;
     color: white !important;
-    width: 20px;
-    height: 20px;
+    width: 24px !important;
+    height: 24px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* Scrollbar */
@@ -1567,6 +1574,8 @@ body.dark-mode .mobile-menu-content::before {
         background: transparent !important;
         border-bottom: none !important;
         pointer-events: auto !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
     
     .chat-header * {
@@ -1627,6 +1636,14 @@ body.dark-mode .mobile-menu-content::before {
         box-shadow: none !important;
         transition: transform 0.3s ease;
         pointer-events: auto !important;
+        border: none !important;
+    }
+    
+    /* Убираем любые белые фоны которые могут появиться */
+    .input-container::before,
+    .input-container::after {
+        display: none !important;
+        content: none !important;
     }
     
     /* Убираем белый фон у body и app-container внизу */
@@ -1639,6 +1656,15 @@ body.dark-mode .mobile-menu-content::before {
     }
     
     .chat-container {
+        background: transparent !important;
+    }
+    
+    /* Убираем белые плашки которые могут появиться */
+    html {
+        background: transparent !important;
+    }
+    
+    main.chat-container {
         background: transparent !important;
     }
     
@@ -1782,11 +1808,11 @@ body.dark-mode .mobile-menu-content::before {
         z-index: 1;
     }
     
-    /* Убеждаемся что header всегда поверх всего */
+    /* Убираем белый фон у header */
     .chat-header {
-        background: rgba(255, 255, 255, 0.95) !important;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
     
     #messageForm {

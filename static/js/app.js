@@ -463,17 +463,29 @@ document.addEventListener('DOMContentLoaded', async function() {
     function handleSendClick(e) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('[Mobile] Send button clicked');
+        console.log('[Mobile] Send button clicked', e);
         if (messageInput && messageInput.value.trim()) {
-            messageForm.dispatchEvent(new Event('submit'));
+            console.log('[Mobile] Submitting form');
+            messageForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        } else {
+            console.log('[Mobile] No text to send');
         }
     }
     if (sendBtnMobile) {
-        sendBtnMobile.addEventListener('click', handleSendClick);
+        console.log('[Mobile] Setting up send button handlers');
+        sendBtnMobile.addEventListener('click', handleSendClick, true);
         sendBtnMobile.addEventListener('touchstart', function(e) {
+            console.log('[Mobile] Send button touchstart');
             e.preventDefault();
+            e.stopPropagation();
             handleSendClick(e);
-        }, { passive: false });
+        }, { passive: false, capture: true });
+        sendBtnMobile.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false, capture: true });
+    } else {
+        console.error('[Mobile] sendBtnMobile not found!');
     }
     
     // Обработчики кнопок
