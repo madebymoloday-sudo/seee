@@ -1213,45 +1213,33 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, { passive: false });
     }
     
-    // Закрытие модального окна "О SEEE" - используем делегирование для надежности
-    document.addEventListener('click', function(e) {
-        const closeAboutModal = document.getElementById('closeAboutModal');
-        const aboutModal = document.getElementById('aboutModal');
-        
-        // Закрытие по кнопке
-        if (e.target.closest('#closeAboutModal') || e.target === closeAboutModal) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (aboutModal) {
-                aboutModal.style.display = 'none';
-            }
-        }
-        
-        // Закрытие при клике вне модального окна
-        if (e.target === aboutModal && aboutModal) {
-            aboutModal.style.display = 'none';
-        }
-    }, true);
-    
-    // Также добавляем прямые обработчики для надежности
+    // Закрытие модального окна "О SEEE"
     const closeAboutModal = document.getElementById('closeAboutModal');
     const aboutModal = document.getElementById('aboutModal');
     
     if (closeAboutModal && aboutModal) {
+        // Прямой обработчик для кнопки закрытия
         closeAboutModal.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             aboutModal.style.display = 'none';
-        }, true);
+        });
         
-        // Закрытие при клике вне модального окна
+        // Закрытие при клике вне модального окна (на overlay)
         aboutModal.addEventListener('click', function(e) {
+            // Закрываем только если клик был на сам overlay, а не на содержимое
             if (e.target === aboutModal) {
-                e.preventDefault();
-                e.stopPropagation();
                 aboutModal.style.display = 'none';
             }
-        }, true);
+        });
+        
+        // Предотвращаем закрытие при клике на содержимое модального окна
+        const modalContent = aboutModal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
     }
     
     // Мобильное меню - стрелка внизу
