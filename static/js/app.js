@@ -343,9 +343,10 @@ function scrollToBottom() {
 }
 
 // Обработка отправки сообщения
-const messageForm = document.getElementById('messageForm');
-const messageInput = document.getElementById('messageInput');
-const sendBtn = document.getElementById('sendBtn');
+// Эти переменные будут инициализированы в DOMContentLoaded
+let messageForm;
+let messageInput;
+let sendBtn;
 
 // Обработчик отправки будет добавлен в DOMContentLoaded, чтобы иметь доступ к updatePauseButton
 // (старый обработчик удален, новый добавлен в DOMContentLoaded)
@@ -397,7 +398,20 @@ messageInput.addEventListener('keydown', function(e) {
 });
 
 // Обработчик кнопки отправки
-sendBtn.addEventListener('click', function(e) {
+// Инициализация обработчиков в DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализируем переменные
+    messageForm = document.getElementById('messageForm');
+    messageInput = document.getElementById('messageInput');
+    sendBtn = document.getElementById('sendBtn');
+    
+    if (!messageForm || !messageInput || !sendBtn) {
+        console.error('Не найдены элементы формы сообщения');
+        return;
+    }
+    
+    // Привязываем обработчики
+    sendBtn.addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
     messageForm.dispatchEvent(new Event('submit'));
@@ -415,7 +429,9 @@ if (sendBtnMobile) {
 
 // Обработчики кнопок
 document.getElementById('newChatBtn').addEventListener('click', createNewSession);
-document.getElementById('downloadDocBtn').addEventListener('click', async function() {
+    const downloadDocBtn = document.getElementById('downloadDocBtn');
+    if (downloadDocBtn) {
+        downloadDocBtn.addEventListener('click', async function() {
     if (!currentSessionId) {
         alert('Выберите сессию для скачивания документа');
         return;
@@ -801,9 +817,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 socket.emit('go_to_belief', {
                     session_id: currentSessionId,
                     concept_name: availableConcepts[0]
-                });
-            }
         });
+    }
+    
+    // Закрываем блок DOMContentLoaded
+});
     }
     
     // Обработчик кнопки "Пропустить"
