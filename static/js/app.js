@@ -381,24 +381,23 @@ function hideTypingIndicator() {
     }
 }
 
-// Прокрутка вниз
+// Прокрутка вниз (подход как в ChatGPT)
 function scrollToBottom() {
     const messagesContainer = document.getElementById('messagesContainer');
     if (!messagesContainer) return;
     
-    // Используем scrollIntoView для последнего сообщения - это более надежный способ
-    const lastMessage = messagesContainer.lastElementChild;
-    if (lastMessage) {
-        lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    } else {
-        // Если нет сообщений, просто прокручиваем до конца
-        requestAnimationFrame(() => {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            setTimeout(() => {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 100);
-        });
-    }
+    // Используем простой подход - прокручиваем до конца контейнера
+    // Это работает надежнее, чем scrollIntoView на мобильных устройствах
+    const scrollToEnd = () => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    };
+    
+    // Прокручиваем сразу и после небольшой задержки для надежности
+    scrollToEnd();
+    requestAnimationFrame(() => {
+        scrollToEnd();
+        setTimeout(scrollToEnd, 50);
+    });
 }
 
 // Обработка отправки сообщения
