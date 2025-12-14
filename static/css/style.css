@@ -571,7 +571,7 @@ body {
     text-align: center;
     margin: 0 auto;
     display: inline-block;
-    padding: 6px 20px;
+    padding: 6px 8px;
     background: rgba(106, 142, 235, 0.1);
     border-radius: 20px;
     font-size: 14px;
@@ -583,6 +583,16 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.chat-title-center::before {
+    content: '  ';
+    display: inline-block;
+}
+
+.chat-title-center::after {
+    content: '  ';
+    display: inline-block;
 }
 
 .chat-title-center:hover {
