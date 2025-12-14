@@ -645,6 +645,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Инициализация Socket.IO и загрузка данных
     initSocket();
     
+    // Загружаем сохраненную версию интерфейса
+    const savedViewMode = localStorage.getItem('viewMode') || 'auto';
+    if (savedViewMode === 'mobile') {
+        document.body.classList.add('force-mobile-view');
+    } else if (savedViewMode === 'web') {
+        document.body.classList.remove('force-mobile-view');
+    }
+    
     // Проверяем параметр session в URL ДО загрузки сессий
     const urlParams = new URLSearchParams(window.location.search);
     const sessionIdParam = urlParams.get('session');

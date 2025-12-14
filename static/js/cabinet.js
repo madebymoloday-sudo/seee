@@ -137,6 +137,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Переключение версии интерфейса (мобильная/веб)
+    const viewModeToggle = document.getElementById('viewModeToggle');
+    if (viewModeToggle) {
+        // Загружаем сохраненное значение
+        const savedViewMode = localStorage.getItem('viewMode') || 'auto';
+        const isMobileView = savedViewMode === 'mobile';
+        
+        // Устанавливаем начальное состояние тумблера
+        if (isMobileView) {
+            viewModeToggle.classList.add('active');
+            document.body.classList.add('force-mobile-view');
+        } else {
+            viewModeToggle.classList.remove('active');
+            document.body.classList.remove('force-mobile-view');
+        }
+        
+        // Обработчик клика
+        viewModeToggle.addEventListener('click', function() {
+            const isActive = viewModeToggle.classList.toggle('active');
+            
+            if (isActive) {
+                // Включаем мобильную версию
+                document.body.classList.add('force-mobile-view');
+                localStorage.setItem('viewMode', 'mobile');
+            } else {
+                // Включаем веб-версию
+                document.body.classList.remove('force-mobile-view');
+                localStorage.setItem('viewMode', 'web');
+            }
+        });
+    }
+    
     // Копирование реферальной ссылки
     const copyReferralLinkBtn = document.getElementById('copyReferralLink');
     if (copyReferralLinkBtn) {
