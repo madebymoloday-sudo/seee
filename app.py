@@ -506,7 +506,8 @@ def google_auth():
         
         # Если есть данные пользователя из OAuth2 (через access_token)
         if user_data and not google_id:
-            google_id = user_data.get('id')
+            # Google userinfo API v2 возвращает 'id', но может быть и 'sub'
+            google_id = user_data.get('id') or user_data.get('sub')
             email = user_data.get('email')
             name = user_data.get('name', email)
         
@@ -520,7 +521,7 @@ def google_auth():
                 )
                 if user_info_response.status_code == 200:
                     user_info = user_info_response.json()
-                    google_id = user_info.get('id')
+                    google_id = user_info.get('id') or user_info.get('sub')
                     email = user_info.get('email')
                     name = user_info.get('name', email)
             except Exception as e:
@@ -530,10 +531,16 @@ def google_auth():
             return jsonify({'success': False, 'error': 'Не удалось получить данные пользователя Google'}), 400
         
         conn = get_db()
+        database_url = os.environ.get('DATABASE_URL')
+        is_postgres = bool(database_url)
+        
+        # Определяем правильный placeholder для SQL
+        placeholder = '%s' if is_postgres else '?'
         c = conn.cursor()
         
         # Проверяем, есть ли пользователь с таким Google ID
-        c.execute('SELECT id, username FROM users WHERE google_id = ?', (google_id,))
+        query = f'SELECT id, username FROM users WHERE google_id = {placeholder}'
+        c.execute(query, (google_id,))
         user = c.fetchone()
         
         if user:
@@ -546,33 +553,51 @@ def google_auth():
         else:
             # Создаем нового пользователя
             username = email.split('@')[0] if email else f"user_{google_id[:8]}"
+            original_username = username
             
             # Проверяем уникальность username
-            c.execute('SELECT id FROM users WHERE username = ?', (username,))
+            query = f'SELECT id FROM users WHERE username = {placeholder}'
+            c.execute(query, (username,))
             if c.fetchone():
-                username = f"{username}_{google_id[:8]}"
+                counter = 1
+                while True:
+                    username = f"{original_username}_{counter}"
+                    c.execute(query, (username,))
+                    if not c.fetchone():
+                        break
+                    counter += 1
             
             new_referral_code = generate_referral_code()
             user_id_str = str(uuid.uuid4())[:8].upper()
             
             # Проверяем уникальность кодов
             while True:
-                c.execute('SELECT id FROM users WHERE referral_code = ? OR user_id = ?', 
-                         (new_referral_code, user_id_str))
+                query = f'SELECT id FROM users WHERE referral_code = {placeholder} OR user_id = {placeholder}'
+                c.execute(query, (new_referral_code, user_id_str))
                 if not c.fetchone():
                     break
                 new_referral_code = generate_referral_code()
                 user_id_str = str(uuid.uuid4())[:8].upper()
             
             # Создаем пользователя без пароля (только Google)
-            c.execute('''INSERT INTO users (username, password_hash, referral_code, user_id, google_id, email, full_name) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)''', 
-                     (username, '', new_referral_code, user_id_str, google_id, email, name))
+            if is_postgres:
+                # PostgreSQL: используем RETURNING для получения ID
+                insert_query = '''INSERT INTO users (username, password_hash, referral_code, user_id, google_id, email, full_name) 
+                                 VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id'''
+                c.execute(insert_query, (username, '', new_referral_code, user_id_str, google_id, email, name))
+                new_user_id = c.fetchone()[0]
+            else:
+                # SQLite: используем lastrowid
+                insert_query = '''INSERT INTO users (username, password_hash, referral_code, user_id, google_id, email, full_name) 
+                                 VALUES (?, ?, ?, ?, ?, ?, ?)'''
+                c.execute(insert_query, (username, '', new_referral_code, user_id_str, google_id, email, name))
+                new_user_id = c.lastrowid
+            
             conn.commit()
-            new_user_id = c.lastrowid
             
             # Создаем начальный баланс
-            c.execute('INSERT INTO balances (user_id, amount) VALUES (?, 0.00)', (new_user_id,))
+            balance_query = f'INSERT INTO balances (user_id, amount) VALUES ({placeholder}, 0.00)'
+            c.execute(balance_query, (new_user_id,))
             conn.commit()
             conn.close()
             
@@ -584,7 +609,9 @@ def google_auth():
             return jsonify({'success': True, 'user_id': new_user_id, 'username': username, 'referral_code': new_referral_code})
             
     except Exception as e:
+        import traceback
         print(f"[Google Auth] Ошибка: {e}")
+        print(f"[Google Auth] Traceback: {traceback.format_exc()}")
         return jsonify({'success': False, 'error': f'Ошибка авторизации: {str(e)}'}), 500
 
 @app.route('/register', methods=['GET', 'POST'])
