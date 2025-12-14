@@ -548,6 +548,12 @@ body {
     padding: 8px;
     color: var(--ultramarine);
     flex-shrink: 0;
+    border-radius: 50% !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .chat-title-center {
@@ -839,16 +845,16 @@ body.dark-mode .chat-title-center {
 }
 
 .btn-mobile-menu-toggle {
-    width: 40px;
-    height: 40px;
+    width: 40px !important;
+    height: 40px !important;
     background: transparent !important;
     border: none;
-    border-radius: 0;
+    border-radius: 50% !important;
     color: var(--ultramarine);
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     flex-shrink: 0;
     transition: all 0.2s;
     padding: 0;
