@@ -799,11 +799,11 @@ body.dark-mode .mobile-menu-content::before {
     content: '';
     position: absolute;
     bottom: -6px;
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
+    left: 20px;
     width: 12px;
     height: 12px;
     background: white;
+    transform: rotate(45deg);
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
