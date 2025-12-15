@@ -1419,21 +1419,14 @@ def logout():
 @app.route('/')
 def index():
     """Главная страница"""
-    # Проверяем наличие chat.html в разных местах
-    chat_paths = [
-        os.path.join(os.path.dirname(__file__), 'templates', 'chat.html'),
-        os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates', 'chat.html'),
-        os.path.join(os.path.dirname(__file__), 'templates', 'index.html')
-    ]
+    # Используем index.html как основной шаблон
+    template_name = 'index.html'
+    template_path = os.path.join(os.path.dirname(__file__), 'templates', template_name)
     
-    for path in chat_paths:
-        if os.path.exists(path):
-            template_name = os.path.basename(path)
-            template_dir = os.path.basename(os.path.dirname(path))
-            if template_dir == 'templates':
-                return render_template(template_name)
+    if os.path.exists(template_path):
+        return render_template(template_name)
     
-    # Если ничего не найдено, возвращаем простую HTML страницу
+    # Если шаблон не найден, возвращаем простую HTML страницу
     return '''
     <!DOCTYPE html>
     <html>
