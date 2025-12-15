@@ -1426,12 +1426,17 @@ def logout():
 @app.route('/')
 def index():
     """Главная страница"""
-    # Используем index.html как основной шаблон
-    template_name = 'index.html'
-    template_path = os.path.join(os.path.dirname(__file__), 'templates', template_name)
-    
-    if os.path.exists(template_path):
-        return render_template(template_name)
+    try:
+        # Используем index.html как основной шаблон
+        template_name = 'index.html'
+        template_path = os.path.join(templates_dir, template_name)
+        
+        if os.path.exists(template_path):
+            return render_template(template_name)
+    except Exception as e:
+        print(f"Ошибка при рендеринге шаблона: {e}")
+        import traceback
+        traceback.print_exc()
     
     # Если шаблон не найден, возвращаем простую HTML страницу
     return '''
