@@ -11,9 +11,14 @@ import os
 from subscription_system import save_user_contact_info
 from mlm_system import get_db, generate_referral_code, create_referral_structure
 
+# Получаем абсолютные пути к директориям
+base_dir = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(base_dir, 'static')
+templates_dir = os.path.join(base_dir, 'templates')
+
 app = Flask(__name__, 
-            static_folder='static',
-            template_folder='templates')
+            static_folder=static_dir,
+            template_folder=templates_dir)
 app.config['SECRET_KEY'] = 'your-secret-key'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
