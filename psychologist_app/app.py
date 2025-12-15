@@ -1417,6 +1417,11 @@ def login():
         'user_id': user_id
     })
 
+@app.route('/health')
+def health():
+    """Health check endpoint для Railway"""
+    return jsonify({'status': 'ok', 'message': 'Приложение работает'}), 200
+
 @app.route('/logout', methods=['POST'])
 def logout():
     """Выход пользователя"""
@@ -1429,7 +1434,7 @@ def index():
     try:
         # Используем index.html как основной шаблон
         template_name = 'index.html'
-        template_path = os.path.join(templates_dir, template_name)
+        template_path = os.path.join(base_dir, 'templates', template_name)
         
         if os.path.exists(template_path):
             return render_template(template_name)
