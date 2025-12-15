@@ -1436,8 +1436,14 @@ def index():
         template_name = 'index.html'
         template_path = os.path.join(base_dir, 'templates', template_name)
         
+        print(f"Попытка загрузить шаблон: {template_path}")
+        print(f"Шаблон существует: {os.path.exists(template_path)}")
+        
         if os.path.exists(template_path):
+            print("Рендеринг шаблона index.html")
             return render_template(template_name)
+        else:
+            print(f"Шаблон не найден по пути: {template_path}")
     except Exception as e:
         print(f"Ошибка при рендеринге шаблона: {e}")
         import traceback
