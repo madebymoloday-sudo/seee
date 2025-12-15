@@ -54,12 +54,22 @@ class CodeUpdater:
             result = await self._apply_single_fix(fix)
             results.append(result)
         
-        return {
+        update_result = {
             "status": "completed",
             "fixes_applied": len([r for r in results if r["success"]]),
             "fixes_failed": len([r for r in results if not r["success"]]),
             "details": results
         }
+        
+        # Если применены исправления, создаем флаг для перезапуска агента
+        if update_result["fixes_applied"] > 0:
+            try:
+                restart_flag_path = "/tmp/agent_restart_flag"
+                with open(restart_flag_path, 'w') as f:
+                    f.write(f"restart_after_fixes_{update_result['fixes_applied']}")
+                print(f"[CodeUpdater] ✅ Создан флаг перезапуска агента: {restart_flag_path}")
+            except Exception as e:
+                print(f"[CodeUpdater] ⚠️  Не удалось создать флаг перезапуска: {e}")
         
         # Автоматически закоммитить и запушить изменения, если применены исправления
         if update_result["fixes_applied"] > 0 and hasattr(self, 'git_updater') and self.git_updater:
