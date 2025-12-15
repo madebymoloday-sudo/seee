@@ -11,7 +11,9 @@ import os
 from subscription_system import save_user_contact_info
 from mlm_system import get_db, generate_referral_code, create_referral_structure
 
-app = Flask(__name__)
+app = Flask(__name__, 
+            static_folder='static',
+            template_folder='templates')
 app.config['SECRET_KEY'] = 'your-secret-key'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
