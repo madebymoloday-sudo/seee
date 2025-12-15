@@ -10,3 +10,4 @@ if ! git remote | grep -q "origin"; then
 fi
 git branch -M main 2>/dev/null
 git push -u origin main --force
+

@@ -14,7 +14,12 @@ from emulator.telegram_emulator import emulator, Message
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key_for_chat'
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+# Используем threading вместо eventlet, так как eventlet может быть недоступен
+try:
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+except ValueError:
+    # Если threading тоже не работает, используем по умолчанию
+    socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Глобальное хранилище для сообщений
 chat_messages = []
