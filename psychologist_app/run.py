@@ -20,5 +20,5 @@ if __name__ == '__main__':
     print(f"Приложение запущено на http://localhost:{port}")
     print("Нажмите Ctrl+C для остановки")
     print("=" * 50)
-    socketio.run(app, debug=debug, port=port, host='0.0.0.0')
+    socketio.run(app, debug=debug, port=port, host='0.0.0.0', allow_unsafe_werkzeug=True)
 
