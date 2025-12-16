@@ -15,8 +15,18 @@ import requests
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import pyotp
-import qrcode
+try:
+    import pyotp
+    PYOTP_AVAILABLE = True
+except ImportError:
+    PYOTP_AVAILABLE = False
+    print("WARNING: pyotp not available, 2FA features will be disabled")
+try:
+    import qrcode
+    QRCODE_AVAILABLE = True
+except ImportError:
+    QRCODE_AVAILABLE = False
+    print("WARNING: qrcode not available, QR code features will be disabled")
 import io
 import base64
 from mlm_system import (
@@ -1448,6 +1458,10 @@ def setup_2fa():
     result = c.fetchone()
     username = result[0] if result else 'user'
     
+    # Проверяем доступность pyotp
+    if not PYOTP_AVAILABLE:
+        return jsonify({'error': '2FA недоступна: pyotp не установлен'}), 503
+    
     # Генерируем секрет
     secret = pyotp.random_base32()
     
@@ -1462,6 +1476,9 @@ def setup_2fa():
     )
     
     # Генерируем QR-код
+    if not QRCODE_AVAILABLE:
+        return jsonify({'error': 'QR код недоступен: qrcode не установлен'}), 503
+    
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(totp_uri)
     qr.make(fit=True)
@@ -1508,6 +1525,9 @@ def enable_2fa():
     secret = result[0]
     
     # Проверяем код
+    if not PYOTP_AVAILABLE:
+        return jsonify({'error': '2FA недоступна: pyotp не установлен'}), 503
+    
     totp = pyotp.TOTP(secret)
     if not totp.verify(code, valid_window=1):
         conn.close()
