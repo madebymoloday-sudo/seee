@@ -475,6 +475,17 @@ body {
     height: 24px;
 }
 
+/* На мобильной версии скрываем кнопку sidebar-toggle-btn, показываем mobile-menu-toggle */
+@media (max-width: 768px) {
+    .sidebar-toggle-btn {
+        display: none !important;
+    }
+    
+    .mobile-menu-toggle {
+        display: flex !important;
+    }
+}
+
 .mobile-menu-toggle {
     display: none;
     background: none;
