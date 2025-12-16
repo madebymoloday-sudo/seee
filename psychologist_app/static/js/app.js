@@ -13,7 +13,7 @@ function initSocket() {
     socket.on('response', function(data) {
         // Показываем стикер "Затрудняюсь ответить" только если это не навигационные кнопки
         const showDifficulty = !data.show_navigation && currentSessionId;
-        addMessage('assistant', data.message, true, showDifficulty);
+        addMessage('assistant', data.message, true, showDifficulty, data.concept_data);
         hideTypingIndicator();
     });
     
@@ -269,7 +269,7 @@ function showWelcomeMessage() {
 }
 
 // Добавление сообщения
-function addMessage(role, content, saveToServer = true, showDifficultyButton = false) {
+function addMessage(role, content, saveToServer = true, showDifficultyButton = false, conceptData = null) {
     const messagesContainer = document.getElementById('messagesContainer');
     
     // Убираем welcome message если есть
@@ -285,7 +285,41 @@ function addMessage(role, content, saveToServer = true, showDifficultyButton = f
     contentDiv.className = 'message-content';
     contentDiv.textContent = content;
     
-    messageDiv.appendChild(contentDiv);
+    // Добавляем кнопку копирования для всех сообщений
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'message-copy-btn';
+    copyBtn.innerHTML = '📋';
+    copyBtn.title = 'Копировать сообщение';
+    copyBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        navigator.clipboard.writeText(content).then(() => {
+            copyBtn.innerHTML = '✓';
+            copyBtn.title = 'Скопировано!';
+            setTimeout(() => {
+                copyBtn.innerHTML = '📋';
+                copyBtn.title = 'Копировать сообщение';
+            }, 2000);
+        }).catch(err => {
+            console.error('Ошибка копирования:', err);
+            // Fallback для старых браузеров
+            const textArea = document.createElement('textarea');
+            textArea.value = content;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            copyBtn.innerHTML = '✓';
+            setTimeout(() => {
+                copyBtn.innerHTML = '📋';
+            }, 2000);
+        });
+    });
+    
+    const messageWrapper = document.createElement('div');
+    messageWrapper.className = 'message-wrapper';
+    messageWrapper.appendChild(contentDiv);
+    messageWrapper.appendChild(copyBtn);
+    messageDiv.appendChild(messageWrapper);
     
     // Добавляем стикер "Затрудняюсь ответить" под сообщением AI
     if (role === 'assistant' && showDifficultyButton) {
@@ -299,6 +333,42 @@ function addMessage(role, content, saveToServer = true, showDifficultyButton = f
             }
         });
         messageDiv.appendChild(stickerDiv);
+    }
+    
+    // Если есть данные концепции, добавляем кнопки для просмотра и зачеркивания
+    if (role === 'assistant' && conceptData && Object.keys(conceptData).length > 0) {
+        const currentConcept = Object.keys(conceptData)[Object.keys(conceptData).length - 1];
+        if (currentConcept) {
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'message-actions';
+            actionsDiv.style.cssText = 'margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;';
+            
+            // Кнопка "Посмотреть идею целиком"
+            const viewBtn = document.createElement('button');
+            viewBtn.className = 'message-view-btn';
+            viewBtn.textContent = '👁️ Посмотреть идею целиком';
+            viewBtn.addEventListener('click', function() {
+                showConceptViewModal(currentConcept, conceptData[currentConcept]);
+            });
+            actionsDiv.appendChild(viewBtn);
+            
+            // Кнопка "Зачеркнуть идею"
+            const strikethroughBtn = document.createElement('button');
+            strikethroughBtn.className = 'message-view-btn';
+            strikethroughBtn.textContent = '~~ Зачеркнуть идею';
+            strikethroughBtn.addEventListener('click', function() {
+                if (confirm(`Зачеркнуть идею "${currentConcept}"? Она останется видимой, но будет помечена как неактуальная.`)) {
+                    messageDiv.classList.add('strikethrough');
+                    socket.emit('strikethrough_concept', {
+                        session_id: currentSessionId,
+                        concept_name: currentConcept
+                    });
+                }
+            });
+            actionsDiv.appendChild(strikethroughBtn);
+            
+            messageDiv.appendChild(actionsDiv);
+        }
     }
     
     messagesContainer.appendChild(messageDiv);
@@ -367,10 +437,26 @@ function updateMobileButtons() {
     }
 }
 
-// Автоматическое изменение высоты textarea
+// Фиксированная высота textarea (8 строк) с прокруткой как в Telegram
 messageInput.addEventListener('input', function() {
+    // Фиксируем высоту на 8 строк (примерно 8 * 20px = 160px)
+    const lineHeight = 20;
+    const maxVisibleLines = 8;
+    const maxHeight = lineHeight * maxVisibleLines;
+    
+    // Устанавливаем минимальную высоту
+    this.style.minHeight = lineHeight + 'px';
+    this.style.maxHeight = maxHeight + 'px';
     this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+    
+    // Если контент больше 8 строк, включаем прокрутку
+    if (this.scrollHeight > maxHeight) {
+        this.style.height = maxHeight + 'px';
+        this.style.overflowY = 'auto';
+    } else {
+        this.style.height = Math.min(this.scrollHeight, maxHeight) + 'px';
+        this.style.overflowY = 'hidden';
+    }
     
     // Обновляем видимость кнопок
     updateMobileButtons();
@@ -378,21 +464,19 @@ messageInput.addEventListener('input', function() {
 
 // Обработка клавиш для отправки сообщения
 messageInput.addEventListener('keydown', function(e) {
-    // Enter отправляет сообщение
+    // Enter делает перенос строки (не отправляет сообщение)
     if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        e.stopPropagation();
-        messageForm.dispatchEvent(new Event('submit'));
-        return false;
+        // Разрешаем стандартное поведение - перенос строки
+        return true;
     }
     
-    // Shift+Enter делает перенос строки (не предотвращаем стандартное поведение)
+    // Shift+Enter тоже делает перенос строки
     if (e.key === 'Enter' && e.shiftKey) {
         // Разрешаем стандартное поведение - перенос строки
         return true;
     }
     
-    // Все остальные клавиши (включая пробел) работают как обычно
+    // Все остальные клавиши работают как обычно
     return true;
 });
 
@@ -768,35 +852,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
             
-            // Если концепций несколько, показываем выбор
-            if (availableConcepts.length > 1) {
-                const conceptList = availableConcepts.map((c, i) => `${i+1}. ${c}`).join('\n');
-                const selected = prompt(`Выберите убеждение для разбора:\n\n${conceptList}\n\nВведите номер или название:`);
-                
-                if (selected) {
-                    // Пытаемся найти по номеру или названию
-                    let conceptName = null;
-                    const selectedNum = parseInt(selected);
-                    if (!isNaN(selectedNum) && selectedNum > 0 && selectedNum <= availableConcepts.length) {
-                        conceptName = availableConcepts[selectedNum - 1];
-                    } else {
-                        // Ищем по названию
-                        conceptName = availableConcepts.find(c => 
-                            c.toLowerCase().includes(selected.toLowerCase()) || 
-                            selected.toLowerCase().includes(c.toLowerCase())
-                        );
-                    }
-                    
-                    if (conceptName) {
-                        socket.emit('go_to_belief', {
-                            session_id: currentSessionId,
-                            concept_name: conceptName
-                        });
-                    } else {
-                        alert('Убеждение не найдено. Попробуйте еще раз.');
-                    }
-                }
-            } else {
+            // Показываем модальное окно для выбора убеждения
+            showBeliefSelectionModal(availableConcepts);
                 // Если концепция одна, переходим к ней сразу
                 socket.emit('go_to_belief', {
                     session_id: currentSessionId,
@@ -1009,17 +1066,54 @@ document.addEventListener('DOMContentLoaded', async function() {
     const sidebar = document.getElementById('sidebar');
     const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
     
+    // Кнопка боковой панели в левом верхнем углу (одно касание)
+    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            sidebar.classList.toggle('mobile-open');
+            if (mobileSidebarOverlay) {
+                mobileSidebarOverlay.classList.toggle('active');
+            }
+        });
+    }
+    
     if (mobileMenuToggle) {
-        mobileMenuToggle.addEventListener('click', function() {
-            sidebar.classList.add('mobile-open');
-            mobileSidebarOverlay.classList.add('active');
+        mobileMenuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            sidebar.classList.toggle('mobile-open');
+            if (mobileSidebarOverlay) {
+                mobileSidebarOverlay.classList.toggle('active');
+            }
         });
     }
     
     if (mobileSidebarOverlay) {
-        mobileSidebarOverlay.addEventListener('click', function() {
+        mobileSidebarOverlay.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             sidebar.classList.remove('mobile-open');
             mobileSidebarOverlay.classList.remove('active');
+        });
+    }
+    
+    // Закрытие боковой панели при клике на область чата (справа)
+    const chatContainer = document.querySelector('.chat-container');
+    if (chatContainer) {
+        chatContainer.addEventListener('click', function(e) {
+            // Закрываем только если клик не на кнопке открытия
+            if (!e.target.closest('.sidebar-toggle-btn') && 
+                !e.target.closest('.mobile-menu-toggle') &&
+                !e.target.closest('#sidebar')) {
+                if (sidebar && sidebar.classList.contains('mobile-open')) {
+                    sidebar.classList.remove('mobile-open');
+                    if (mobileSidebarOverlay) {
+                        mobileSidebarOverlay.classList.remove('active');
+                    }
+                }
+            }
         });
     }
     
@@ -1173,5 +1267,366 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
     }
+    
+    // Масштабирование текста
+    const decreaseTextSizeBtn = document.getElementById('decreaseTextSize');
+    const increaseTextSizeBtn = document.getElementById('increaseTextSize');
+    const textSizeDisplay = document.getElementById('textSizeDisplay');
+    
+    let currentTextSize = parseInt(localStorage.getItem('textSize') || '100');
+    if (textSizeDisplay) {
+        updateTextSizeDisplay();
+        applyTextSize();
+    }
+    
+    function updateTextSizeDisplay() {
+        if (textSizeDisplay) {
+            textSizeDisplay.textContent = currentTextSize + '%';
+        }
+    }
+    
+    function applyTextSize() {
+        const messagesContainer = document.getElementById('messagesContainer');
+        if (messagesContainer) {
+            messagesContainer.style.fontSize = currentTextSize + '%';
+        }
+        localStorage.setItem('textSize', currentTextSize.toString());
+    }
+    
+    if (decreaseTextSizeBtn) {
+        decreaseTextSizeBtn.addEventListener('click', function() {
+            if (currentTextSize > 50) {
+                currentTextSize -= 10;
+                updateTextSizeDisplay();
+                applyTextSize();
+            }
+        });
+    }
+    
+    if (increaseTextSizeBtn) {
+        increaseTextSizeBtn.addEventListener('click', function() {
+            if (currentTextSize < 200) {
+                currentTextSize += 10;
+                updateTextSizeDisplay();
+                applyTextSize();
+            }
+        });
+    }
+    
+    // Функция показа модального окна выбора убеждений
+    window.showBeliefSelectionModal = function(concepts) {
+        const modal = document.getElementById('beliefSelectionModal');
+        const beliefsList = document.getElementById('beliefsList');
+        if (!modal || !beliefsList) return;
+        
+        let editMode = false;
+        let selectedBeliefs = new Set();
+        let originalConcepts = [...concepts];
+        
+        function renderBeliefsList() {
+            beliefsList.innerHTML = '';
+            originalConcepts.forEach((concept, index) => {
+                const item = document.createElement('div');
+                item.className = 'belief-item';
+                item.style.cssText = 'padding: 12px; margin-bottom: 8px; border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; gap: 10px;';
+                
+                if (editMode) {
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = selectedBeliefs.has(concept);
+                    checkbox.addEventListener('change', function() {
+                        if (checkbox.checked) {
+                            selectedBeliefs.add(concept);
+                        } else {
+                            selectedBeliefs.delete(concept);
+                        }
+                    });
+                    item.appendChild(checkbox);
+                }
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = concept;
+                nameSpan.style.flex = '1';
+                if (editMode) {
+                    nameSpan.contentEditable = 'true';
+                    nameSpan.style.border = '1px solid var(--border)';
+                    nameSpan.style.padding = '4px 8px';
+                    nameSpan.style.borderRadius = '4px';
+                }
+                item.appendChild(nameSpan);
+                
+                if (!editMode) {
+                    const selectBtn = document.createElement('button');
+                    selectBtn.className = 'btn-save';
+                    selectBtn.textContent = 'Выбрать';
+                    selectBtn.style.padding = '6px 12px';
+                    selectBtn.addEventListener('click', function() {
+                        socket.emit('go_to_belief', {
+                            session_id: currentSessionId,
+                            concept_name: concept
+                        });
+                        modal.style.display = 'none';
+                    });
+                    item.appendChild(selectBtn);
+                }
+                
+                beliefsList.appendChild(item);
+            });
+        }
+        
+        const editBeliefsBtn = document.getElementById('editBeliefsBtn');
+        const beliefEditMode = document.getElementById('beliefEditMode');
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBeliefsBtn');
+        const saveChangesBtn = document.getElementById('saveBeliefChangesBtn');
+        
+        if (editBeliefsBtn) {
+            editBeliefsBtn.onclick = function() {
+                editMode = !editMode;
+                if (beliefEditMode) {
+                    beliefEditMode.style.display = editMode ? 'block' : 'none';
+                }
+                if (editBeliefsBtn) {
+                    editBeliefsBtn.textContent = editMode ? '❌ Отменить редактирование' : '✏️ Редактировать убеждения';
+                }
+                renderBeliefsList();
+            };
+        }
+        
+        if (deleteSelectedBtn) {
+            deleteSelectedBtn.onclick = function() {
+                if (selectedBeliefs.size === 0) {
+                    alert('Выберите убеждения для удаления');
+                    return;
+                }
+                if (confirm(`Удалить ${selectedBeliefs.size} убеждений?`)) {
+                    selectedBeliefs.forEach(concept => {
+                        const index = originalConcepts.indexOf(concept);
+                        if (index > -1) {
+                            originalConcepts.splice(index, 1);
+                        }
+                    });
+                    selectedBeliefs.clear();
+                    renderBeliefsList();
+                }
+            };
+        }
+        
+        if (saveChangesBtn) {
+            saveChangesBtn.onclick = function() {
+                const items = beliefsList.querySelectorAll('.belief-item');
+                items.forEach((item, index) => {
+                    const nameSpan = item.querySelector('span[contenteditable="true"]');
+                    if (nameSpan && nameSpan.textContent.trim()) {
+                        const oldName = originalConcepts[index];
+                        const newName = nameSpan.textContent.trim();
+                        if (oldName !== newName) {
+                            socket.emit('rename_concept', {
+                                session_id: currentSessionId,
+                                old_name: oldName,
+                                new_name: newName
+                            });
+                            originalConcepts[index] = newName;
+                        }
+                    }
+                });
+                alert('Изменения сохранены');
+                editMode = false;
+                if (beliefEditMode) {
+                    beliefEditMode.style.display = 'none';
+                }
+                if (editBeliefsBtn) {
+                    editBeliefsBtn.textContent = '✏️ Редактировать убеждения';
+                }
+                renderBeliefsList();
+            };
+        }
+        
+        const closeBtn = document.getElementById('closeBeliefSelectionModal');
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                modal.style.display = 'none';
+            };
+        }
+        
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        renderBeliefsList();
+        modal.style.display = 'block';
+    };
+    
+    // Функция показа модального окна просмотра идеи целиком
+    window.showConceptViewModal = function(conceptName, conceptData) {
+        const modal = document.getElementById('viewConceptModal');
+        const title = document.getElementById('viewConceptTitle');
+        const content = document.getElementById('viewConceptContent');
+        
+        if (!modal || !title || !content) return;
+        
+        title.textContent = `Идея: ${conceptName}`;
+        
+        let html = '<div style="line-height: 1.8;">';
+        html += `<h3 style="color: var(--ultramarine); margin-bottom: 15px;">${conceptName}</h3>`;
+        
+        if (conceptData.composition && conceptData.composition.length > 0) {
+            html += '<div style="margin-bottom: 15px;"><strong>Состав:</strong><ul>';
+            conceptData.composition.forEach(part => {
+                html += `<li>${part}</li>`;
+            });
+            html += '</ul></div>';
+        }
+        
+        if (conceptData.founder) {
+            html += `<div style="margin-bottom: 15px;"><strong>Основатель:</strong> ${conceptData.founder}</div>`;
+        }
+        
+        if (conceptData.purpose) {
+            html += `<div style="margin-bottom: 15px;"><strong>Цель:</strong> ${conceptData.purpose}</div>`;
+        }
+        
+        if (conceptData.consequences) {
+            if (conceptData.consequences.emotional && conceptData.consequences.emotional.length > 0) {
+                html += '<div style="margin-bottom: 15px;"><strong>Эмоциональные последствия:</strong><ul>';
+                conceptData.consequences.emotional.forEach(cons => {
+                    html += `<li>${cons}</li>`;
+                });
+                html += '</ul></div>';
+            }
+            if (conceptData.consequences.physical && conceptData.consequences.physical.length > 0) {
+                html += '<div style="margin-bottom: 15px;"><strong>Физические последствия:</strong><ul>';
+                conceptData.consequences.physical.forEach(cons => {
+                    html += `<li>${cons}</li>`;
+                });
+                html += '</ul></div>';
+            }
+        }
+        
+        if (conceptData.conclusions) {
+            html += `<div style="margin-bottom: 15px;"><strong>Выводы:</strong> ${conceptData.conclusions}</div>`;
+        }
+        
+        if (conceptData.comments && conceptData.comments.length > 0) {
+            html += '<div style="margin-bottom: 15px;"><strong>Комментарии:</strong><ul>';
+            conceptData.comments.forEach(comment => {
+                html += `<li>${comment}</li>`;
+            });
+            html += '</ul></div>';
+        }
+        
+        html += '</div>';
+        content.innerHTML = html;
+        
+        const closeBtn = document.getElementById('closeViewConceptModal');
+        const extractBtn = document.getElementById('extractConceptBtn');
+        
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                modal.style.display = 'none';
+            };
+        }
+        
+        if (extractBtn) {
+            extractBtn.onclick = function() {
+                modal.style.display = 'none';
+                showExtractConceptModal(conceptName, conceptData);
+            };
+        }
+        
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        modal.style.display = 'block';
+    };
+    
+    // Функция показа модального окна извлечения идеи
+    window.showExtractConceptModal = function(conceptName, conceptData) {
+        const modal = document.getElementById('extractConceptModal');
+        const options = document.getElementById('extractConceptOptions');
+        
+        if (!modal || !options) return;
+        
+        options.innerHTML = '';
+        
+        const parts = [];
+        if (conceptData.composition) {
+            conceptData.composition.forEach(part => {
+                parts.push({type: 'composition', name: part, label: `Состав: ${part}`});
+            });
+        }
+        if (conceptData.founder) {
+            parts.push({type: 'founder', name: conceptData.founder, label: `Основатель: ${conceptData.founder}`});
+        }
+        if (conceptData.purpose) {
+            parts.push({type: 'purpose', name: conceptData.purpose, label: `Цель: ${conceptData.purpose}`});
+        }
+        if (conceptData.conclusions) {
+            parts.push({type: 'conclusions', name: conceptData.conclusions, label: `Выводы: ${conceptData.conclusions}`});
+        }
+        
+        parts.forEach(part => {
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = part.name;
+            checkbox.id = `extract_${part.type}_${part.name.replace(/\s/g, '_')}`;
+            
+            const label = document.createElement('label');
+            label.htmlFor = checkbox.id;
+            label.textContent = part.label;
+            label.style.cssText = 'display: flex; align-items: center; gap: 8px; padding: 8px; margin-bottom: 8px; cursor: pointer;';
+            
+            label.insertBefore(checkbox, label.firstChild);
+            options.appendChild(label);
+        });
+        
+        const confirmBtn = document.getElementById('confirmExtractConceptBtn');
+        const cancelBtn = document.getElementById('cancelExtractConceptBtn');
+        const newNameInput = document.getElementById('newConceptName');
+        
+        if (confirmBtn) {
+            confirmBtn.onclick = function() {
+                const selected = Array.from(options.querySelectorAll('input[type="checkbox"]:checked'))
+                    .map(cb => cb.value);
+                const newName = newNameInput ? newNameInput.value.trim() : '';
+                
+                if (selected.length === 0) {
+                    alert('Выберите хотя бы одну часть для извлечения');
+                    return;
+                }
+                if (!newName) {
+                    alert('Введите название новой идеи');
+                    return;
+                }
+                
+                socket.emit('extract_concept', {
+                    session_id: currentSessionId,
+                    source_concept: conceptName,
+                    new_concept_name: newName,
+                    extracted_parts: selected
+                });
+                
+                modal.style.display = 'none';
+            };
+        }
+        
+        if (cancelBtn) {
+            cancelBtn.onclick = function() {
+                modal.style.display = 'none';
+            };
+        }
+        
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        modal.style.display = 'block';
+    };
 });
 

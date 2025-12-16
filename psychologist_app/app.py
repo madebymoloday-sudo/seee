@@ -2658,7 +2658,7 @@ def handle_edit_concept(data):
         'name': f'Как вы хотите изменить название убеждения "{concept_name}"?',
         'composition': f'Какие части убеждения "{concept_name}" вы хотите добавить или изменить?',
         'founder': f'Кто был основателем идеи "{concept_name}"? (можно дополнить или изменить)',
-        'purpose': f'С какой целью появилась идея "{concept_name}"? (можно дополнить или изменить)',
+        'purpose': f'Как вы думаете с какой целью эта идея "{concept_name}" внедрялась в ваш разум? (можно дополнить или изменить)',
         'consequences': f'Какие последствия имеет идея "{concept_name}"? (можно дополнить или изменить)',
         'conclusions': f'Какие выводы по поводу идеи "{concept_name}"? (можно дополнить или изменить)',
         'comments': f'Какие комментарии по поводу идеи "{concept_name}"? (можно дополнить)'
@@ -2702,7 +2702,11 @@ def handle_skip_step(data):
     concept = state.get('current_concept')
     
     # Определяем следующий этап
-    field_order = ['composition', 'founder', 'purpose', 'consequences', 'conclusions', 'comments']
+    field_order = ['composition', 'composition_check', 'founder', 'purpose', 'consequences', 'conclusions', 'comments']
+    
+    # Если на этапе composition_check, переходим к founder
+    if current_field == 'composition_check':
+        current_field = 'founder'
     
     if current_field in field_order:
         current_index = field_order.index(current_field)
@@ -2711,10 +2715,12 @@ def handle_skip_step(data):
             state['current_field'] = next_field
             
             # Генерируем вопрос для следующего этапа
-            if next_field == 'founder':
-                question = f'Хорошо, пропустим состав. Кто был основателем идеи "{concept}"?'
+            if next_field == 'composition_check':
+                question = f'Есть ли ещё какие-то части этой идеи "{concept}" или идём дальше?'
+            elif next_field == 'founder':
+                question = f'Хорошо. Кто был основателем идеи "{concept}"?'
             elif next_field == 'purpose':
-                question = f'Понятно. С какой целью появилась идея "{concept}"?'
+                question = f'Понятно. Как вы думаете с какой целью эта идея "{concept}" внедрялась в ваш разум?'
             elif next_field == 'consequences':
                 question = f'Хорошо. Какие эмоциональные последствия имеет существование идеи "{concept}" для вас?'
             elif next_field == 'conclusions':
@@ -2737,6 +2743,149 @@ def handle_skip_step(data):
             })
     else:
         emit('error', {'message': 'Нет активного этапа для пропуска'})
+
+@socketio.on('rename_concept')
+def handle_rename_concept(data):
+    """Обработка переименования концепции"""
+    if 'user_id' not in session:
+        emit('error', {'message': 'Не авторизован'})
+        return
+    
+    session_id = data.get('session_id')
+    old_name = data.get('old_name')
+    new_name = data.get('new_name')
+    
+    if not session_id or not old_name or not new_name:
+        emit('error', {'message': 'Неверные данные'})
+        return
+    
+    # Получаем состояние
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''SELECT role, content FROM messages 
+                 WHERE session_id = ? 
+                 ORDER BY timestamp ASC''', (session_id,))
+    history = [{'role': row[0], 'content': row[1]} for row in c.fetchall()]
+    conn.close()
+    
+    state = psychologist_ai.get_session_state(session_id, history)
+    concept_hierarchy = state.get('concept_hierarchy', {})
+    
+    if old_name in concept_hierarchy:
+        concept_hierarchy[new_name] = concept_hierarchy[old_name]
+        concept_hierarchy[new_name]['name'] = new_name
+        del concept_hierarchy[old_name]
+        
+        # Обновляем ссылки в других концепциях
+        for concept_name, concept_data in concept_hierarchy.items():
+            if 'sub_concepts' in concept_data:
+                if old_name in concept_data['sub_concepts']:
+                    index = concept_data['sub_concepts'].index(old_name)
+                    concept_data['sub_concepts'][index] = new_name
+            if 'composition' in concept_data:
+                concept_data['composition'] = [new_name if part == old_name else part 
+                                             for part in concept_data['composition']]
+        
+        if state.get('current_concept') == old_name:
+            state['current_concept'] = new_name
+        
+        emit('response', {
+            'message': f'Название убеждения изменено с "{old_name}" на "{new_name}"',
+            'concept_data': concept_hierarchy,
+            'show_navigation': True,
+            'available_concepts': list(concept_hierarchy.keys())
+        })
+    else:
+        emit('error', {'message': 'Убеждение не найдено'})
+
+@socketio.on('strikethrough_concept')
+def handle_strikethrough_concept(data):
+    """Обработка зачеркивания концепции"""
+    if 'user_id' not in session:
+        emit('error', {'message': 'Не авторизован'})
+        return
+    
+    session_id = data.get('session_id')
+    concept_name = data.get('concept_name')
+    
+    if not session_id or not concept_name:
+        emit('error', {'message': 'Неверные данные'})
+        return
+    
+    # Получаем состояние
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''SELECT role, content FROM messages 
+                 WHERE session_id = ? 
+                 ORDER BY timestamp ASC''', (session_id,))
+    history = [{'role': row[0], 'content': row[1]} for row in c.fetchall()]
+    conn.close()
+    
+    state = psychologist_ai.get_session_state(session_id, history)
+    concept_hierarchy = state.get('concept_hierarchy', {})
+    
+    if concept_name in concept_hierarchy:
+        concept_hierarchy[concept_name]['strikethrough'] = True
+        emit('response', {
+            'message': f'Идея "{concept_name}" зачеркнута',
+            'concept_data': concept_hierarchy,
+            'show_navigation': True,
+            'available_concepts': list(concept_hierarchy.keys())
+        })
+    else:
+        emit('error', {'message': 'Идея не найдена'})
+
+@socketio.on('extract_concept')
+def handle_extract_concept(data):
+    """Обработка извлечения части концепции как новой идеи"""
+    if 'user_id' not in session:
+        emit('error', {'message': 'Не авторизован'})
+        return
+    
+    session_id = data.get('session_id')
+    source_concept = data.get('source_concept')
+    new_concept_name = data.get('new_concept_name')
+    extracted_parts = data.get('extracted_parts', [])
+    
+    if not session_id or not source_concept or not new_concept_name:
+        emit('error', {'message': 'Неверные данные'})
+        return
+    
+    # Получаем состояние
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''SELECT role, content FROM messages 
+                 WHERE session_id = ? 
+                 ORDER BY timestamp ASC''', (session_id,))
+    history = [{'role': row[0], 'content': row[1]} for row in c.fetchall()]
+    conn.close()
+    
+    state = psychologist_ai.get_session_state(session_id, history)
+    concept_hierarchy = state.get('concept_hierarchy', {})
+    
+    # Создаем новую концепцию
+    if new_concept_name not in concept_hierarchy:
+        concept_hierarchy[new_concept_name] = {
+            'name': new_concept_name,
+            'composition': [],
+            'founder': None,
+            'purpose': None,
+            'consequences': {'emotional': [], 'physical': []},
+            'conclusions': None,
+            'comments': [],
+            'sub_concepts': [],
+            'extracted_from': source_concept,
+            'extracted_parts': extracted_parts
+        }
+        
+        emit('response', {
+            'message': f'Новая идея "{new_concept_name}" создана из частей идеи "{source_concept}". Теперь можно начать её разбор.',
+            'concept_data': concept_hierarchy,
+            'show_navigation': True,
+            'available_concepts': list(concept_hierarchy.keys())
+        })
+    else:
+        emit('error', {'message': 'Идея с таким названием уже существует'})
 
 def update_gpt_statistics(session_id: int, user_id: int, message_count: int, session_complete: bool):
     """Обновляет статистику обучения GPT"""

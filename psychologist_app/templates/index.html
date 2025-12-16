@@ -39,7 +39,13 @@
         <!-- Основная область чата -->
         <main class="chat-container">
             <div class="chat-header">
-                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Боковая панель">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                    </svg>
+                </button>
+                <button class="mobile-menu-toggle" id="mobileMenuToggle" style="display: none;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="3" y1="6" x2="21" y2="6"></line>
                         <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -107,8 +113,8 @@
                     <button type="button" class="btn-navigation" id="goToBeliefBtn">
                         🎯 Перейти к убеждению
                     </button>
-                    <button type="button" class="btn-navigation" id="skipStepBtn">
-                        ⏭️ Пропустить
+                    <button type="button" class="btn-navigation" id="skipStepBtn" style="order: 999;">
+                        ⏭️ Далее
                     </button>
                     <button type="button" class="btn-navigation" id="editConceptBtn">
                         ✏️ Дополнить
@@ -328,6 +334,19 @@
                 <!-- Вкладка Настройки -->
                 <div class="tab-content" id="tab-settings">
                     <div class="cabinet-section">
+                        <h3>Масштаб текста</h3>
+                        <div class="setting-item">
+                            <span>Размер текста сообщений</span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <button class="btn-text-size" id="decreaseTextSize" title="Уменьшить">−</button>
+                                <span id="textSizeDisplay">100%</span>
+                                <button class="btn-text-size" id="increaseTextSize" title="Увеличить">+</button>
+                            </div>
+                        </div>
+                        <p class="info-text">Изменяйте размер текста для удобства чтения. Меньший размер позволит видеть больше сообщений, больший - удобнее для слабовидящих.</p>
+                    </div>
+                    
+                    <div class="cabinet-section">
                         <h3>Язык интерфейса</h3>
                         <select id="languageSelect">
                             <option value="ru">Русский</option>
@@ -335,6 +354,70 @@
                         </select>
                         <button class="btn-save" id="saveLanguage">Сохранить</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для выбора и редактирования убеждений -->
+    <div id="beliefSelectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Выберите убеждение для разбора</h2>
+                <button class="modal-close" id="closeBeliefSelectionModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px;">
+                    <button class="btn-save" id="editBeliefsBtn" style="margin-bottom: 10px;">✏️ Редактировать убеждения</button>
+                    <div id="beliefEditMode" style="display: none;">
+                        <div style="margin-bottom: 15px;">
+                            <button class="btn-save" id="deleteSelectedBeliefsBtn" style="background: #dc2626; margin-right: 10px;">🗑️ Удалить выбранные</button>
+                            <button class="btn-save" id="saveBeliefChangesBtn">💾 Сохранить изменения</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="beliefsList" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Список убеждений будет добавлен через JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для просмотра идеи целиком -->
+    <div id="viewConceptModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="viewConceptTitle">Просмотр идеи</h2>
+                <button class="modal-close" id="closeViewConceptModal">&times;</button>
+            </div>
+            <div class="modal-body" id="viewConceptContent">
+                <!-- Содержимое идеи будет добавлено через JS -->
+            </div>
+            <div class="modal-footer" style="padding: 20px; border-top: 1px solid var(--border);">
+                <button class="btn-save" id="extractConceptBtn">📤 Извлечь идею из структуры</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для извлечения идеи -->
+    <div id="extractConceptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Извлечь идею из структуры</h2>
+                <button class="modal-close" id="closeExtractConceptModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="info-text">Выберите части идеи, которые хотите извлечь как новую идею для рассуждения:</p>
+                <div id="extractConceptOptions">
+                    <!-- Опции будут добавлены через JS -->
+                </div>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Название новой идеи:</label>
+                    <input type="text" id="newConceptName" placeholder="Введите название новой идеи">
+                </div>
+                <div class="form-actions">
+                    <button class="btn-save" id="confirmExtractConceptBtn">Создать новую идею</button>
+                    <button class="btn-cancel" id="cancelExtractConceptBtn">Отмена</button>
                 </div>
             </div>
         </div>

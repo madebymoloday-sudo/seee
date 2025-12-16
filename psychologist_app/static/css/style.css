@@ -453,6 +453,28 @@ body {
     position: relative;
 }
 
+.sidebar-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: var(--ultramarine);
+    flex-shrink: 0;
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+
+.sidebar-toggle-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
 .mobile-menu-toggle {
     display: none;
     background: none;
@@ -504,6 +526,7 @@ body {
     flex-direction: column;
     gap: 24px;
     position: relative;
+    font-size: 100%; /* Базовый размер, будет изменяться через JS */
     z-index: 1;
 }
 
@@ -603,12 +626,44 @@ body {
     display: none !important;
 }
 
+.message-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    position: relative;
+    width: 100%;
+}
+
+.message-wrapper:hover .message-copy-btn {
+    opacity: 1;
+}
+
 .message-content {
     flex: 1;
     padding: 12px 0;
     line-height: 1.6;
     white-space: pre-wrap;
     word-wrap: break-word;
+}
+
+.message-copy-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 8px;
+}
+
+.message-copy-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--ultramarine);
 }
 
 .message.user .message-content {
@@ -631,6 +686,33 @@ body {
     border-radius: 18px 18px 18px 4px;
     max-width: 75%;
     word-wrap: break-word;
+}
+
+.message.strikethrough .message-content {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.message-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.message-view-btn {
+    padding: 6px 12px;
+    background: rgba(106, 142, 235, 0.1);
+    border: 1px solid var(--ultramarine);
+    border-radius: 6px;
+    color: var(--ultramarine);
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.message-view-btn:hover {
+    background: rgba(106, 142, 235, 0.2);
 }
 
 /* Стикер "Затрудняюсь ответить" под сообщением AI */
@@ -692,7 +774,10 @@ body {
     font-size: 14px;
     font-family: inherit;
     resize: none;
-    max-height: 200px;
+    min-height: 44px;
+    max-height: 160px; /* 8 строк * 20px */
+    line-height: 20px;
+    overflow-y: auto;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
@@ -2271,6 +2356,13 @@ body.dark-mode .mobile-menu-content::before {
 .btn-difficulty:hover {
     background: var(--ultramarine);
     color: white;
+}
+
+#navigationButtonsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 .btn-navigation {

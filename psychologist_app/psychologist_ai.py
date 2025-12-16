@@ -648,18 +648,62 @@ class PsychologistAI:
                     }
                     concept_data['sub_concepts'].append(part)
             
-            state['current_field'] = 'founder'
+            # После сбора частей спрашиваем, есть ли еще части или идем дальше
+            state['current_field'] = 'composition_check'
             return {
-                'text': f'Хорошо. Теперь давайте подумаем: кто был основателем идеи "{concept}"? Кто был тем человеком (или это могло быть общество, или даже вы сами), которому было выгодно, чтобы такая идея "{concept}" у вас родилась?',
+                'text': f'Хорошо. Есть ли ещё какие-то части этой идеи "{concept}" или идём дальше?',
                 'concept_data': state['concept_hierarchy']
             }
+        
+        elif current_field == 'composition_check':
+            # Проверяем ответ пользователя
+            message_lower = message.lower().strip()
+            continue_keywords = ['далее', 'дальше', 'идём дальше', 'идем дальше', 'продолжить', 'следующий', 'дальше', 'пропустить']
+            
+            if any(keyword in message_lower for keyword in continue_keywords):
+                # Переходим к основателю
+                state['current_field'] = 'founder'
+                return {
+                    'text': f'Хорошо. Теперь давайте подумаем: кто был основателем идеи "{concept}"? Кто был тем человеком (или это могло быть общество, или даже вы сами), которому было выгодно, чтобы такая идея "{concept}" у вас родилась?',
+                    'concept_data': state['concept_hierarchy']
+                }
+            else:
+                # Пользователь добавил еще части, возвращаемся к сбору частей
+                parts = self.extract_concept_parts(message)
+                if parts:
+                    concept_data['composition'].extend(parts)
+                    for part in parts:
+                        if part not in state['concept_hierarchy']:
+                            state['concept_hierarchy'][part] = {
+                                'name': part,
+                                'composition': [],
+                                'founder': None,
+                                'purpose': None,
+                                'consequences': {'emotional': [], 'physical': []},
+                                'conclusions': None,
+                                'comments': [],
+                                'sub_concepts': []
+                            }
+                            concept_data['sub_concepts'].append(part)
+                    # Снова спрашиваем
+                    return {
+                        'text': f'Записал. Есть ли ещё какие-то части этой идеи "{concept}" или идём дальше?',
+                        'concept_data': state['concept_hierarchy']
+                    }
+                else:
+                    # Не удалось извлечь части, переходим дальше
+                    state['current_field'] = 'founder'
+                    return {
+                        'text': f'Хорошо. Теперь давайте подумаем: кто был основателем идеи "{concept}"? Кто был тем человеком (или это могло быть общество, или даже вы сами), которому было выгодно, чтобы такая идея "{concept}" у вас родилась?',
+                        'concept_data': state['concept_hierarchy']
+                    }
         
         elif current_field == 'founder':
             concept_data['founder'] = message
             print(f"[DEBUG] Сохранен основатель идеи '{concept}': {message}")
             state['current_field'] = 'purpose'
             return {
-                'text': f'Понятно. А с какой целью появилась идея "{concept}"? Если вы не уверены, могу предложить варианты: манипуляция, перекладывание ответственности, защита, контроль или что-то другое?',
+                'text': f'Понятно. Как вы думаете с какой целью эта идея "{concept}" внедрялась в ваш разум? Если вы не уверены, могу предложить варианты: манипуляция, перекладывание ответственности, защита, контроль или что-то другое?',
                 'concept_data': state['concept_hierarchy']
             }
         
