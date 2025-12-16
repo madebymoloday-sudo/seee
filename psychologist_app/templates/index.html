@@ -150,14 +150,28 @@
     <script src="{{ url_for('static', filename='js/force_center.js') }}"></script>
     
     <script>
+        // #region agent log
+        const DEBUG_LOG = (msg, data, hyp) => fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:152',message:msg,data:data||{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:hyp})}).catch(()=>{});
+        // #endregion
+        
         // Инициализация Socket.IO
         let socket;
         let currentSessionId = null;
         
+        // #region agent log
+        DEBUG_LOG('Начало инициализации Socket.IO', {}, 'B');
+        // #endregion
+        
         try {
             socket = io();
+            // #region agent log
+            DEBUG_LOG('Socket.IO подключен успешно', {socketExists: !!socket}, 'B');
+            // #endregion
             console.log('Socket.IO подключен');
         } catch (error) {
+            // #region agent log
+            DEBUG_LOG('Ошибка подключения Socket.IO', {error: error.message}, 'B');
+            // #endregion
             console.error('Ошибка подключения Socket.IO:', error);
         }
 
@@ -216,7 +230,12 @@
         }
 
         // Обработка отправки сообщения
-        document.getElementById('messageForm').addEventListener('submit', function(e) {
+        // #region agent log
+        const messageFormEl = document.getElementById('messageForm');
+        DEBUG_LOG('Проверка messageForm элемента', {found: !!messageFormEl, beforeDOMReady: document.readyState}, 'A');
+        // #endregion
+        if (messageFormEl) {
+            messageFormEl.addEventListener('submit', function(e) {
             e.preventDefault();
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
@@ -237,6 +256,11 @@
             input.value = '';
             input.style.height = 'auto';
         });
+        } else {
+            // #region agent log
+            DEBUG_LOG('messageForm не найден при инициализации', {}, 'A');
+            // #endregion
+        }
 
         async function createNewSession() {
             try {
@@ -292,13 +316,28 @@
         }
 
         // Боковая панель
-        document.getElementById('sidebarToggle').addEventListener('click', function() {
+        // #region agent log
+        const sidebarToggleEl = document.getElementById('sidebarToggle');
+        DEBUG_LOG('Проверка sidebarToggle элемента', {found: !!sidebarToggleEl, beforeDOMReady: document.readyState}, 'A');
+        // #endregion
+        if (sidebarToggleEl) {
+            sidebarToggleEl.addEventListener('click', function() {
             document.getElementById('sidebar').classList.add('active');
             document.getElementById('sidebarOverlay').classList.add('active');
         });
+        } else {
+            // #region agent log
+            DEBUG_LOG('sidebarToggle не найден при инициализации', {}, 'A');
+            // #endregion
+        }
 
-        document.getElementById('sidebarClose').addEventListener('click', closeSidebar);
-        document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+        // #region agent log
+        const sidebarCloseEl = document.getElementById('sidebarClose');
+        const sidebarOverlayEl = document.getElementById('sidebarOverlay');
+        DEBUG_LOG('Проверка sidebar элементов', {close: !!sidebarCloseEl, overlay: !!sidebarOverlayEl}, 'A');
+        // #endregion
+        if (sidebarCloseEl) sidebarCloseEl.addEventListener('click', closeSidebar);
+        if (sidebarOverlayEl) sidebarOverlayEl.addEventListener('click', closeSidebar);
 
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('active');
@@ -339,18 +378,46 @@
 
         // Загружаем сессии при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
+            // #region agent log
+            DEBUG_LOG('DOMContentLoaded сработал', {readyState: document.readyState}, 'A');
+            // #endregion
             console.log('DOM загружен, инициализация...');
+            
+            // #region agent log
+            const checkElements = ['messageForm', 'sidebarToggle', 'sidebar', 'sessionsList', 'messagesContainer', 'messageInput'];
+            const elementsStatus = {};
+            checkElements.forEach(id => {
+                elementsStatus[id] = !!document.getElementById(id);
+            });
+            DEBUG_LOG('Проверка элементов после DOMContentLoaded', elementsStatus, 'E');
+            // #endregion
+            
             try {
                 loadSessions();
+                // #region agent log
+                DEBUG_LOG('Инициализация завершена успешно', {}, 'A');
+                // #endregion
                 console.log('Страница инициализирована');
             } catch (error) {
+                // #region agent log
+                DEBUG_LOG('Ошибка инициализации', {error: error.message, stack: error.stack}, 'A');
+                // #endregion
                 console.error('Ошибка инициализации:', error);
             }
         });
 
         // Также запускаем при полной загрузке
         window.addEventListener('load', function() {
+            // #region agent log
+            DEBUG_LOG('window.load сработал', {readyState: document.readyState}, 'D');
+            // #endregion
             console.log('Страница полностью загружена');
+            
+            // #region agent log
+            const scripts = Array.from(document.querySelectorAll('script[src]')).map(s => s.src);
+            const links = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(l => l.href);
+            DEBUG_LOG('Проверка загруженных ресурсов', {scripts: scripts.length, stylesheets: links.length, scriptSources: scripts, stylesheetSources: links}, 'D');
+            // #endregion
         });
     </script>
 </body>

@@ -2090,10 +2090,32 @@ def apply_promo():
 @app.route('/api/sessions', methods=['GET', 'POST'])
 def handle_sessions():
     """Получить список сессий (GET) или создать новую сессию (POST)"""
+    # #region agent log
+    import json
+    log_data = {'method': request.method, 'endpoint': '/api/sessions', 'timestamp': __import__('time').time()}
+    try:
+        with open('/Users/pavelgulo/Desktop/курсор/.cursor/debug.log', 'a') as f:
+            f.write(json.dumps({'location': 'app.py:2090', 'message': 'handle_sessions вызван', 'data': log_data, 'sessionId': 'debug-session', 'runId': 'run1', 'hypothesisId': 'C'}) + '\n')
+    except: pass
+    # #endregion
+    
     if request.method == 'GET':
         user_id = get_current_user_id()
         
+        # #region agent log
+        try:
+            with open('/Users/pavelgulo/Desktop/курсор/.cursor/debug.log', 'a') as f:
+                f.write(json.dumps({'location': 'app.py:2095', 'message': 'get_current_user_id результат', 'data': {'user_id': user_id, 'authorized': bool(user_id)}, 'sessionId': 'debug-session', 'runId': 'run1', 'hypothesisId': 'C'}) + '\n')
+        except: pass
+        # #endregion
+
         if not user_id:
+            # #region agent log
+            try:
+                with open('/Users/pavelgulo/Desktop/курсор/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({'location': 'app.py:2098', 'message': 'API /api/sessions возвращает 401', 'data': {'reason': 'Не авторизован'}, 'sessionId': 'debug-session', 'runId': 'run1', 'hypothesisId': 'C'}) + '\n')
+            except: pass
+            # #endregion
             return jsonify({'error': 'Не авторизован'}), 401
         
         conn = get_db()
