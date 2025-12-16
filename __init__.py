@@ -1,6 +1,0 @@
-# Psychologist App Package
-
-
-
-
-
