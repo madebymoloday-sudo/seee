@@ -229,38 +229,44 @@
             container.innerHTML = '<div class="welcome-message"><p>Загрузка сообщений...</p></div>';
         }
 
-        // Обработка отправки сообщения
-        // #region agent log
-        const messageFormEl = document.getElementById('messageForm');
-        DEBUG_LOG('Проверка messageForm элемента', {found: !!messageFormEl, beforeDOMReady: document.readyState}, 'A');
-        // #endregion
-        if (messageFormEl) {
-            messageFormEl.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            if (!currentSessionId) {
-                // Создаем новую сессию
-                createNewSession().then(sessionId => {
-                    if (sessionId) {
-                        sendMessage(sessionId, message);
-                    }
-                });
-            } else {
-                sendMessage(currentSessionId, message);
-            }
-            
-            input.value = '';
-            input.style.height = 'auto';
-        });
-        } else {
+        // Функция инициализации всех event listeners
+        function initEventListeners() {
             // #region agent log
-            DEBUG_LOG('messageForm не найден при инициализации', {}, 'A');
+            DEBUG_LOG('initEventListeners вызвана', {readyState: document.readyState}, 'A');
             // #endregion
-        }
+            
+            // Обработка отправки сообщения
+            // #region agent log
+            const messageFormEl = document.getElementById('messageForm');
+            DEBUG_LOG('Проверка messageForm элемента', {found: !!messageFormEl, readyState: document.readyState}, 'A');
+            // #endregion
+            if (messageFormEl) {
+                messageFormEl.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const input = document.getElementById('messageInput');
+                const message = input.value.trim();
+                
+                if (!message) return;
+                
+                if (!currentSessionId) {
+                    // Создаем новую сессию
+                    createNewSession().then(sessionId => {
+                        if (sessionId) {
+                            sendMessage(sessionId, message);
+                        }
+                    });
+                } else {
+                    sendMessage(currentSessionId, message);
+                }
+                
+                input.value = '';
+                input.style.height = 'auto';
+            });
+            } else {
+                // #region agent log
+                DEBUG_LOG('messageForm не найден при инициализации', {}, 'A');
+                // #endregion
+            }
 
         async function createNewSession() {
             try {
@@ -393,7 +399,12 @@
             // #endregion
             
             try {
+                // Инициализируем все event listeners
+                initEventListeners();
+                
+                // Загружаем сессии
                 loadSessions();
+                
                 // #region agent log
                 DEBUG_LOG('Инициализация завершена успешно', {}, 'A');
                 // #endregion
