@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEEE - Архитектура мышления</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="main-container">
+        <div class="session-header">
+            <h1 id="sessionTitle">Новая сессия</h1>
+        </div>
+        <div id="messagesContainer" class="messages-container">
+            <div class="welcome-message">
+                <h2>Добро пожаловать!</h2>
+                <p>Начните новую сессию или выберите существующую из боковой панели.</p>
+            </div>
+        </div>
+        <div class="input-container">
+            <form id="messageForm" class="message-form">
+                <textarea id="messageInput" class="message-input" placeholder="Напишите ваше сообщение..." rows="1"></textarea>
+                <button type="submit" class="send-btn">✓</button>
+            </form>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
