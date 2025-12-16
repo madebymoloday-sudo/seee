@@ -137,52 +137,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Переключение версии интерфейса (мобильная/веб)
-    const viewModeToggle = document.getElementById('viewModeToggle');
-    if (viewModeToggle) {
-        // Загружаем сохраненное значение (по умолчанию 'auto' - автоматическое определение)
-        const savedViewMode = localStorage.getItem('viewMode') || 'auto';
-        const isMobileView = savedViewMode === 'mobile';
-        
-        // Устанавливаем начальное состояние тумблера
-        if (isMobileView) {
-            viewModeToggle.classList.add('active');
-            document.body.classList.add('force-mobile-view');
-            document.body.classList.remove('force-web-view');
-        } else if (savedViewMode === 'web') {
-            viewModeToggle.classList.remove('active');
-            document.body.classList.remove('force-mobile-view');
-            document.body.classList.add('force-web-view');
-        } else {
-            // Автоматический режим - определяем по размеру экрана
-            const isMobileDevice = window.innerWidth <= 768;
-            if (isMobileDevice) {
-                viewModeToggle.classList.add('active');
-                document.body.classList.add('force-mobile-view');
-            } else {
-                viewModeToggle.classList.remove('active');
-                document.body.classList.add('force-web-view');
-            }
-        }
-        
-        // Обработчик клика
-        viewModeToggle.addEventListener('click', function() {
-            const isActive = viewModeToggle.classList.toggle('active');
-            
-            if (isActive) {
-                // Включаем мобильную версию
-                document.body.classList.add('force-mobile-view');
-                document.body.classList.remove('force-web-view');
-                localStorage.setItem('viewMode', 'mobile');
-            } else {
-                // Включаем веб-версию
-                document.body.classList.remove('force-mobile-view');
-                document.body.classList.add('force-web-view');
-                localStorage.setItem('viewMode', 'web');
-            }
-        });
-    }
-    
     // Копирование реферальной ссылки
     const copyReferralLinkBtn = document.getElementById('copyReferralLink');
     if (copyReferralLinkBtn) {
@@ -618,52 +572,11 @@ async function saveLanguage() {
         if (!response.ok) throw new Error('Ошибка сохранения языка');
         
         currentLanguage = language;
-        // Перезагружаем страницу для применения изменений
-        window.location.reload();
+        alert('Язык сохранен! Страница будет перезагружена.');
+        location.reload();
     } catch (error) {
         console.error('Ошибка сохранения языка:', error);
         alert('Ошибка сохранения языка');
-    }
-}
-
-// Загрузка данных безопасности
-async function loadSecurityData() {
-    try {
-        // Загружаем email
-        const emailResponse = await fetch('/api/cabinet/security/email');
-        if (emailResponse.ok) {
-            const emailData = await emailResponse.json();
-            const emailInput = document.getElementById('securityEmail');
-            if (emailInput) {
-                emailInput.value = emailData.email || '';
-            }
-        } else {
-            // Если ошибка, просто игнорируем (email может быть не установлен)
-            console.log('Email не загружен (возможно, не установлен)');
-        }
-        
-        // Загружаем статус 2FA
-        const twoFactorResponse = await fetch('/api/cabinet/security/2fa/status');
-        if (twoFactorResponse.ok) {
-            const twoFactorData = await twoFactorResponse.json();
-            const statusText = document.getElementById('twoFactorStatusText');
-            const disableBtn = document.getElementById('disableTwoFactor');
-            
-            if (twoFactorData.enabled) {
-                if (statusText) statusText.textContent = 'Включена';
-                if (disableBtn) disableBtn.style.display = 'block';
-            } else {
-                if (statusText) statusText.textContent = 'Не включена';
-                if (disableBtn) disableBtn.style.display = 'none';
-            }
-        } else {
-            // Если ошибка, просто устанавливаем статус "Не включена"
-            const statusText = document.getElementById('twoFactorStatusText');
-            if (statusText) statusText.textContent = 'Не включена';
-        }
-    } catch (error) {
-        console.error('Ошибка загрузки данных безопасности:', error);
-        // Не показываем alert, просто логируем ошибку
     }
 }
 

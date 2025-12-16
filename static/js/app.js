@@ -34,10 +34,7 @@ function updateSessionTitle(sessionId, newTitle) {
         session.title = newTitle;
         renderSessions();
         if (sessionId === currentSessionId) {
-            const chatTitle = document.getElementById('chatTitle');
-            if (chatTitle) {
-                chatTitle.textContent = newTitle;
-            }
+            document.getElementById('chatTitle').textContent = newTitle;
         }
     }
 }
@@ -59,103 +56,51 @@ async function loadSessions() {
 // Отображение сессий
 function renderSessions() {
     const sessionsList = document.getElementById('sessionsList');
-    if (sessionsList) {
-        sessionsList.innerHTML = '';
-        
-        sessions.forEach(session => {
-            const item = document.createElement('div');
-            item.className = 'session-item';
-            if (session.id === currentSessionId) {
-                item.classList.add('active');
-            }
-            
-            const titleSpan = document.createElement('span');
-            titleSpan.className = 'session-title';
-            titleSpan.textContent = session.title;
-            titleSpan.addEventListener('click', (e) => {
-                e.stopPropagation();
-                loadSession(session.id);
-                // Закрываем модальное окно после выбора сессии
-                const sessionsModal = document.getElementById('sessionsModal');
-                if (sessionsModal) {
-                    sessionsModal.style.display = 'none';
-                }
-            });
-            
-            const renameBtn = document.createElement('button');
-            renameBtn.className = 'session-rename';
-            renameBtn.innerHTML = '✏️';
-            renameBtn.setAttribute('aria-label', 'Переименовать сессию');
-            renameBtn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                await renameSession(session.id, session.title);
-            });
-            
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'session-delete';
-            deleteBtn.innerHTML = '×';
-            deleteBtn.setAttribute('aria-label', 'Удалить сессию');
-            deleteBtn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                if (confirm(`Вы уверены, что хотите удалить сессию "${session.title}"?`)) {
-                    await deleteSession(session.id);
-                }
-            });
-            
-            const buttonsContainer = document.createElement('div');
-            buttonsContainer.className = 'session-buttons';
-            buttonsContainer.appendChild(renameBtn);
-            buttonsContainer.appendChild(deleteBtn);
-            
-            item.appendChild(titleSpan);
-            item.appendChild(buttonsContainer);
-            sessionsList.appendChild(item);
-        });
-    }
+    sessionsList.innerHTML = '';
     
-    // Обновляем список в модальном окне
-    renderSessionsModal();
-}
-
-// Отображение сессий в модальном окне
-function renderSessionsModal() {
-    const sessionsModalList = document.getElementById('sessionsModalList');
-    const currentSessionHeader = document.getElementById('currentSessionHeader');
-    const currentSessionTitleText = document.getElementById('currentSessionTitleText');
-    
-    if (!sessionsModalList) return;
-    
-    sessionsModalList.innerHTML = '';
-    
-    // Показываем текущую сессию вверху
-    if (currentSessionId) {
-        const currentSession = sessions.find(s => s.id === currentSessionId);
-        if (currentSession && currentSessionHeader && currentSessionTitleText) {
-            currentSessionHeader.style.display = 'block';
-            currentSessionTitleText.textContent = currentSession.title;
-        }
-    } else {
-        if (currentSessionHeader) {
-            currentSessionHeader.style.display = 'none';
-        }
-    }
-    
-    // Добавляем все сессии в список (кроме текущей, если она есть)
     sessions.forEach(session => {
-        if (session.id === currentSessionId) return; // Текущая сессия уже показана вверху
-        
         const item = document.createElement('div');
-        item.className = 'session-item-modal';
-        item.textContent = session.title;
-        item.addEventListener('click', () => {
+        item.className = 'session-item';
+        if (session.id === currentSessionId) {
+            item.classList.add('active');
+        }
+        
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'session-title';
+        titleSpan.textContent = session.title;
+        titleSpan.addEventListener('click', (e) => {
+            e.stopPropagation();
             loadSession(session.id);
-            const sessionsModal = document.getElementById('sessionsModal');
-            if (sessionsModal) {
-                sessionsModal.style.display = 'none';
+        });
+        
+        const renameBtn = document.createElement('button');
+        renameBtn.className = 'session-rename';
+        renameBtn.innerHTML = '✏️';
+        renameBtn.setAttribute('aria-label', 'Переименовать сессию');
+        renameBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await renameSession(session.id, session.title);
+        });
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'session-delete';
+        deleteBtn.innerHTML = '×';
+        deleteBtn.setAttribute('aria-label', 'Удалить сессию');
+        deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (confirm(`Вы уверены, что хотите удалить сессию "${session.title}"?`)) {
+                await deleteSession(session.id);
             }
         });
         
-        sessionsModalList.appendChild(item);
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.className = 'session-buttons';
+        buttonsContainer.appendChild(renameBtn);
+        buttonsContainer.appendChild(deleteBtn);
+        
+        item.appendChild(titleSpan);
+        item.appendChild(buttonsContainer);
+        sessionsList.appendChild(item);
     });
 }
 
@@ -282,31 +227,11 @@ async function loadSession(sessionId) {
         
         if (messages.length === 0) {
             showWelcomeMessage();
-            // При приветственном сообщении прокручиваем к началу
-            setTimeout(() => {
-                const messagesContainer = document.getElementById('messagesContainer');
-                if (messagesContainer) {
-                    messagesContainer.scrollTop = 0;
-                }
-            }, 100);
         } else {
             messages.forEach(msg => {
                 addMessage(msg.role, msg.content, false);
             });
-            // Прокручиваем после загрузки всех сообщений только если есть несколько сообщений
-            // Если это первое сообщение, прокручиваем к началу
-            setTimeout(() => {
-                const messagesContainer = document.getElementById('messagesContainer');
-                if (messagesContainer) {
-                    if (messages.length === 1) {
-                        // Первое сообщение - прокручиваем к началу
-                        messagesContainer.scrollTop = 0;
-                    } else {
-                        // Несколько сообщений - прокручиваем к концу
-                        scrollToBottom();
-                    }
-                }
-            }, 200);
+            scrollToBottom();
         }
     } catch (error) {
         console.error('Ошибка загрузки сообщений:', error);
@@ -356,68 +281,29 @@ function addMessage(role, content, saveToServer = true, showDifficultyButton = f
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${role}`;
     
-    // Для assistant сообщений создаем контейнер для контента и кнопки
-    if (role === 'assistant') {
-        const contentWrapper = document.createElement('div');
-        contentWrapper.className = 'message-content-wrapper';
-        
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-        contentDiv.textContent = content;
-        
-        contentWrapper.appendChild(contentDiv);
-        
-        // Добавляем стикер "Затрудняюсь ответить" под сообщением AI
-        if (showDifficultyButton) {
-            const stickerDiv = document.createElement('div');
-            stickerDiv.className = 'message-difficulty-sticker';
-            stickerDiv.textContent = 'Затрудняюсь ответить';
-            stickerDiv.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                if (!currentSessionId) {
-                    alert('Сначала создайте сессию');
-                    return;
-                }
-                
-                if (!socket) {
-                    initSocket();
-                }
-                
-                // Отправляем через difficulty_response или через обычное сообщение
-                if (socket && socket.connected) {
-                    socket.emit('difficulty_response', {
-                        session_id: currentSessionId
-                    });
-                } else {
-                    // Если сокет не подключен, отправляем через обычное сообщение
-                    if (socket) {
-                        socket.emit('message', {
-                            session_id: currentSessionId,
-                            message: 'difficulty'
-                        });
-                    }
-                }
-            });
-            contentWrapper.appendChild(stickerDiv);
-        }
-        
-        messageDiv.appendChild(contentWrapper);
-    } else {
-        // Для пользовательских сообщений используем обычную структуру
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-        contentDiv.textContent = content;
-        messageDiv.appendChild(contentDiv);
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    contentDiv.textContent = content;
+    
+    messageDiv.appendChild(contentDiv);
+    
+    // Добавляем стикер "Затрудняюсь ответить" под сообщением AI
+    if (role === 'assistant' && showDifficultyButton) {
+        const stickerDiv = document.createElement('div');
+        stickerDiv.className = 'message-difficulty-sticker';
+        stickerDiv.textContent = '❓ Затрудняюсь ответить';
+        stickerDiv.addEventListener('click', function() {
+            const difficultyBtn = document.getElementById('difficultyBtn');
+            if (difficultyBtn) {
+                difficultyBtn.click();
+            }
+        });
+        messageDiv.appendChild(stickerDiv);
     }
     
     messagesContainer.appendChild(messageDiv);
     
-    // Прокручиваем после добавления сообщения
-    setTimeout(() => {
-        scrollToBottom();
-    }, 100);
+    scrollToBottom();
 }
 
 // Показ индикатора печати
@@ -439,10 +325,7 @@ function showTypingIndicator() {
     typingDiv.appendChild(typingContent);
     messagesContainer.appendChild(typingDiv);
     
-    // Прокручиваем после добавления индикатора печати
-    setTimeout(() => {
-        scrollToBottom();
-    }, 100);
+    scrollToBottom();
 }
 
 // Скрытие индикатора печати
@@ -453,30 +336,16 @@ function hideTypingIndicator() {
     }
 }
 
-// Прокрутка вниз (подход как в ChatGPT)
+// Прокрутка вниз
 function scrollToBottom() {
     const messagesContainer = document.getElementById('messagesContainer');
-    if (!messagesContainer) return;
-    
-    // Используем простой подход - прокручиваем до конца контейнера
-    // Это работает надежнее, чем scrollIntoView на мобильных устройствах
-    const scrollToEnd = () => {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    };
-    
-    // Прокручиваем сразу и после небольшой задержки для надежности
-    scrollToEnd();
-    requestAnimationFrame(() => {
-        scrollToEnd();
-        setTimeout(scrollToEnd, 50);
-    });
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
 // Обработка отправки сообщения
-// Эти переменные будут инициализированы в DOMContentLoaded
-let messageForm;
-let messageInput;
-let sendBtn;
+const messageForm = document.getElementById('messageForm');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
 
 // Обработчик отправки будет добавлен в DOMContentLoaded, чтобы иметь доступ к updatePauseButton
 // (старый обработчик удален, новый добавлен в DOMContentLoaded)
@@ -487,196 +356,66 @@ function updateMobileButtons() {
     const mobileMenuToggleBottom = document.getElementById('mobileMenuToggleBottom');
     
     if (sendBtnMobile && mobileMenuToggleBottom) {
-        const hasText = messageInput && messageInput.value.trim().length > 0;
+        const hasText = messageInput.value.trim().length > 0;
         if (hasText) {
-            sendBtnMobile.style.display = 'flex';
+            sendBtnMobile.classList.add('active');
             mobileMenuToggleBottom.style.display = 'none';
         } else {
-            sendBtnMobile.style.display = 'none';
+            sendBtnMobile.classList.remove('active');
             mobileMenuToggleBottom.style.display = 'flex';
         }
     }
 }
 
-// Эти обработчики будут добавлены в DOMContentLoaded
+// Автоматическое изменение высоты textarea
+messageInput.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+    
+    // Обновляем видимость кнопок
+    updateMobileButtons();
+});
 
-// Инициализация обработчиков в DOMContentLoaded
-document.addEventListener('DOMContentLoaded', async function() {
-    // Убеждаемся, что при первой загрузке прокрутка начинается с верха
-    const messagesContainer = document.getElementById('messagesContainer');
-    if (messagesContainer) {
-        messagesContainer.scrollTop = 0;
+// Обработка клавиш для отправки сообщения
+messageInput.addEventListener('keydown', function(e) {
+    // Enter отправляет сообщение
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        messageForm.dispatchEvent(new Event('submit'));
+        return false;
     }
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:374',message:'DOMContentLoaded started',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
-    
-    // Инициализируем переменные
-    messageForm = document.getElementById('messageForm');
-    messageInput = document.getElementById('messageInput');
-    sendBtn = document.getElementById('sendBtn');
-    
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:380',message:'Elements check',data:{messageForm:!!messageForm,messageInput:!!messageInput,sendBtn:!!sendBtn},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
-    
-    if (!messageForm || !messageInput || !sendBtn) {
-        console.error('Не найдены элементы формы сообщения');
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:383',message:'Elements missing - early return',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
-        return;
+    // Shift+Enter делает перенос строки (не предотвращаем стандартное поведение)
+    if (e.key === 'Enter' && e.shiftKey) {
+        // Разрешаем стандартное поведение - перенос строки
+        return true;
     }
     
-    // Привязываем обработчики
-    sendBtn.addEventListener('click', function(e) {
+    // Все остальные клавиши (включая пробел) работают как обычно
+    return true;
+});
+
+// Обработчик кнопки отправки
+sendBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    messageForm.dispatchEvent(new Event('submit'));
+});
+
+// Обработчик для мобильной кнопки отправки
+const sendBtnMobile = document.getElementById('sendBtnMobile');
+if (sendBtnMobile) {
+    sendBtnMobile.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
         messageForm.dispatchEvent(new Event('submit'));
     });
-    
-    // Автоматическое изменение высоты textarea
-    messageInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-        
-        // Обновляем видимость кнопок
-        updateMobileButtons();
-    });
-    
-    // Подход как в ChatGPT: динамически обновляем padding-bottom для messages-container
-    function updateMessagesPadding() {
-        const messagesContainer = document.getElementById('messagesContainer');
-        const inputContainer = document.querySelector('.input-container');
-        if (messagesContainer && inputContainer) {
-            const inputHeight = inputContainer.offsetHeight;
-            // Устанавливаем padding-bottom равный высоте input-container + небольшой отступ
-            messagesContainer.style.paddingBottom = (inputHeight + 20) + 'px';
-        }
-    }
-    
-    // Обновляем padding при загрузке и изменении размера
-    updateMessagesPadding();
-    window.addEventListener('resize', updateMessagesPadding);
-    
-    // Отслеживаем открытие/закрытие клавиатуры (подход как в ChatGPT)
-    let lastViewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    
-    function handleViewportResize() {
-        const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        const heightDiff = lastViewportHeight - currentHeight;
-        
-        // Если высота уменьшилась значительно (клавиатура открылась)
-        if (heightDiff > 150) {
-            document.body.classList.add('keyboard-open');
-            updateMessagesPadding();
-            // Прокручиваем к последнему сообщению после открытия клавиатуры
-            setTimeout(() => {
-                scrollToBottom();
-            }, 100);
-        } else if (heightDiff < -50) {
-            // Клавиатура закрылась
-            document.body.classList.remove('keyboard-open');
-            updateMessagesPadding();
-        }
-        
-        lastViewportHeight = currentHeight;
-    }
-    
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', handleViewportResize);
-    } else {
-        window.addEventListener('resize', handleViewportResize);
-    }
-    
-    // Обработка фокуса на input (как в ChatGPT)
-    messageInput.addEventListener('focus', function() {
-        document.body.classList.add('keyboard-open');
-        updateMessagesPadding();
-        // Прокручиваем к последнему сообщению после открытия клавиатуры
-        setTimeout(() => {
-            scrollToBottom();
-        }, 300);
-    });
-    
-    messageInput.addEventListener('blur', function() {
-        setTimeout(function() {
-            document.body.classList.remove('keyboard-open');
-            updateMessagesPadding();
-        }, 100);
-    });
-    
-    // Инициализируем видимость кнопок при загрузке
-    updateMobileButtons();
-    
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b70f77df-99ee-45b9-9bfa-1e0528e8a94f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:439',message:'DOMContentLoaded completed - all handlers should be attached',data:{timestamp:Date.now(),documentReadyState:document.readyState},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F,G'})}).catch(()=>{});
-    // #endregion
-    
-    // Обработка клавиш для отправки сообщения
-    messageInput.addEventListener('keydown', function(e) {
-        // Enter отправляет сообщение
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            e.stopPropagation();
-            messageForm.dispatchEvent(new Event('submit'));
-            return false;
-        }
-        
-        // Shift+Enter делает перенос строки (не предотвращаем стандартное поведение)
-        if (e.key === 'Enter' && e.shiftKey) {
-            // Разрешаем стандартное поведение - перенос строки
-            return true;
-        }
-        
-        // Все остальные клавиши (включая пробел) работают как обычно
-        return true;
-    });
-    
-    // Обработчик для мобильной кнопки отправки - используем делегирование событий
-    function handleSendClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const btn = e.target.closest('#sendBtnMobile');
-        if (!btn) return;
-        if (messageInput && messageInput.value.trim()) {
-            messageForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        }
-    }
-    
-    // Используем делегирование событий на document (только для мобильных)
-    document.addEventListener('click', function(e) {
-        // Проверяем, что это мобильная версия
-        if (window.innerWidth >= 769) {
-            return; // На десктопе не обрабатываем
-        }
-        if (e.target.closest('#sendBtnMobile')) {
-            handleSendClick(e);
-        }
-    }, true);
-    
-    document.addEventListener('touchstart', function(e) {
-        // Проверяем, что это мобильная версия
-        if (window.innerWidth >= 769) {
-            return; // На десктопе не обрабатываем
-        }
-        if (e.target.closest('#sendBtnMobile')) {
-            e.preventDefault();
-            e.stopPropagation();
-            handleSendClick(e);
-        }
-    }, { passive: false, capture: true });
-    
-    // Обработчики кнопок
-    const newChatBtn = document.getElementById('newChatBtn');
-    if (newChatBtn) {
-        newChatBtn.addEventListener('click', createNewSession);
-    }
-    
-    const downloadDocBtn = document.getElementById('downloadDocBtn');
-    if (downloadDocBtn) {
-        downloadDocBtn.addEventListener('click', async function() {
+}
+
+// Обработчики кнопок
+document.getElementById('newChatBtn').addEventListener('click', createNewSession);
+document.getElementById('downloadDocBtn').addEventListener('click', async function() {
     if (!currentSessionId) {
         alert('Выберите сессию для скачивания документа');
         return;
@@ -716,30 +455,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('Ошибка загрузки документа:', error);
         alert(`Ошибка загрузки документа: ${error.message}`);
-        }
-    });
     }
-    
-    // Инициализация Socket.IO и загрузка данных
+});
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', async function() {
     initSocket();
-    
-    // Загружаем сохраненную версию интерфейса
-    const savedViewMode = localStorage.getItem('viewMode') || 'auto';
-    if (savedViewMode === 'mobile') {
-        document.body.classList.add('force-mobile-view');
-        document.body.classList.remove('force-web-view');
-    } else if (savedViewMode === 'web') {
-        document.body.classList.remove('force-mobile-view');
-        document.body.classList.add('force-web-view');
-    } else {
-        // Автоматический режим - определяем по размеру экрана
-        const isMobileDevice = window.innerWidth <= 768;
-        if (isMobileDevice) {
-            document.body.classList.add('force-mobile-view');
-        } else {
-            document.body.classList.add('force-web-view');
-        }
-    }
     
     // Проверяем параметр session в URL ДО загрузки сессий
     const urlParams = new URLSearchParams(window.location.search);
@@ -773,72 +494,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.error('Ошибка загрузки сессии:', error);
             }
         }
-    }
-    
-    // Клик на название сессии - открываем модальное окно со списком сессий
-    const chatTitle = document.getElementById('chatTitle');
-    if (chatTitle) {
-        chatTitle.addEventListener('click', function() {
-            renderSessionsModal();
-            const sessionsModal = document.getElementById('sessionsModal');
-            if (sessionsModal) {
-                sessionsModal.style.display = 'flex';
-            }
-        });
-    }
-    
-    // Закрытие модального окна сессий
-    const closeSessionsModal = document.getElementById('closeSessionsModal');
-    if (closeSessionsModal) {
-        closeSessionsModal.addEventListener('click', function() {
-            const sessionsModal = document.getElementById('sessionsModal');
-            if (sessionsModal) {
-                sessionsModal.style.display = 'none';
-            }
-        });
-    }
-    
-    // Закрытие при клике вне модального окна
-    const sessionsModal = document.getElementById('sessionsModal');
-    if (sessionsModal) {
-        sessionsModal.addEventListener('click', function(e) {
-            if (e.target === sessionsModal) {
-                sessionsModal.style.display = 'none';
-            }
-        });
-    }
-    
-    // Редактирование названия текущей сессии
-    const editCurrentSessionBtn = document.getElementById('editCurrentSessionBtn');
-    if (editCurrentSessionBtn) {
-        editCurrentSessionBtn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            if (currentSessionId) {
-                const currentSession = sessions.find(s => s.id === currentSessionId);
-                if (currentSession) {
-                    await renameSession(currentSessionId, currentSession.title);
-                    renderSessionsModal();
-                }
-            }
-        });
-    }
-    
-    // Удаление текущей сессии
-    const deleteCurrentSessionBtn = document.getElementById('deleteCurrentSessionBtn');
-    if (deleteCurrentSessionBtn) {
-        deleteCurrentSessionBtn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            if (currentSessionId) {
-                const currentSession = sessions.find(s => s.id === currentSessionId);
-                if (currentSession && confirm(`Вы уверены, что хотите удалить сессию "${currentSession.title}"?`)) {
-                    await deleteSession(currentSessionId);
-                    const sessionsModal = document.getElementById('sessionsModal');
-                    if (sessionsModal) {
-                        sessionsModal.style.display = 'none';
-                    }
-                }
-            }
-        });
     }
     
     // Кнопка "Карта не территория"
@@ -994,48 +649,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     const feedbackModal = document.getElementById('feedbackModal');
     const closeFeedbackModal = document.getElementById('closeFeedbackModal');
     const cancelFeedbackModal = document.getElementById('cancelFeedbackModal');
-    const cancelFeedbackModalShort = document.getElementById('cancelFeedbackModalShort');
     const feedbackForm = document.getElementById('feedbackForm');
-    const shortFeedbackFormElement = document.getElementById('shortFeedbackFormElement');
-    
-    // Переключение типов обратной связи
-    const feedbackTypeBtns = document.querySelectorAll('.feedback-type-btn');
-    const fullFeedbackForm = document.getElementById('fullFeedbackForm');
-    const shortFeedbackForm = document.getElementById('shortFeedbackForm');
-    
-    feedbackTypeBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const type = this.getAttribute('data-type');
-            
-            // Обновляем активные кнопки
-            feedbackTypeBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Показываем нужную форму
-            if (type === 'full') {
-                fullFeedbackForm.classList.add('active');
-                shortFeedbackForm.classList.remove('active');
-            } else {
-                fullFeedbackForm.classList.remove('active');
-                shortFeedbackForm.classList.add('active');
-            }
-        });
-    });
     
     if (feedbackBtn) {
         feedbackBtn.addEventListener('click', function() {
             if (feedbackModal) {
                 feedbackModal.style.display = 'flex';
-                // По умолчанию показываем полную форму
-                if (fullFeedbackForm) fullFeedbackForm.classList.add('active');
-                if (shortFeedbackForm) shortFeedbackForm.classList.remove('active');
-                feedbackTypeBtns.forEach(btn => {
-                    if (btn.getAttribute('data-type') === 'full') {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
             }
         });
     }
@@ -1056,14 +675,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    if (cancelFeedbackModalShort) {
-        cancelFeedbackModalShort.addEventListener('click', function() {
-            if (feedbackModal) {
-                feedbackModal.style.display = 'none';
-            }
-        });
-    }
-    
     // Закрытие модального окна обратной связи при клике вне его
     if (feedbackModal) {
         feedbackModal.addEventListener('click', function(e) {
@@ -1073,13 +684,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    // Обработка полной формы обратной связи
+    // Обработка формы обратной связи
     if (feedbackForm) {
         feedbackForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const formData = new FormData();
-            formData.append('feedback_type', 'full');
             formData.append('about_self', document.getElementById('feedbackAboutSelf').value);
             formData.append('expectations', document.getElementById('feedbackExpectations').value);
             formData.append('expectations_met', document.getElementById('feedbackExpectationsMet').value);
@@ -1087,7 +697,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             formData.append('session_id', currentSessionId || '');
             
             const fileInput = document.getElementById('feedbackFile');
-            if (fileInput && fileInput.files.length > 0) {
+            if (fileInput.files.length > 0) {
                 formData.append('file', fileInput.files[0]);
             }
             
@@ -1102,48 +712,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (response.ok) {
                     alert(data.message || 'Обратная связь отправлена. Спасибо!');
                     feedbackForm.reset();
-                    if (feedbackModal) {
-                        feedbackModal.style.display = 'none';
-                    }
-                } else {
-                    alert('Ошибка: ' + (data.error || 'Не удалось отправить обратную связь'));
-                }
-            } catch (error) {
-                console.error('Ошибка:', error);
-                alert('Ошибка при отправке обратной связи');
-            }
-        });
-    }
-    
-    // Обработка краткой формы обратной связи
-    if (shortFeedbackFormElement) {
-        shortFeedbackFormElement.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData();
-            formData.append('feedback_type', 'short');
-            formData.append('message', document.getElementById('shortFeedbackText').value);
-            formData.append('session_id', currentSessionId || '');
-            
-            const fileInput = document.getElementById('shortFeedbackFile');
-            if (fileInput && fileInput.files.length > 0) {
-                // Добавляем все выбранные файлы
-                for (let i = 0; i < fileInput.files.length; i++) {
-                    formData.append('files', fileInput.files[i]);
-                }
-            }
-            
-            try {
-                const response = await fetch('/api/feedback', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    alert(data.message || 'Обратная связь отправлена. Спасибо!');
-                    shortFeedbackFormElement.reset();
                     if (feedbackModal) {
                         feedbackModal.style.display = 'none';
                     }
@@ -1233,11 +801,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 socket.emit('go_to_belief', {
                     session_id: currentSessionId,
                     concept_name: availableConcepts[0]
+                });
+            }
         });
-    }
-    
-    // Закрываем блок DOMContentLoaded
-});
     }
     
     // Обработчик кнопки "Пропустить"
@@ -1438,53 +1004,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    // Мобильное меню - гамбургер слева - используем делегирование событий
-    function handleHamburgerClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const sidebar = document.getElementById('sidebar');
-        const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
-        if (sidebar) {
-            sidebar.classList.toggle('mobile-open');
-            if (mobileSidebarOverlay) {
-                mobileSidebarOverlay.classList.toggle('active');
-            }
-            document.body.classList.toggle('sidebar-open');
-        }
+    // Мобильное меню - гамбургер слева
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
+    
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', function() {
+            sidebar.classList.add('mobile-open');
+            mobileSidebarOverlay.classList.add('active');
+        });
     }
     
-    document.addEventListener('click', function(e) {
-        // Проверяем, что это мобильная версия
-        if (window.innerWidth >= 769) {
-            return; // На десктопе не обрабатываем
-        }
-        if (e.target.closest('#mobileMenuToggle')) {
-            handleHamburgerClick(e);
-        }
-    }, true);
-    
-    document.addEventListener('touchstart', function(e) {
-        // Проверяем, что это мобильная версия
-        if (window.innerWidth >= 769) {
-            return; // На десктопе не обрабатываем
-        }
-        if (e.target.closest('#mobileMenuToggle')) {
-            e.preventDefault();
-            e.stopPropagation();
-            handleHamburgerClick(e);
-        }
-    }, { passive: false, capture: true });
-    
-    const mobileSidebarOverlayEl = document.getElementById('mobileSidebarOverlay');
-    if (mobileSidebarOverlayEl) {
-        mobileSidebarOverlayEl.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const sidebarEl = document.getElementById('sidebar');
-            if (sidebarEl) {
-                sidebarEl.classList.remove('mobile-open');
-            }
-            mobileSidebarOverlayEl.classList.remove('active');
-            document.body.classList.remove('sidebar-open');
+    if (mobileSidebarOverlay) {
+        mobileSidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('mobile-open');
+            mobileSidebarOverlay.classList.remove('active');
         });
     }
     
@@ -1513,7 +1048,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (mobileSidebarOverlay) {
                     mobileSidebarOverlay.classList.add('active');
                 }
-                document.body.classList.add('sidebar-open');
             }
         }
         
@@ -1523,60 +1057,31 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (mobileSidebarOverlay) {
                 mobileSidebarOverlay.classList.remove('active');
             }
-            document.body.classList.remove('sidebar-open');
         }
     }
     
-    // Старые обработчики удалены - теперь используется делегирование событий ниже
-    
-    // Клик на логотип - открытие информации о SEEE
-    function handleHeaderLogoClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const aboutModal = document.getElementById('aboutModal');
-        if (aboutModal) {
-            aboutModal.style.display = 'flex';
-        }
-    }
-    
-    // Обработчик для десктопа и мобильной версии
-    const headerLogo = document.getElementById('headerLogo');
-    if (headerLogo) {
-        headerLogo.addEventListener('click', handleHeaderLogoClick);
-        headerLogo.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            handleHeaderLogoClick(e);
-        }, { passive: false });
-    }
-    
-    // Закрытие модального окна "О SEEE"
-    const closeAboutModal = document.getElementById('closeAboutModal');
-    const aboutModal = document.getElementById('aboutModal');
-    
-    if (closeAboutModal && aboutModal) {
-        // Прямой обработчик для кнопки закрытия
-        closeAboutModal.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            aboutModal.style.display = 'none';
-        });
-        
-        // Закрытие при клике вне модального окна (на overlay)
-        aboutModal.addEventListener('click', function(e) {
-            // Закрываем только если клик был на сам overlay, а не на содержимое
-            if (e.target === aboutModal) {
-                aboutModal.style.display = 'none';
+    // Кнопка "Боковая панель" в меню
+    const mobileSidebarBtn = document.getElementById('mobileSidebarBtn');
+    if (mobileSidebarBtn) {
+        mobileSidebarBtn.addEventListener('click', function() {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            if (mobileMenuToggle) {
+                mobileMenuToggle.click();
             }
+            mobileMenu.classList.remove('active');
         });
-        
-        // Предотвращаем закрытие при клике на содержимое модального окна
-        const modalContent = aboutModal.querySelector('.modal-content');
-        if (modalContent) {
-            modalContent.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-        }
+    }
+    
+    // Кнопка "Обратная связь" в меню
+    const mobileFeedbackBtn = document.getElementById('mobileFeedbackBtn');
+    if (mobileFeedbackBtn) {
+        mobileFeedbackBtn.addEventListener('click', function() {
+            const feedbackBtn = document.getElementById('feedbackBtn');
+            if (feedbackBtn) {
+                feedbackBtn.click();
+            }
+            mobileMenu.classList.remove('active');
+        });
     }
     
     // Мобильное меню - стрелка внизу
@@ -1585,56 +1090,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
     const mobilePauseSession = document.getElementById('mobilePauseSession');
     const mobileCabinet = document.getElementById('mobileCabinet');
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-    const sidebar = document.querySelector('.sidebar');
-    
-    function handleMenuToggleClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('[Mobile] Menu toggle clicked');
-        // Не закрываем клавиатуру
-        if (mobileMenu) {
-            mobileMenu.classList.toggle('active');
-            // Добавляем класс для поднятия input-container
-            if (mobileMenu.classList.contains('active')) {
-                document.body.classList.add('mobile-menu-open');
-            } else {
-                document.body.classList.remove('mobile-menu-open');
-            }
-        }
-    }
     
     if (mobileMenuToggleBottom) {
-        mobileMenuToggleBottom.addEventListener('click', handleMenuToggleClick);
-        mobileMenuToggleBottom.addEventListener('touchstart', function(e) {
+        mobileMenuToggleBottom.addEventListener('click', function(e) {
             e.preventDefault();
-            handleMenuToggleClick(e);
-        }, { passive: false });
-    }
-    
-    if (mobileMenuOverlay) {
-        mobileMenuOverlay.addEventListener('click', function() {
-            mobileMenu.classList.remove('active');
-            document.body.classList.remove('mobile-menu-open');
-        });
-    }
-    
-    // Убираем дублирующийся обработчик - уже есть выше
-    
-    // Закрытие бокового меню при клике на overlay
-    const sidebarOverlay = document.querySelector('.mobile-sidebar-overlay');
-    if (sidebarOverlay) {
-        sidebarOverlay.addEventListener('click', function(e) {
             e.stopPropagation();
-            const sidebar = document.getElementById('sidebar');
-            const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
-            if (sidebar) {
-                sidebar.classList.remove('mobile-open');
-            }
-            if (mobileSidebarOverlay) {
-                mobileSidebarOverlay.classList.remove('active');
-            }
-            document.body.classList.remove('sidebar-open');
+            // Не закрываем клавиатуру
+            mobileMenu.classList.toggle('active');
         });
     }
     
@@ -1644,234 +1106,40 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    // Мобильное меню - стрелка внизу - используем делегирование событий
-    document.addEventListener('click', function(e) {
-        // Проверяем, что это мобильная версия
-        if (window.innerWidth >= 769) {
-            return; // На десктопе не обрабатываем
-        }
-        if (e.target.closest('#mobileMenuToggleBottom')) {
-            e.preventDefault();
-            e.stopPropagation();
-            const mobileMenu = document.getElementById('mobileMenu');
-            const mobileMenuContent = document.querySelector('.mobile-menu-content');
-            const arrowButton = document.getElementById('mobileMenuToggleBottom');
-            
-            if (mobileMenu && mobileMenuContent && arrowButton) {
-                mobileMenu.classList.toggle('active');
-                if (mobileMenu.classList.contains('active')) {
-                    // Вычисляем позицию стрелки
-                    const arrowRect = arrowButton.getBoundingClientRect();
-                    const menuWidth = mobileMenuContent.offsetWidth || 240;
-                    const menuHeight = mobileMenuContent.offsetHeight || 300;
-                    
-                    // Позиционируем меню над стрелкой по центру
-                    const menuLeft = arrowRect.left + arrowRect.width / 2 - menuWidth / 2;
-                    // Убеждаемся, что меню не выходит за левый край
-                    const finalLeft = Math.max(8, Math.min(menuLeft, window.innerWidth - menuWidth - 8));
-                    // Позиционируем меню прямо над input-container (не слишком высоко)
-                    // bottom - это расстояние от низа экрана до низа меню
-                    const inputContainer = document.querySelector('.input-container');
-                    const inputRect = inputContainer ? inputContainer.getBoundingClientRect() : null;
-                    // Меню должно быть на 12px выше input-container
-                    const menuBottom = inputRect ? (window.innerHeight - inputRect.top + 12) : (arrowRect.height + 12);
-                    
-                    mobileMenuContent.style.left = finalLeft + 'px';
-                    mobileMenuContent.style.bottom = menuBottom + 'px';
-                    
-                    // Позиционируем стрелочку меню точно над центром стрелки
-                    const arrowCenterX = arrowRect.left + arrowRect.width / 2;
-                    const arrowOffset = arrowCenterX - finalLeft;
-                    mobileMenuContent.style.setProperty('--arrow-left', arrowOffset + 'px');
-                    
-                    document.body.classList.add('mobile-menu-open');
-                } else {
-                    document.body.classList.remove('mobile-menu-open');
-                }
-            }
-        }
-    }, true);
-    
-    document.addEventListener('touchstart', function(e) {
-        // Проверяем, что это мобильная версия
-        if (window.innerWidth >= 769) {
-            return; // На десктопе не обрабатываем
-        }
-        if (e.target.closest('#mobileMenuToggleBottom')) {
-            e.preventDefault();
-            e.stopPropagation();
-            const mobileMenu = document.getElementById('mobileMenu');
-            if (mobileMenu) {
-                mobileMenu.classList.toggle('active');
-                if (mobileMenu.classList.contains('active')) {
-                    document.body.classList.add('mobile-menu-open');
-                } else {
-                    document.body.classList.remove('mobile-menu-open');
-                }
-            }
-        }
-    }, { passive: false, capture: true });
-    
-    // Кнопки в мобильном меню - используем делегирование событий (только для мобильных элементов)
-    document.addEventListener('click', function(e) {
-        // Проверяем, что это мобильная версия (ширина экрана < 769px)
-        if (window.innerWidth >= 769) {
-            return; // На десктопе не обрабатываем
-        }
-        
-        if (e.target.closest('#mobilePauseSession')) {
-            e.preventDefault();
-            e.stopPropagation();
+    if (mobilePauseSession) {
+        mobilePauseSession.addEventListener('click', function() {
             const pauseBtn = document.getElementById('pauseSessionBtn');
-            if (pauseBtn) {
+            if (pauseBtn && pauseBtn.style.display !== 'none') {
                 pauseBtn.click();
             }
-            const mobileMenu = document.getElementById('mobileMenu');
-            if (mobileMenu) {
-                mobileMenu.classList.remove('active');
-            }
-            document.body.classList.remove('mobile-menu-open');
-        }
-        
-        if (e.target.closest('#mobileCabinet')) {
-            e.preventDefault();
-            e.stopPropagation();
+            mobileMenu.classList.remove('active');
+        });
+    }
+    
+    if (mobileCabinet) {
+        mobileCabinet.addEventListener('click', function() {
             const cabinetBtn = document.getElementById('cabinetBtn');
             if (cabinetBtn) {
                 cabinetBtn.click();
             }
-            const mobileMenu = document.getElementById('mobileMenu');
-            if (mobileMenu) {
-                mobileMenu.classList.remove('active');
-            }
-            document.body.classList.remove('mobile-menu-open');
-        }
-        
-        if (e.target.closest('#mobileSidebarBtn')) {
-            e.preventDefault();
-            e.stopPropagation();
-            const sidebar = document.getElementById('sidebar');
-            const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
-            if (sidebar) {
-                sidebar.classList.add('mobile-open');
-                if (mobileSidebarOverlay) {
-                    mobileSidebarOverlay.classList.add('active');
-                }
-                document.body.classList.add('sidebar-open');
-            }
-            const mobileMenu = document.getElementById('mobileMenu');
-            if (mobileMenu) {
-                mobileMenu.classList.remove('active');
-            }
-            document.body.classList.remove('mobile-menu-open');
-        }
-        
-        if (e.target.closest('#mobileFeedbackBtn')) {
-            e.preventDefault();
-            e.stopPropagation();
-            const feedbackBtn = document.getElementById('feedbackBtn');
-            if (feedbackBtn) {
-                feedbackBtn.click();
-            }
-            const mobileMenu = document.getElementById('mobileMenu');
-            if (mobileMenu) {
-                mobileMenu.classList.remove('active');
-            }
-            document.body.classList.remove('mobile-menu-open');
-        }
-        
-        // Обработка переключения темы в мобильном меню
-        if (e.target.closest('#mobileThemeToggle') || e.target.closest('#mobileThemeToggle .theme-toggle')) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleTheme();
-            // НЕ закрываем меню после переключения темы
-        }
-    }, true);
-    
-    document.addEventListener('touchstart', function(e) {
-        if (e.target.closest('#mobilePauseSession') || 
-            e.target.closest('#mobileCabinet') || 
-            e.target.closest('#mobileSidebarBtn') || 
-            e.target.closest('#mobileFeedbackBtn') ||
-            e.target.closest('#mobileThemeToggle')) {
-            e.preventDefault();
-            e.stopPropagation();
-            const target = e.target.closest('#mobilePauseSession, #mobileCabinet, #mobileSidebarBtn, #mobileFeedbackBtn, #mobileThemeToggle');
-            if (target) {
-                if (target.id === 'mobileThemeToggle' || target.closest('#mobileThemeToggle')) {
-                    toggleTheme();
-                    // НЕ закрываем меню после переключения темы
-                } else {
-                    target.click();
-                }
-            }
-        }
-    }, { passive: false, capture: true });
+            mobileMenu.classList.remove('active');
+        });
+    }
     
     // Тумблер темы
     const themeToggle = document.getElementById('themeToggle');
     const mobileThemeToggle = document.getElementById('mobileThemeToggle');
     
-    // Функция переключения темы (определяем раньше, чтобы была доступна в делегировании)
-    function toggleTheme() {
-        const isDark = document.body.classList.toggle('dark-mode');
-        
-        // Обновляем десктопный переключатель
-        if (themeToggle) {
-            // Темный режим = зеленый тумблер, светлый режим = серый тумблер
-            if (isDark) {
-                themeToggle.classList.add('dark'); // Зеленый
-                localStorage.setItem('theme', 'dark');
-            } else {
-                themeToggle.classList.remove('dark'); // Серый
-                localStorage.setItem('theme', 'light');
-            }
-        }
-        
-        // НЕ закрываем боковую панель при переключении темы
-        // Убираем любые обработчики, которые могут закрывать панель
-        
-        // Обновляем мобильный переключатель
-        const mobileThemeToggleEl = document.getElementById('mobileThemeToggle');
-        if (mobileThemeToggleEl) {
-            const toggle = mobileThemeToggleEl.querySelector('.theme-toggle');
-            if (toggle) {
-                if (isDark) {
-                    toggle.classList.add('dark'); // Зеленый
-                } else {
-                    toggle.classList.remove('dark'); // Серый
-                }
-            }
-        }
-    }
-    
     // Загружаем сохраненную тему
     const savedTheme = localStorage.getItem('theme') || 'light';
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
-        // Темный режим = зеленый тумблер
         if (themeToggle) {
             themeToggle.classList.add('dark');
         }
-        const mobileThemeToggleEl = document.getElementById('mobileThemeToggle');
-        if (mobileThemeToggleEl) {
-            const toggle = mobileThemeToggleEl.querySelector('.theme-toggle');
-            if (toggle) {
-                toggle.classList.add('dark');
-            }
-        }
     } else {
-        // Светлый режим = серый тумблер
         if (themeToggle) {
             themeToggle.classList.remove('dark');
-        }
-        const mobileThemeToggleEl = document.getElementById('mobileThemeToggle');
-        if (mobileThemeToggleEl) {
-            const toggle = mobileThemeToggleEl.querySelector('.theme-toggle');
-            if (toggle) {
-                toggle.classList.remove('dark');
-            }
         }
     }
     
@@ -1882,19 +1150,28 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    // Прямой обработчик для мобильного переключателя (резервный, основной через делегирование)
     if (mobileThemeToggle) {
         mobileThemeToggle.addEventListener('click', function(e) {
-            e.preventDefault();
             e.stopPropagation();
-            toggleTheme();
-            // Закрываем меню после переключения
-            const mobileMenu = document.getElementById('mobileMenu');
-            if (mobileMenu) {
-                mobileMenu.classList.remove('active');
-                document.body.classList.remove('mobile-menu-open');
+            // Не закрываем меню при клике на тумблер
+            if (themeToggle) {
+                themeToggle.click();
             }
         });
+    }
+    
+    function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        if (themeToggle) {
+            // Зеленый = светлая тема, серый = темная тема
+            if (isDark) {
+                themeToggle.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeToggle.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+        }
     }
 });
 

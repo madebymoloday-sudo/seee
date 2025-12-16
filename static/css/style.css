@@ -30,8 +30,7 @@ a.btn:not(.btn-mobile-menu-toggle):not(.btn-send):not(.btn-send-mobile) {
 }
 
 /* Темная тема */
-body.dark-mode,
-body.dark-mode * {
+body.dark-mode {
     --bg-primary: #1a1a1a;
     --bg-secondary: #2d2d2d;
     --bg-tertiary: #3a3a3a;
@@ -40,99 +39,6 @@ body.dark-mode * {
     --border: #404040;
     --message-user-bg: #6A8EEB;
     --message-ai-bg: #404040;
-}
-
-body.dark-mode {
-    background-color: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
-}
-
-body.dark-mode .app-container,
-body.dark-mode .chat-container,
-body.dark-mode .messages-container,
-body.dark-mode .sidebar,
-body.dark-mode .modal {
-    background: transparent !important;
-}
-
-body.dark-mode .modal-content {
-    background-color: var(--bg-secondary) !important;
-}
-
-body.dark-mode .chat-header {
-    background: transparent !important;
-}
-
-body.dark-mode .welcome-message {
-    background-color: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
-}
-
-body.dark-mode .welcome-message h3,
-body.dark-mode .welcome-message p,
-body.dark-mode .welcome-message .info-section,
-body.dark-mode .welcome-message .info-section h4,
-body.dark-mode .welcome-message .info-section ul,
-body.dark-mode .welcome-message .info-section li,
-body.dark-mode .welcome-message .info-section strong,
-body.dark-mode .welcome-message .reassurance {
-    background: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
-    border-left-color: var(--ultramarine) !important;
-}
-
-body.dark-mode .welcome-message .info-section {
-    background-color: var(--bg-secondary) !important;
-    border-color: var(--border) !important;
-}
-
-body.dark-mode .message,
-body.dark-mode .message-content,
-body.dark-mode .input-container {
-    background: transparent !important;
-}
-
-body.dark-mode #messageInput,
-body.dark-mode .mobile-menu-content,
-body.dark-mode .mobile-menu-overlay,
-body.dark-mode .session-item,
-body.dark-mode .cabinet-section,
-body.dark-mode .tab-content,
-body.dark-mode .form-group,
-body.dark-mode input,
-body.dark-mode textarea,
-body.dark-mode select,
-body.dark-mode button:not(.btn-send-mobile) {
-    background-color: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
-}
-
-body.dark-mode .message.assistant .message-content {
-    background-color: var(--message-ai-bg) !important;
-    color: var(--text-primary) !important;
-}
-
-body.dark-mode .message.user .message-content {
-    background-color: var(--message-user-bg) !important;
-    color: white !important;
-}
-
-body.dark-mode .sidebar {
-    background-color: var(--bg-secondary) !important;
-    border-right-color: var(--border) !important;
-}
-
-body.dark-mode .modal-content {
-    background-color: var(--bg-secondary) !important;
-}
-
-body.dark-mode .mobile-menu-content {
-    background-color: var(--bg-secondary) !important;
-}
-
-body.dark-mode #messageInput {
-    background-color: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
@@ -321,8 +227,6 @@ body {
 }
 
 .form-actions {
-    padding-bottom: calc(20px + env(safe-area-inset-bottom)) !important;
-    margin-bottom: env(safe-area-inset-bottom) !important;
     display: flex;
     gap: 10px;
     margin-top: 30px;
@@ -547,61 +451,22 @@ body {
     align-items: center;
     justify-content: space-between;
     position: relative;
-    z-index: 1000; /* Выше сообщений, но ниже модального окна (2000) */
 }
 
 .mobile-menu-toggle {
     display: none;
-    background: transparent !important;
+    background: none;
     border: none;
     cursor: pointer;
     padding: 8px;
     color: var(--ultramarine);
     flex-shrink: 0;
-    border-radius: 50% !important;
-    width: 40px !important;
-    height: 40px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
 }
 
 .chat-title-center {
-    flex: 0 0 auto;
+    flex: 1;
     text-align: center;
-    margin: 0 auto;
-    display: inline-block;
-    padding: 6px 8px;
-    background: rgba(106, 142, 235, 0.1);
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--ultramarine);
-    cursor: pointer;
-    transition: background 0.2s;
-    max-width: 60%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.chat-title-center::before {
-    content: '  ';
-    display: inline-block;
-}
-
-.chat-title-center::after {
-    content: '  ';
-    display: inline-block;
-}
-
-.chat-title-center:hover {
-    background: rgba(106, 142, 235, 0.2);
-}
-
-body.dark-mode .chat-title-center {
-    background: rgba(106, 142, 235, 0.15);
-    color: var(--ultramarine);
+    margin: 0;
 }
 
 .desktop-only {
@@ -640,11 +505,6 @@ body.dark-mode .chat-title-center {
     gap: 24px;
     position: relative;
     z-index: 1;
-    min-height: calc(100vh - 200px);
-}
-
-body.dark-mode .messages-container {
-    background-color: var(--bg-primary) !important;
 }
 
 .logo-container {
@@ -661,12 +521,6 @@ body.dark-mode .messages-container {
 /* Скрываем логотип в приветственном сообщении на веб-версии */
 .welcome-logo {
     display: none;
-}
-
-/* Убеждаемся что welcome-logo не перекрывает header */
-.logo-container.welcome-logo {
-    position: relative !important;
-    z-index: 1 !important;
 }
 
 .welcome-message {
@@ -730,13 +584,6 @@ body.dark-mode .messages-container {
     margin: 20px 0;
     font-style: italic;
     color: var(--text-primary);
-    transition: background-color 0.3s, color 0.3s;
-}
-
-body.dark-mode .welcome-message .reassurance {
-    background: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
-    border-left-color: var(--ultramarine) !important;
 }
 
 .message {
@@ -745,8 +592,6 @@ body.dark-mode .welcome-message .reassurance {
     max-width: 800px;
     margin: 0 auto 12px auto;
     width: 100%;
-    position: relative;
-    z-index: 1; /* Ниже header (1000) */
 }
 
 .message.user {
@@ -777,15 +622,6 @@ body.dark-mode .welcome-message .reassurance {
 
 .message.assistant {
     justify-content: flex-start;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.message.assistant .message-content-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    max-width: 75%;
 }
 
 .message.assistant .message-content {
@@ -793,76 +629,49 @@ body.dark-mode .welcome-message .reassurance {
     background: var(--message-ai-bg);
     padding: 10px 14px;
     border-radius: 18px 18px 18px 4px;
-    max-width: 100%;
+    max-width: 75%;
     word-wrap: break-word;
 }
 
 /* Стикер "Затрудняюсь ответить" под сообщением AI */
 .message-difficulty-sticker {
     display: block;
-    margin-top: 8px;
+    margin-top: 4px;
     margin-left: 0;
-    margin-right: auto;
-    padding: 6px 12px;
-    background: rgba(106, 142, 235, 0.1);
+    padding: 4px 10px;
+    background: rgba(106, 142, 235, 0.06);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
-    border-radius: 12px;
+    border-radius: 10px;
     border: none;
     cursor: pointer;
     transition: all 0.2s;
-    font-size: 13px;
-    color: rgba(106, 142, 235, 0.85);
-    font-weight: 500;
-    opacity: 0.8;
+    font-size: 12px;
+    color: rgba(106, 142, 235, 0.6);
+    font-weight: 400;
+    opacity: 0.6;
     align-self: flex-start;
-    width: fit-content;
-    user-select: none;
-    -webkit-user-select: none;
 }
 
 .message-difficulty-sticker:hover {
-    background: rgba(106, 142, 235, 0.18);
-    opacity: 1;
-    color: rgba(106, 142, 235, 1);
+    background: rgba(106, 142, 235, 0.12);
+    opacity: 0.9;
 }
 
 .message-difficulty-sticker:active {
     opacity: 1;
-    background: rgba(106, 142, 235, 0.25);
-    transform: scale(0.98);
 }
 
 /* Input Container */
 .input-container {
     padding: 16px 24px;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom));
     background: transparent;
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 1000 !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
     box-shadow: none;
-    transform: translateZ(0) !important;
-    -webkit-transform: translateZ(0) !important;
-    will-change: auto !important;
-    /* Убеждаемся, что контейнер всегда внизу и не двигается */
-    margin: 0 !important;
-    top: auto !important;
-}
-
-/* Для веб-версии делаем полностью прозрачным */
-@media (min-width: 769px) {
-    .input-container {
-        background: transparent !important;
-        box-shadow: none !important;
-    }
-    
-    body.force-web-view .input-container {
-        background: transparent !important;
-        box-shadow: none !important;
-    }
 }
 
 #messageForm {
@@ -871,7 +680,6 @@ body.dark-mode .welcome-message .reassurance {
     display: flex;
     gap: 12px;
     align-items: flex-end;
-    background: transparent !important;
 }
 
 #messageInput {
@@ -889,24 +697,24 @@ body.dark-mode .welcome-message .reassurance {
 }
 
 .btn-mobile-menu-toggle {
-    width: 40px !important;
-    height: 40px !important;
-    background: transparent !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.05);
     border: none;
-    border-radius: 50% !important;
+    border-radius: 50%;
     color: var(--ultramarine);
     cursor: pointer;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
     transition: all 0.2s;
     padding: 0;
-    box-shadow: none !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .btn-mobile-menu-toggle:hover {
-    background: transparent !important;
+    background: rgba(0, 0, 0, 0.08);
 }
 
 .btn-mobile-menu-toggle svg {
@@ -923,12 +731,10 @@ body.dark-mode .welcome-message .reassurance {
     left: 0;
     right: 0;
     z-index: 1000;
-    pointer-events: none;
 }
 
 .mobile-menu.active {
     display: block;
-    pointer-events: auto;
 }
 
 .mobile-menu-overlay {
@@ -937,15 +743,10 @@ body.dark-mode .welcome-message .reassurance {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 1001;
-    pointer-events: auto;
-}
-
-body.dark-mode .mobile-menu-overlay {
-    background: rgba(0, 0, 0, 0.3);
 }
 
 .mobile-menu-content {
@@ -960,8 +761,6 @@ body.dark-mode .mobile-menu-overlay {
     min-width: 200px;
     max-width: 280px;
     animation: slideUpMenu 0.3s ease-out;
-    pointer-events: auto;
-    --arrow-left: 50%;
 }
 
 body.dark-mode .mobile-menu-content {
@@ -989,11 +788,11 @@ body.dark-mode .mobile-menu-content::before {
     content: '';
     position: absolute;
     bottom: -6px;
-    left: var(--arrow-left, 50%);
-    transform: translateX(-50%) rotate(45deg);
+    left: 20px;
     width: 12px;
     height: 12px;
     background: white;
+    transform: rotate(45deg);
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -1035,7 +834,7 @@ body.dark-mode .mobile-menu-content::before {
     position: relative;
     width: 51px;
     height: 31px;
-    background: #e5e5ea; /* Серый по умолчанию (светлый режим) */
+    background: #34c759;
     border-radius: 31px;
     cursor: pointer;
     transition: background 0.3s;
@@ -1043,7 +842,7 @@ body.dark-mode .mobile-menu-content::before {
 }
 
 .theme-toggle.dark {
-    background: #34c759; /* Зеленый когда темный режим включен */
+    background: #e5e5ea;
 }
 
 .theme-toggle::after {
@@ -1094,27 +893,21 @@ body.dark-mode .mobile-menu-content::before {
 .btn-send {
     width: 44px;
     height: 44px;
-    background: transparent !important;
+    background: var(--ultramarine);
     border: none;
     border-radius: 50%;
-    color: var(--ultramarine);
+    color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
     flex-shrink: 0;
-    box-shadow: none !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .btn-send:hover:not(:disabled) {
-    background: transparent !important;
-    opacity: 0.8;
-}
-
-.btn-send svg {
-    stroke: var(--ultramarine);
-    color: var(--ultramarine);
+    background: var(--ultramarine-dark);
 }
 
 .btn-send:disabled {
@@ -1124,29 +917,23 @@ body.dark-mode .mobile-menu-content::before {
 
 /* Мобильная кнопка отправки */
 .btn-send-mobile {
-    width: 48px !important;
-    height: 48px !important;
-    min-width: 48px !important;
-    min-height: 48px !important;
-    background: var(--ultramarine) !important;
+    width: 40px;
+    height: 40px;
+    background: var(--ultramarine);
     border: none;
     border-radius: 50% !important;
-    color: white !important;
+    color: white;
     cursor: pointer;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s;
     flex-shrink: 0;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .btn-send-mobile:hover:not(:disabled) {
-    background: var(--accent-hover) !important;
-    opacity: 1;
-    transform: scale(1.05);
+    background: var(--ultramarine-dark);
 }
 
 .btn-send-mobile:disabled {
@@ -1154,24 +941,9 @@ body.dark-mode .mobile-menu-content::before {
     cursor: not-allowed;
 }
 
-.btn-send-mobile {
-    position: relative !important;
-}
-
 .btn-send-mobile svg {
-    stroke: white !important;
-    color: white !important;
-    fill: white !important;
-    width: 24px !important;
-    height: 24px !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    margin: 0 !important;
+    stroke: white;
+    color: white;
 }
 
 /* Scrollbar */
@@ -1230,7 +1002,7 @@ body.dark-mode .mobile-menu-content::before {
 .modal {
     display: none;
     position: fixed;
-    z-index: 2000; /* Выше чем input-container (1000) и header (100) */
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
@@ -1254,8 +1026,6 @@ body.dark-mode .mobile-menu-content::before {
     display: flex;
     flex-direction: column;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    position: relative;
-    z-index: 2001;
 }
 
 .about-modal {
@@ -1278,46 +1048,6 @@ body.dark-mode .mobile-menu-content::before {
     max-width: 1000px;
     width: 95%;
     max-height: 95vh;
-}
-
-/* Переключатель типов обратной связи */
-.feedback-type-toggle {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--border);
-    padding-bottom: 10px;
-}
-
-.feedback-type-btn {
-    flex: 1;
-    padding: 10px 20px;
-    background: var(--bg-secondary);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    transition: all 0.3s;
-}
-
-.feedback-type-btn:hover {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-}
-
-.feedback-type-btn.active {
-    background: var(--ultramarine);
-    color: white;
-}
-
-.feedback-form {
-    display: none;
-}
-
-.feedback-form.active {
-    display: block;
 }
 
 .modal-header {
@@ -1353,88 +1083,8 @@ body.dark-mode .mobile-menu-content::before {
 
 .modal-body {
     padding: 20px;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom));
     overflow-y: auto;
     flex: 1;
-}
-
-#feedbackModal .modal-body {
-    padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
-}
-
-/* Модальное окно со списком сессий */
-.sessions-modal-content {
-    max-width: 500px;
-    max-height: 80vh;
-}
-
-.current-session-header {
-    padding: 16px;
-    margin-bottom: 16px;
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    border: 2px solid var(--ultramarine);
-}
-
-.current-session-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--ultramarine);
-}
-
-.current-session-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.btn-edit-session-title,
-.btn-delete-session-title {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    transition: all 0.2s;
-}
-
-.btn-edit-session-title:hover {
-    background: var(--bg-tertiary);
-    color: var(--ultramarine);
-}
-
-.btn-delete-session-title:hover {
-    background: rgba(220, 38, 38, 0.1);
-    color: #dc2626;
-}
-
-.sessions-modal-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.session-item-modal {
-    padding: 12px 16px;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 14px;
-    color: var(--text-primary);
-}
-
-.session-item-modal:hover {
-    background: var(--bg-tertiary);
-    color: var(--ultramarine);
 }
 
 /* Поиск в личном кабинете */
@@ -1522,93 +1172,6 @@ body.dark-mode .mobile-menu-content::before {
 
 .cabinet-section {
     margin-bottom: 30px;
-}
-
-.setting-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding: 12px 0;
-}
-
-/* Стили для тумблера версии интерфейса (как у темы) */
-#viewModeToggle {
-    width: 50px;
-    height: 30px;
-    background: #e5e5ea;
-    border-radius: 15px;
-    position: relative;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-#viewModeToggle.active {
-    background: #34c759;
-}
-
-#viewModeToggle .theme-toggle-slider {
-    width: 26px;
-    height: 26px;
-    background: white;
-    border-radius: 50%;
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    transition: transform 0.3s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-#viewModeToggle.active .theme-toggle-slider {
-    transform: translateX(20px);
-}
-
-/* Принудительная мобильная версия */
-body.force-mobile-view .desktop-only {
-    display: none !important;
-}
-
-body.force-mobile-view .mobile-only {
-    display: block !important;
-}
-
-body.force-mobile-view .chat-header {
-    display: flex !important;
-}
-
-body.force-mobile-view .input-container {
-    position: fixed !important;
-    bottom: 0 !important;
-}
-
-/* Принудительная веб-версия */
-body.force-web-view .mobile-only {
-    display: none !important;
-}
-
-body.force-web-view .desktop-only {
-    display: block !important;
-}
-
-/* По умолчанию на мобильных устройствах показываем мобильную версию, на десктопе - веб */
-@media (max-width: 768px) {
-    body:not(.force-web-view) .mobile-only {
-        display: block !important;
-    }
-    
-    body:not(.force-web-view) .desktop-only {
-        display: none !important;
-    }
-}
-
-@media (min-width: 769px) {
-    body:not(.force-mobile-view) .mobile-only {
-        display: none !important;
-    }
-    
-    body:not(.force-mobile-view) .desktop-only {
-        display: block !important;
-    }
 }
 
 .cabinet-section h3 {
@@ -1943,15 +1506,11 @@ body.force-web-view .desktop-only {
         top: 0;
         left: 0;
         width: 280px;
-        height: calc(100vh - env(safe-area-inset-bottom));
-        max-height: calc(100vh - env(safe-area-inset-bottom));
+        height: 100vh;
         z-index: 999;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
         border-right: 1px solid var(--border);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
     }
     
     .sidebar.mobile-open {
@@ -1966,11 +1525,7 @@ body.force-web-view .desktop-only {
     
     .sidebar-footer {
         margin-top: auto;
-        padding-bottom: calc(16px + env(safe-area-inset-bottom));
-        position: sticky;
-        bottom: 0;
-        background: var(--bg-secondary);
-        z-index: 10;
+        padding-bottom: env(safe-area-inset-bottom);
     }
     
     .chat-container {
@@ -1983,34 +1538,14 @@ body.force-web-view .desktop-only {
         display: flex !important;
         align-items: center;
         gap: 12px;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        z-index: 1000 !important; /* Выше сообщений, но ниже модального окна (2000) */
-        background: transparent !important;
-        border-bottom: none !important;
-        pointer-events: auto !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-    }
-    
-    .chat-header * {
-        pointer-events: auto !important;
+        position: relative;
+        z-index: 100;
     }
     
     .mobile-menu-toggle {
-        border-radius: 50% !important;
-        width: 40px !important;
-        height: 40px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
         display: flex !important;
         align-items: center;
         justify-content: center;
-        z-index: 1002 !important;
-        position: relative !important;
     }
     
     .chat-title-center {
@@ -2019,16 +1554,12 @@ body.force-web-view .desktop-only {
         font-size: 16px;
         margin: 0;
         display: block !important;
-        z-index: 1002 !important;
-        position: relative !important;
     }
     
     .header-logo {
         height: 30px;
         width: auto;
         display: block !important;
-        z-index: 1002 !important;
-        position: relative !important;
     }
     
     .header-right {
@@ -2055,222 +1586,17 @@ body.force-web-view .desktop-only {
         background: transparent !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
-        z-index: 1001 !important;
+        z-index: 1000 !important;
         box-shadow: none !important;
-        transition: transform 0.3s ease;
-        pointer-events: auto !important;
-        border: none !important;
-    }
-    
-    /* Убираем любые белые фоны которые могут появиться */
-    .input-container::before,
-    .input-container::after {
-        display: none !important;
-        content: none !important;
-    }
-    
-    /* Убираем белый фон у body и app-container внизу */
-    body {
-        background: transparent !important;
-    }
-    
-    .app-container {
-        background: transparent !important;
-    }
-    
-    .chat-container {
-        background: transparent !important;
-    }
-    
-    /* Убираем белые плашки которые могут появиться */
-    html {
-        background: transparent !important;
-    }
-    
-    main.chat-container {
-        background: transparent !important;
-    }
-    
-    /* Убираем белый фон который появляется при открытии клавиатуры */
-    html {
-        background: transparent !important;
-    }
-    
-    /* Убираем белый фон у всех возможных элементов при фокусе на input */
-    #messageInput:focus,
-    #messageInput:focus-visible,
-    #messageInput:active {
-        background: var(--bg-primary) !important;
-    }
-    
-    /* Убираем белый фон у form при фокусе */
-    #messageForm:focus-within {
-        background: transparent !important;
-    }
-    
-    /* Убираем белый фон который может добавить браузер при открытии клавиатуры */
-    body:has(#messageInput:focus) .input-container,
-    body:has(#messageForm:focus-within) .input-container,
-    body:has(#messageInput:focus) #messageForm,
-    body:has(#messageForm:focus-within) #messageForm {
-        background: transparent !important;
-    }
-    
-    /* Убираем белый фон у всех родительских элементов */
-    main.chat-container,
-    .app-container > main {
-        background: transparent !important;
-    }
-    
-    /* Убираем белый фон который может появиться при виртуальной клавиатуре */
-    @supports (-webkit-touch-callout: none) {
-        body {
-            background: transparent !important;
-        }
-        
-        .input-container {
-            background: transparent !important;
-        }
-    }
-    
-    /* Когда клавиатура открыта - убеждаемся, что input-container зафиксирован */
-    body.keyboard-open .input-container {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        transform: translateZ(0) !important;
-        -webkit-transform: translateZ(0) !important;
-        margin: 0 !important;
-        top: auto !important;
-    }
-    
-    /* Дополнительная фиксация для всех состояний */
-    body:has(#messageInput:focus) .input-container,
-    body.keyboard-open #messageForm,
-    body.keyboard-open {
-        background: transparent !important;
-    }
-    
-    body.keyboard-open .app-container,
-    body.keyboard-open .chat-container {
-        background: transparent !important;
-    }
-    
-    .input-container * {
-        pointer-events: auto !important;
-    }
-    
-    #messageForm {
-        background: transparent !important;
-    }
-    
-    /* Убираем любой белый фон, который может появиться */
-    .input-container::before,
-    .input-container::after {
-        display: none !important;
-    }
-    
-    /* Убираем фон у всех кнопок-иконок */
-    .mobile-menu-toggle,
-    .btn-mobile-menu-toggle,
-    .btn-send,
-    .header-logo {
-        background: transparent !important;
-        pointer-events: auto !important;
-        cursor: pointer !important;
-        touch-action: manipulation !important;
-        -webkit-tap-highlight-color: rgba(106, 142, 235, 0.2);
-        user-select: none;
-        -webkit-user-select: none;
-    }
-    
-    /* Кнопка отправки должна быть видимой с синим фоном */
-    .btn-send-mobile {
-        background: var(--ultramarine) !important;
-        pointer-events: auto !important;
-        cursor: pointer !important;
-        touch-action: manipulation !important;
-        -webkit-tap-highlight-color: rgba(106, 142, 235, 0.2);
-        user-select: none;
-        -webkit-user-select: none;
-    }
-    
-    /* Убеждаемся, что кнопки кликабельны */
-    .mobile-menu-item {
-        pointer-events: auto !important;
-        touch-action: manipulation !important;
-        -webkit-tap-highlight-color: rgba(106, 142, 235, 0.2);
-        user-select: none;
-        -webkit-user-select: none;
-    }
-    
-    /* Когда боковое меню открыто, сдвигаем input-container вправо и поднимаем выше клавиатуры */
-    body.sidebar-open .input-container {
-        transform: translateX(280px) translateZ(0) !important;
-        -webkit-transform: translateX(280px) translateZ(0) !important;
-        bottom: calc(0px + env(safe-area-inset-bottom)) !important;
-        top: auto !important;
-        z-index: 1001 !important; /* Выше sidebar, чтобы была видна */
-        padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
-    }
-    
-    /* Когда мобильное меню открыто, НЕ двигаем input-container */
-    body.mobile-menu-open .input-container {
-        transform: translateZ(0) !important;
-        -webkit-transform: translateZ(0) !important;
-        bottom: 0 !important;
-        top: auto !important;
     }
     
     .messages-container {
-        padding-top: 80px !important; /* Отступ сверху чтобы не перекрывало header и логотип */
-        /* Динамический padding-bottom будет установлен через JS в зависимости от высоты input-container */
-        padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
-        position: relative;
+        padding-bottom: 100px;
         z-index: 1;
-        /* Убеждаемся, что контейнер может прокручиваться */
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch; /* Плавная прокрутка на iOS */
-        min-height: calc(100vh - 200px);
-    }
-    
-    body.dark-mode .messages-container {
-        background-color: var(--bg-primary) !important;
-    }
-    
-    body.dark-mode .chat-container {
-        background-color: var(--bg-primary) !important;
-    }
-    
-    body.dark-mode .app-container {
-        background-color: var(--bg-primary) !important;
     }
     
     .chat-container {
         padding-bottom: 80px;
-        background: transparent !important;
-    }
-    
-    /* Убеждаемся что welcome-logo не перекрывает header на мобильной версии */
-    .logo-container.welcome-logo {
-        position: relative !important;
-        z-index: 1 !important;
-        margin-top: 20px !important;
-        margin-bottom: 20px !important;
-    }
-    
-    .welcome-message {
-        padding-top: 20px !important;
-        position: relative;
-        z-index: 1;
-    }
-    
-    /* Убираем белый фон у header */
-    .chat-header {
-        background: transparent !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
     }
     
     #messageForm {
@@ -2288,37 +1614,24 @@ body.force-web-view .desktop-only {
     }
     
     .btn-mobile-menu-toggle {
-        border-radius: 50% !important;
-        width: 40px !important;
-        height: 40px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
         width: 40px;
         height: 40px;
-        border-radius: 0 !important;
-        background: transparent !important;
+        border-radius: 50%;
         order: -1;
         margin-right: 4px;
-        z-index: 1002 !important;
-        position: relative !important;
-        box-shadow: none !important;
     }
     
     .mobile-menu-content {
-        /* Позиция будет установлена динамически через JS */
-        transform: none;
+        left: 8px;
+        bottom: 90px;
     }
     
     .mobile-menu-content::before {
-        left: var(--arrow-left, 50%);
-        transform: translateX(-50%) rotate(45deg);
+        left: 16px;
     }
     
     .btn-send-mobile {
         order: 1;
-        z-index: 1002 !important;
-        position: relative !important;
     }
     
     .map-header {
